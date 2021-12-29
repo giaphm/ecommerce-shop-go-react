@@ -7,14 +7,14 @@ import (
 )
 
 type ProductModel struct {
-	uuid        string
-	userUuid    string
-	category    string
-	title       string
-	description string
-	image       string
-	price       float32
-	quantity    int64
+	uuid        string  `firestore:"Uuid"`
+	userUuid    string  `firestore:"UserUuid"`
+	category    string  `firestore:"Category"`
+	title       string  `firestore:"Title"`
+	description string  `firestore:"Description"`
+	image       string  `firestore:"Image"`
+	price       float32 `firestore:"Price"`
+	quantity    int64   `firestore:"Quantity"`
 }
 
 type ProductGrpc struct {

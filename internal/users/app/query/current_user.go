@@ -16,7 +16,7 @@ func NewCurrentUserProductHandler(readModel CurrentUserReadModel) CurrentUserHan
 	return CurrentUserHandler{readModel: readModel}
 }
 
-func (h CurrentUserHandler) Handle(ctx context.Context, userUuid string, userName string, userRole string) (UserModel, error) {
+func (h CurrentUserHandler) Handle(ctx context.Context, userUuid string) (UserModel, error) {
 
-	return h.readModel.GetUser(ctx, productUuid)
+	return h.readModel.GetUser(ctx, userUuid)
 }
