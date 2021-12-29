@@ -6,15 +6,15 @@ import (
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/genproto/products"
 )
 
-type ProductModel struct {
-	uuid        string  `firestore:"Uuid"`
-	userUuid    string  `firestore:"UserUuid"`
-	category    string  `firestore:"Category"`
-	title       string  `firestore:"Title"`
-	description string  `firestore:"Description"`
-	image       string  `firestore:"Image"`
-	price       float32 `firestore:"Price"`
-	quantity    int64   `firestore:"Quantity"`
+type Product struct {
+	uuid        string
+	userUuid    string
+	category    string
+	title       string
+	description string
+	image       string
+	price       float32
+	quantity    int64
 }
 
 type ProductGrpc struct {
@@ -25,21 +25,21 @@ func NewProductGrpc(client products.ProductsServiceClient) ProductGrpc {
 	return ProductGrpc{client: client}
 }
 
-func (s ProductGrpc) GetProduct(ctx context.Context, productUuid string) (ProductModel, error) {
+func (s ProductGrpc) GetProduct(ctx context.Context, productUuid string) (Product, error) {
 
-	p, err := s.client.GetProduct(ctx, &products.GetProductRequest{
+	getProductResponse, err := s.client.GetProduct(ctx, &products.GetProductRequest{
 		ProductUuid: productUuid,
 	})
 
-	return ProductModel{
-		uuid:        p.GetUuid(),
-		userUuid:    p.GetUserUuid(),
-		category:    p.GetCategory(),
-		title:       p.GetTitle(),
-		description: p.GetDescription(),
-		image:       p.GetImage(),
-		price:       p.GetPrice(),
-		quantity:    p.GetQuantity(),
+	return Product{
+		uuid:        getProductResponse.GetUuid(),
+		userUuid:    getProductResponse.GetUserUuid(),
+		category:    getProductResponse.GetCategory(),
+		title:       getProductResponse.GetTitle(),
+		description: getProductResponse.GetDescription(),
+		image:       getProductResponse.GetImage(),
+		price:       getProductResponse.GetPrice(),
+		quantity:    getProductResponse.GetQuantity(),
 	}, err
 }
 

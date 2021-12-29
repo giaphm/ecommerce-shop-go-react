@@ -16,15 +16,15 @@ func NewOrderGrpc(client orders.OrdersServiceClient) OrderGrpc {
 }
 
 type OrderModel struct {
-	uuid         string   `firestore:"Uuid"`
-	userUuid     string   `firestore:"UserUuid"`
-	productUuids []string `firestore:"ProductUuids"`
-	totalPrice   float64  `firestore:"TotalPrice"`
+	uuid         string
+	userUuid     string
+	productUuids []string
+	totalPrice   float64
 
-	status string `firestore:"Status"`
+	status string
 
-	proposedTime time.Time `firestore:"ProposedTime"`
-	expiresAt    time.Time `firestore:"ExpiresAt"`
+	proposedTime time.Time
+	expiresAt    time.Time
 }
 
 func (s OrderGrpc) GetOrder(ctx context.Context, orderUuid string) (OrderModel, error) {
