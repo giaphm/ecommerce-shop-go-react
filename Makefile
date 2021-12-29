@@ -55,9 +55,9 @@ proto:
 	# protoc --go_out=plugins=grpc:internal/common/genproto/products -I api/protobuf api/protobuf/products.proto
 	# protoc --go_out=plugins=grpc:internal/common/genproto/users -I api/protobuf api/protobuf/users.proto
 	
-	protoc --go_out=internal/common/genproto/orders --go_opt=paths=source_relative --go-grpc_out=internal/common/genproto/orders --go-grpc_opt=paths=source_relative -I api/protobuf api/protobuf/orders.proto
-	protoc --go_out=internal/common/genproto/products --go_opt=paths=source_relative --go-grpc_out=internal/common/genproto/products --go-grpc_opt=paths=source_relative -I api/protobuf api/protobuf/products.proto
-	protoc --go_out=internal/common/genproto/users --go_opt=paths=source_relative --go-grpc_out=internal/common/genproto/users --go-grpc_opt=paths=source_relative -I api/protobuf api/protobuf/users.proto
+	protoc --go_out=plugins=grpc:internal/common/genproto/orders --go_opt=paths=source_relative -I api/protobuf api/protobuf/orders.proto
+	protoc --go_out=plugins=grpc:internal/common/genproto/products --go_opt=paths=source_relative -I api/protobuf api/protobuf/products.proto
+	protoc --go_out=plugins=grpc:internal/common/genproto/users --go_opt=paths=source_relative -I api/protobuf api/protobuf/users.proto
 
 .PHONY: lint
 lint:

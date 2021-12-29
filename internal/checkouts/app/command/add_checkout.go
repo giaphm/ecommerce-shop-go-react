@@ -22,7 +22,7 @@ type AddCheckoutHandler struct {
 	usersService   UsersService
 }
 
-func NewAddCheckoutHandler(checkoutRepo order.Repository) AddCheckoutHandler {
+func NewAddCheckoutHandler(checkoutRepo checkout.Repository) AddCheckoutHandler {
 	if checkoutRepo == nil {
 		panic("nil productRepo")
 	}

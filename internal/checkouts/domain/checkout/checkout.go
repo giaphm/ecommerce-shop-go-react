@@ -1,4 +1,4 @@
-package hour
+package checkout
 
 import (
 	"errors"

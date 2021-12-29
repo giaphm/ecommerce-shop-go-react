@@ -1,4 +1,4 @@
-package category_test
+package product_test
 
 import (
 	"testing"
