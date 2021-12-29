@@ -10,8 +10,8 @@ import (
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/genproto/users"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/logs"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/server"
-	"github.com/giaphm/ecommerce-shop-go-react/internal/ports"
-	"github.com/giaphm/ecommerce-shop-go-react/internal/service"
+	"github.com/giaphm/ecommerce-shop-go-react/internal/users/ports"
+	"github.com/giaphm/ecommerce-shop-go-react/internal/users/service"
 	"github.com/go-chi/chi"
 	"google.golang.org/grpc"
 )

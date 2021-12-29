@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/giaphm/ecommerce-shop-go-react/internal/common/genproto/orders"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/logs"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/server"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/orders/ports"
@@ -36,7 +37,7 @@ func main() {
 	case "grpc":
 		server.RunGRPCServer(func(server *grpc.Server) {
 			svc := ports.NewGrpcServer(application)
-			trainer.RegisterTrainerServiceServer(server, svc)
+			orders.RegisterOrdersServiceServer(server, svc)
 		})
 	default:
 		panic(fmt.Sprintf("server type '%s' is not supported", serverType))

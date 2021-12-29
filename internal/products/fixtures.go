@@ -2,17 +2,16 @@ package main
 
 import (
 	"context"
-	"math/rand"
 	"time"
 
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/client"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/products/app"
-	"github.com/giaphm/ecommerce-shop-go-react/internal/products/app/query"
+	"github.com/giaphm/ecommerce-shop-go-react/internal/products/app/command"
+	"github.com/giaphm/ecommerce-shop-go-react/internal/products/domain/product"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
-
-const daysToSet = 30
 
 func loadFixtures(app app.Application) {
 	start := time.Now()
@@ -46,45 +45,52 @@ func loadFixtures(app app.Application) {
 }
 
 func loadProductsFixtures(ctx context.Context, application app.Application) error {
-	maxDate := time.Now().AddDate(0, 0, daysToSet)
-	localRand := rand.New(rand.NewSource(3))
 
-	for date := time.Now(); date.Before(maxDate); date = date.AddDate(0, 0, 1) {
-		for hour := 12; hour <= 20; hour++ {
-			trainingTime := time.Date(date.Year(), date.Month(), date.Day(), hour, 0, 0, 0, time.UTC)
-
-			if trainingTime.Add(time.Hour).Before(time.Now()) {
-				// this hour is already "in progress"
-				continue
-			}
-
-			if localRand.NormFloat64() > 0 {
-				err := application.Commands.MakeHoursAvailable.Handle(ctx, []time.Time{trainingTime})
-				if err != nil {
-					return errors.Wrap(err, "unable to update hour")
-				}
-			}
-		}
+	productsFixtures := []command.AddProduct{
+		{
+			uuid:        uuid.New().String,
+			userUuid:    uuid.New().String,
+			category:    product.TShirtCategory,
+			title:       "title 1",
+			description: "description 1",
+			image:       "image 1",
+			price:       10,
+			quantity:    5,
+		},
+		{
+			uuid:        uuid.New().String,
+			userUuid:    uuid.New().String,
+			category:    product.TShirtCategory,
+			title:       "title 2",
+			description: "description 2",
+			image:       "image 2",
+			price:       10,
+			quantity:    5,
+		},
+		{
+			uuid:        uuid.New().String,
+			userUuid:    uuid.New().String,
+			category:    product.TShirtCategory,
+			title:       "title 3",
+			description: "description 3",
+			image:       "image 3",
+			price:       10,
+			quantity:    5,
+		},
 	}
 
+	for _, productsFixture := range productsFixtures {
+		if err := application.Commands.AddProduct.Handle(ctx, productsFixture); err != nil {
+			return errors.Wrap(err, "unable-to-add-productsfixture")
+		}
+	}
 	return nil
 }
 
 func canLoadFixtures(app app.Application, ctx context.Context) bool {
 	for {
-		dates, err := app.Queries.TrainerAvailableHours.Handle(ctx, query.AvailableHours{
-			From: time.Now(),
-			To:   time.Now().AddDate(0, 0, daysToSet),
-		})
+		_, err := app.Queries.GetProducts.Handle(ctx)
 		if err == nil {
-			for _, date := range dates {
-				for _, hour := range date.Hours {
-					if hour.Available {
-						// we don't need fixtures if any hour is already available for training
-						return false
-					}
-				}
-			}
 
 			return true
 		}

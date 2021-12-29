@@ -3,7 +3,7 @@ package category_test
 import (
 	"testing"
 
-	"github.com/giaphm/ecommerce-shop-go-react/internal/products/domain/category"
+	"github.com/giaphm/ecommerce-shop-go-react/internal/products/domain/product"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

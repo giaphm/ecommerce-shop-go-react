@@ -1,8 +1,8 @@
 package app
 
 import (
-	"github.com/giaphm/ecommerce-shop-go-react/internal/products/app/command"
-	"github.com/giaphm/ecommerce-shop-go-react/internal/products/app/query"
+	"github.com/giaphm/ecommerce-shop-go-react/internal/users/app/command"
+	"github.com/giaphm/ecommerce-shop-go-react/internal/users/app/query"
 )
 
 type Application struct {

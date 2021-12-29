@@ -8,9 +8,9 @@ import (
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
-	"github.com/giaphm/ecommerce-shop-go-react/internal/app"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/client"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/genproto/users"
+	"github.com/giaphm/ecommerce-shop-go-react/internal/users/app"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/api/option"
@@ -113,7 +113,7 @@ func createFirebaseUsers() ([]string, error) {
 			if err != nil {
 				return nil, errors.Wrap(err, "unable to get created user")
 			}
-			if user.Role == "attendee" {
+			if user.Role == "user" {
 				userUUIDs = append(userUUIDs, existingUser.UID)
 			}
 			continue
@@ -140,12 +140,12 @@ func createFirebaseUsers() ([]string, error) {
 func setUserAmount(userUUIDs []string) error {
 	usersClient, usersClose, err := client.NewUsersClient()
 	if err != nil {
-		logrus.WithError(err).Error("Unable to set trainings amount")
+		logrus.WithError(err).Error("Unable to set user amount")
 	}
 	defer usersClose()
 
 	for _, userUUID := range userUUIDs {
-		resp, err := usersClient.GetTrainingBalance(context.Background(), &users.GetTrainingBalanceRequest{
+		resp, err := usersClient.GetUserBalance(context.Background(), &users.GetUserBalanceRequest{
 			UserId: userUUID,
 		})
 		if err != nil {
@@ -154,13 +154,13 @@ func setUserAmount(userUUIDs []string) error {
 
 		if resp.Amount > 0 {
 			logrus.WithFields(logrus.Fields{
-				"attendee_uuid": userUUID,
-				"credits":       resp.Amount,
-			}).Debug("Attendee have credits already")
+				"user_uuid": userUUID,
+				"credits":   resp.Amount,
+			}).Debug("User have credits already")
 			continue
 		}
 
-		_, err = usersClient.UpdateTrainingBalance(context.Background(), &users.UpdateTrainingBalanceRequest{
+		_, err = usersClient.UpdateUserBalance(context.Background(), &users.UpdateUserBalanceRequest{
 			UserId:       userUUID,
 			AmountChange: 20,
 		})
@@ -168,7 +168,7 @@ func setUserAmount(userUUIDs []string) error {
 			return err
 		}
 
-		logrus.WithField("attendee_uuid", userUUID).Debug("Credits set to attendee")
+		logrus.WithField("user_uuid", userUUID).Debug("Credits set to user")
 	}
 
 	return nil

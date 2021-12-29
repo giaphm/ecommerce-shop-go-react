@@ -9,39 +9,61 @@ import (
 	"github.com/giaphm/ecommerce-shop-go-react/internal/checkouts/app"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/checkouts/app/command"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/checkouts/app/query"
+	grpcClient "github.com/giaphm/ecommerce-shop-go-react/internal/common/client"
 )
 
-func NewApplication(ctx context.Context) app.Application {
-	firestoreClient, err := firestore.NewClient(ctx, os.Getenv("GCP_PROJECT"))
+func NewApplication(ctx context.Context) (app.Application, func()) {
+	ordersClient, closeOrdersClient, err := grpcClient.NewOrdersClient()
 	if err != nil {
 		panic(err)
 	}
 
-	factoryConfig := hour.FactoryConfig{
-		MaxWeeksInTheFutureToSet: 6,
-		MinUtcHour:               12,
-		MaxUtcHour:               20,
-	}
-
-	datesRepository := adapters.NewDatesFirestoreRepository(firestoreClient, factoryConfig)
-
-	hourFactory, err := hour.NewFactory(factoryConfig)
+	productsClient, closeProductsClient, err := grpcClient.NewProductsClient()
 	if err != nil {
 		panic(err)
 	}
 
-	hourRepository := adapters.NewFirestoreHourRepository(firestoreClient, hourFactory)
+	usersClient, closeUsersClient, err := grpcClient.NewUsersClient()
+	if err != nil {
+		panic(err)
+	}
+
+	ordersGrpc := adapters.NewOrdersGrpc(ordersClient)
+	productsGrpc := adapters.NewTrainerGrpc(productsClient)
+	usersGrpc := adapters.NewUsersGrpc(usersClient)
+
+	return newApplication(ctx, ordersGrpc, productsGrpc, usersGrpc),
+		func() {
+			_ = closeOrdersClient()
+			_ = closeProductsClient()
+			_ = closeUsersClient()
+		}
+}
+
+func NewComponentTestApplication(ctx context.Context) app.Application {
+	return newApplication(ctx, OrderServiceMock{}, ProductServiceMock{}, UserServiceMock{})
+}
+
+func newApplication(
+	ctx context.Context,
+	ordersGrpc command.OrdersService,
+	productsGrpc command.ProductsService,
+	usersGrpc command.UserService,
+) app.Application {
+
+	client, err := firestore.NewClient(ctx, os.Getenv("GCP_PROJECT"))
+	if err != nil {
+		panic(err)
+	}
+
+	checkoutsRepository := adapters.NewCheckoutsFirestoreRepository(client)
 
 	return app.Application{
 		Commands: app.Commands{
-			CancelTraining:       command.NewCancelTrainingHandler(hourRepository),
-			ScheduleTraining:     command.NewScheduleTrainingHandler(hourRepository),
-			MakeHoursAvailable:   command.NewMakeHoursAvailableHandler(hourRepository),
-			MakeHoursUnavailable: command.NewMakeHoursUnavailableHandler(hourRepository),
+			AddCheckout: command.NewAddCheckoutHandler(checkoutsRepository, ordersGrpc, productsGrpc, usersGrpc),
 		},
 		Queries: app.Queries{
-			HourAvailability:      query.NewHourAvailabilityHandler(hourRepository),
-			TrainerAvailableHours: query.NewAvailableHoursHandler(datesRepository),
+			Checkouts: query.NewCheckoutsHandler(checkoutsRepository),
 		},
 	}
 }
