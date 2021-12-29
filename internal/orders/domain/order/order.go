@@ -38,6 +38,10 @@ func MustNewFactory() Factory {
 	return NewFactory()
 }
 
+func (f Factory) IsZero() bool {
+	return f == Factory{}
+}
+
 func (f Factory) NewCreatedOrder(
 	uuid string,
 	userUuid string,
@@ -59,7 +63,7 @@ func (f Factory) NewCreatedOrder(
 		uuid:         uuid,
 		userUuid:     userUuid,
 		productUuids: productUuids,
-		status:       Status.Created,
+		status:       StatusCreated,
 		proposedTime: proposedTime,
 		expiresAt:    time.Now().Add(1 * time.Hour),
 	}, nil
@@ -73,7 +77,7 @@ func (f Factory) UnmarshalOrderFromDatabase(
 	uuid string,
 	userUuid string,
 	productUuids []string,
-	status string,
+	status Status,
 	proposedTime time.Time,
 	expiresAt time.Time,
 ) (*Order, error) {
@@ -86,7 +90,7 @@ func (f Factory) UnmarshalOrderFromDatabase(
 		uuid:         uuid,
 		userUuid:     userUuid,
 		productUuids: productUuids,
-		status:       Status.NewStatusFromString(status),
+		status:       NewStatusFromString(status),
 		proposedTime: proposedTime,
 		expiresAt:    expiresAt,
 	}, nil

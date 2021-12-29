@@ -7,15 +7,15 @@ import (
 )
 
 var (
-	Created   = Status{"created"}
-	Completed = Status{"completed"}
-	Cancelled = Status{"cancelled"}
+	StatusCreated   = Status{"created"}
+	StatusCompleted = Status{"completed"}
+	StatusCancelled = Status{"cancelled"}
 )
 
 var statusValues = []Status{
-	Created,
-	Completed,
-	Cancelled,
+	StatusCreated,
+	StatusCompleted,
+	StatusCancelled,
 }
 
 type Status struct {

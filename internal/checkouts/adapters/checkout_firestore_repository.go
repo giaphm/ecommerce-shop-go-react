@@ -46,7 +46,7 @@ func (f FirestoreCheckoutRepository) AddCheckout(
 		stripe.Key = os.Getenv("SK_STRIPE_KEY")
 
 		params := &stripe.ChargeParams{
-			Amount:   stripe.Int64(totalPrice * 100),
+			Amount:   stripe.Float64(totalPrice * 100),
 			Currency: stripe.String(string(stripe.CurrencyUSD)),
 		}
 		params.SetSource("tok_visa")
@@ -85,7 +85,7 @@ func (f FirestoreCheckoutRepository) GetCheckouts(ctx context.Context) ([]*check
 	}
 
 	var checkouts []*query.Checkout
-	var checkout query.checkout
+	var checkout query.Checkout
 	for _, checkoutSnapshot := range checkoutSnapshots {
 		if err := checkoutSnapshot.DataTo(&checkout); err != nil {
 			return nil, err
@@ -168,10 +168,10 @@ func (f FirestoreCheckoutRepository) RemoveAllCheckouts(ctx context.Context) err
 }
 
 // For some cases, we need to convert custom data type
-func checkoutModelToDb(cm checkout.Checkout) *query.Checkout {
+func checkoutModelToDb(cm *checkout.Checkout) *query.Checkout {
 	statusString := cm.status.String()
 
-	return query.Checkout{
+	return &query.Checkout{
 		uuid:         cm.uuid,
 		userUuid:     cm.userUuid,
 		productUuids: cm.productUuids,

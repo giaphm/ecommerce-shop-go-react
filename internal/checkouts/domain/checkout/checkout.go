@@ -29,6 +29,10 @@ func MustNewFactory() Factory {
 	return NewFactory()
 }
 
+func (f Factory) IsZero() bool {
+	return f == Factory{}
+}
+
 func (f Factory) NewCheckout(
 	uuid string,
 	userUuid string,

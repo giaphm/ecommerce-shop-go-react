@@ -100,7 +100,7 @@ func (t *TShirt) MakeProductNewImage(image string) error {
 		return errors.New("empty image")
 	}
 
-	t.product.price = price
+	t.product.image = image
 	return nil
 }
 

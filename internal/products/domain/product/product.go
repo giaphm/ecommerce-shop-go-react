@@ -112,7 +112,7 @@ func (f Factory) NewTShirtProduct(
 	image string,
 	price float64,
 	quantity int,
-) (iProduct, error) {
+) (iProductsFactory, error) {
 	if err := f.validateProduct(title, description, image, price, quantity); err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func (f Factory) NewTShirtProduct(
 //
 // It should be used only for unmarshalling from the database!
 // You can't use UnmarshalTShirtFromDatabase as constructor - It may put domain into the invalid state!
-func (f Factory) UnmarshalTShirtProductFromDatabase(uuid string, userUuid string, category Category, title string, description string, image string, price float64, quantity int) (iProduct, error) {
+func (f Factory) UnmarshalTShirtProductFromDatabase(uuid string, userUuid string, category Category, title string, description string, image string, price float64, quantity int) (iProductsFactory, error) {
 	if category.IsZero() {
 		return nil, ErrEmptyCategory
 	}

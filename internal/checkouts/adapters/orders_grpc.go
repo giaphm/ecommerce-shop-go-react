@@ -7,10 +7,10 @@ import (
 )
 
 type OrderGrpc struct {
-	client orders.OrderServiceClient
+	client orders.OrdersServiceClient
 }
 
-func NewOrderGrpc(client orders.TrainerServiceClient) OrderGrpc {
+func NewOrderGrpc(client orders.OrdersServiceClient) OrderGrpc {
 	return OrderGrpc{client: client}
 }
 

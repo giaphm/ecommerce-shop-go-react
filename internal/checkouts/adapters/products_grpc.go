@@ -7,10 +7,10 @@ import (
 )
 
 type ProductGrpc struct {
-	client products.OrderServiceClient
+	client products.ProductsServiceClient
 }
 
-func NewProductGrpc(client products.TrainerServiceClient) ProductGrpc {
+func NewProductGrpc(client products.ProductsServiceClient) ProductGrpc {
 	return ProductGrpc{client: client}
 }
 
