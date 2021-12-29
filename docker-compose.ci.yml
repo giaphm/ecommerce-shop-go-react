@@ -1,0 +1,35 @@
+version: "3"
+services:
+  # trainer-http:
+  #   image: "gcr.io/${PROJECT_ID}/trainer"
+
+  # trainer-grpc:
+  #   image: "gcr.io/${PROJECT_ID}/trainer"
+
+  # trainings-http:
+  #   image: "gcr.io/${PROJECT_ID}/trainings"
+    
+  products-http:
+    image: "gcr.io/${PROJECT_ID}/products"
+
+  products-grpc:
+    image: "gcr.io/${PROJECT_ID}/products"
+
+  orders-http:
+    image: "gcr.io/${PROJECT_ID}/orders"
+
+  orders-grpc:
+    image: "gcr.io/${PROJECT_ID}/orders"
+
+  checkouts-http:
+    image: "gcr.io/${PROJECT_ID}/checkouts"
+
+  users-http:
+    image: "gcr.io/${PROJECT_ID}/users"
+
+  users-grpc:
+    image: "gcr.io/${PROJECT_ID}/users"
+networks:
+  default:
+    external:
+      name: cloudbuild

@@ -1,0 +1,104 @@
+openapi: "3.0.0"
+info:
+  version: "1.0.0"
+  title: Ecommerce shop users
+  description: This is Openapi generator server for generate ecommerce shop users api
+  contact:
+    name: giaphm
+    url: http://github.com/giaphm
+servers:
+  - url: https://{hostname}/api
+    variables:
+      hostname:
+        default: localhost
+security:
+  - bearerAuth: []
+paths:
+  /users/signup:
+    post:
+      operationId: signUpUser
+      requestBody:
+        description: Provide email and password to signup a new user.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: Sign up successfully!
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/current:
+    get:
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: todo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    # NewUser:
+    #   type: object
+    #   required:
+    #     - email
+    #     - displayName
+    #     - role
+    #   properties:
+    #     email:
+    #       type: string
+    #     displayName:
+    #       type: string
+    #     role:
+    #       type: string
+    User:
+      type: object
+      required:
+        - displayName
+        - email
+        - balance
+        - role
+      properties:
+        displayName:
+          type: string
+        email:
+          type: string
+        balance:
+          type: integer
+        role:
+          type: string
+
+    Error:
+      type: object
+      required:
+        - slug
+        - message
+      properties:
+        slug:
+          type: string
+        message:
+          type: string

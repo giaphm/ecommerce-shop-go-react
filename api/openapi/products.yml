@@ -1,0 +1,226 @@
+openapi: "3.0.0"
+info:
+  version: "1.0.0"
+  title: Ecommerce shop products
+  description: This is Openapi generator server for generate ecommerce shop products api
+  contact:
+    name: giaphm
+    url: http://github.com/giaphm
+servers:
+  - url: https://{hostname}/api
+    variables:
+      hostname:
+        default: localhost
+security:
+  - bearerAuth: []
+paths:
+  
+  /products:
+    get:
+      operationId: getProducts
+      # parameters:
+      #   - in: query
+      #     name: productId
+      #     schema:
+      #       type: string
+      #     required: true
+      responses:
+        '200':
+          description: Get products successfully!
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+  /products/{productUuid}:
+    get:
+      operationId: getProduct
+      parameters:
+        - in: path
+          name: productUuid
+          schema:
+            type: string
+          required: true
+          description: The product uuid.
+      responses:
+        '200':
+          description: Get product successfully!
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/Product'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /products/shopkeeper:
+    get:
+      operationId: getShopkeeperProducts
+      # parameters:
+      #   - in: query
+      #     name: productId
+      #     schema:
+      #       type: string
+      #     required: true
+      responses:
+        '200':
+          description: Get shopkeeper products successfully!
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+  /products/add-product:
+    post:
+      operationId: addProduct
+      requestBody:
+        description: Need the new product's title, image, description, price, and quantity
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+      responses:
+        '201':
+          description: Created a new product!
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/Product'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /products/update-product/{productUuid}:
+    put:
+      operationId: updateProduct
+      parameters:
+        - in: path
+          name: productUuid
+          schema:
+            type: string
+          required: true
+          description: The product uuid.
+      requestBody:
+        description: Need the new product's title, image, description, or price.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatedProduct'
+      responses:
+        '204':
+          description: The product is updated!
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /products/delete-product/{productUuid}:
+    delete:
+      operationId: deleteProduct
+      parameters:
+        - in: path
+          name: productUuid
+          schema:
+            type: string
+          required: true
+          description: The product uuid.
+      # requestBody:
+      #   description: todo
+      #   required: true
+      #   content:
+      #     application/json:
+      #       schema:
+      #         $ref: '#/components/schemas/HourUpdate'
+      responses:
+        '204':
+          description: The product is delete!
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Product:
+      type: object
+      required: [category, title, image, description, price, quantity]
+      properties:
+        category:
+          type: string
+        title:
+          type: string
+        image:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: float
+        quantity:
+          type: integer
+
+    UpdatedProduct:
+      type: object
+      required: [category, title, image, description, price, quantity]
+      properties:
+        category:
+          type: string
+        title:
+          type: string
+        image:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: float
+        quantity:
+          type: integer
+
+    Error:
+      type: object
+      required:
+        - slug
+        - message
+      properties:
+        slug:
+          type: string
+        message:
+          type: string

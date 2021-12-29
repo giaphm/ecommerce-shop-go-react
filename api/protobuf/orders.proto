@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package orders;
+
+option go_package ="./orders"; // Specify the RPC file generation path address
+
+service OrdersService {
+  rpc IsOrderCancelled(IsOrderCancelledRequest) returns (IsOrderCancelledResponse) {}
+  rpc CompleteOrder(CompleteOrderRequest) returns (EmptyResponse) {}
+}
+
+message IsOrderCancelledRequest {
+  string order_uuid = 1;
+}
+
+message IsOrderCancelledResponse {
+  bool is_cancelled = 1;
+}
+
+message CompleteOrderRequest {
+  string uuid = 1;
+  string order_uuid = 2;
+}
+
+message EmptyResponse {}
