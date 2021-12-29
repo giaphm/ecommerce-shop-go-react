@@ -6,15 +6,15 @@ import (
 )
 
 type OrderModel struct {
-	uuid         string   `firestore:"Uuid"`
-	userUuid     string   `firestore:"UserUuid"`
-	productUuids []string `firestore:"ProductUuids"`
-	totalPrice   float64  `firestore:"TotalPrice"`
+	uuid         string
+	userUuid     string
+	productUuids []string
+	totalPrice   float64
 
-	status string `firestore:"Status"`
+	status string
 
-	proposedTime time.Time `firestore:"ProposedTime"`
-	expiresAt    time.Time `firestore:"ExpiresAt"`
+	proposedTime time.Time
+	expiresAt    time.Time
 }
 type OrdersService interface {
 	GetOrder(ctx context.Context, orderUuid string) (OrderModel, error)
@@ -23,14 +23,14 @@ type OrdersService interface {
 }
 
 type ProductModel struct {
-	uuid        string  `firestore:"Uuid"`
-	userUuid    string  `firestore:"UserUuid"`
-	category    string  `firestore:"Category"`
-	title       string  `firestore:"Title"`
-	description string  `firestore:"Description"`
-	image       string  `firestore:"Image"`
-	price       float32 `firestore:"Price"`
-	quantity    int64   `firestore:"Quantity"`
+	uuid        string
+	userUuid    string
+	category    string
+	title       string
+	description string
+	image       string
+	price       float64
+	quantity    int64
 }
 
 type ProductsService interface {
