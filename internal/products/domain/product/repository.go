@@ -9,12 +9,15 @@ type Repository interface {
 	GetShopkeeperProduct(ctx context.Context, productUuid string) (*Product, error)
 	AddProduct(
 		ctx context.Context,
+		uuid string,
+		userUuid string,
+		category string,
 		title string,
 		description string,
 		image string,
 		price float64,
 		quantity int,
-	) (*Product, error)
+	) error
 	UpdateProduct(
 		ctx context.Context,
 		productUuid string,

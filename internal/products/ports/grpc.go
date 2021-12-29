@@ -18,6 +18,23 @@ func NewGrpcServer(application app.Application) GrpcServer {
 	return GrpcServer{app: application}
 }
 
+func (g GrpcServer) GetProduct(ctx context.Context, request *products.GetProductRequest) (*products.GetProductResponse, error) {
+	product, err := g.app.Queries.Product.Handle(ctx, request.ProductUuid)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &products.GetProductResponse{
+		Uuid:        product.GetUuid(),
+		UserUuid:    product.GetUserUuid(),
+		Category:    product.GetCategory(),
+		Title:       product.GetTitle(),
+		Description: product.GetDescription(),
+		Image:       product.GetImage(),
+		Price:       product.GetPrice(),
+		Quantity:    product.GetQuantity(),
+	}, nil
+}
+
 func (g GrpcServer) IsProductAvailable(ctx context.Context, request *products.IsProductAvailableRequest) (*products.IsProductAvailableResponse, error) {
 	isAvailable, err := g.app.Queries.ProductAvailability.Handle(ctx, request.ProductUuid)
 	if err != nil {

@@ -23,14 +23,14 @@ func NewGrpcServer(application app.Application) GrpcServer {
 	return GrpcServer{app: application}
 }
 
-func (g GrpcServer) GetTrainingBalance(ctx context.Context, request *users.GetTrainingBalanceRequest) (*users.GetTrainingBalanceResponse, error) {
+func (g GrpcServer) GetUserBalance(ctx context.Context, request *users.GetUserBalanceRequest) (*users.GetUserBalanceResponse, error) {
 
 	user, err := g.app.Queries.CurrentUserHandler.Handle(ctx, request.UserId)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &users.GetTrainingBalanceResponse{Amount: int64(user.Balance)}, nil
+	return &users.GetUserBalanceResponse{Amount: int64(user.Balance)}, nil
 }
 
 func (g GrpcServer) WithdrawUserBalance(

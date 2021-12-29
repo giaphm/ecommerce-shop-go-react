@@ -18,6 +18,8 @@ func NewGrpcServer(application app.Application) GrpcServer {
 	return GrpcServer{app: application}
 }
 
+// Get Order
+
 func (g GrpcServer) IsOrderCancelled(ctx context.Context, request *orders.IsOrderCancelledRequest) (*orders.IsOrderCancelledResponse, error) {
 	isCancelled, err := g.app.Queries.OrderCancelling.Handle(ctx, request.OrderUuid)
 	if err != nil {

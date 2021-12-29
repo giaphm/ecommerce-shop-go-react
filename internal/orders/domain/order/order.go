@@ -14,8 +14,6 @@ var (
 )
 
 type Order struct {
-	// Temporarily each order only has one product
-	// Need to improve
 	uuid         string
 	userUuid     string
 	productUuids []string
@@ -77,12 +75,12 @@ func (f Factory) UnmarshalOrderFromDatabase(
 	uuid string,
 	userUuid string,
 	productUuids []string,
-	status Status,
+	status string,
 	proposedTime time.Time,
 	expiresAt time.Time,
 ) (*Order, error) {
 
-	if status.IsZero() {
+	if status == "" {
 		return nil, ErrEmptyStatus
 	}
 

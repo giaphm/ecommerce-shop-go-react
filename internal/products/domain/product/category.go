@@ -9,8 +9,8 @@ type Category struct {
 // Define more category for using the new category of product
 
 var (
-	TShirtCategory    = Category{"TShirt"}
-	AccessoryCategory = Category{"Accessory"}
+	TShirtCategory    = Category{"tshirt"}
+	AccessoryCategory = Category{"accessory"}
 )
 
 var categoryValues = []Category{

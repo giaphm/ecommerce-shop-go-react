@@ -5,8 +5,23 @@ package orders;
 option go_package ="./orders"; // Specify the RPC file generation path address
 
 service OrdersService {
+  rpc GetOrder(GetOrderRequest) returns (GetOrderResponse) {}
   rpc IsOrderCancelled(IsOrderCancelledRequest) returns (IsOrderCancelledResponse) {}
   rpc CompleteOrder(CompleteOrderRequest) returns (EmptyResponse) {}
+}
+
+message GetOrderRequest {
+  string order_uuid = 1;
+}
+
+message GetOrderResponse {
+  string order_uuid = 1;
+  string user_uuid = 2;
+  repeated string product_uuids = 3;
+  float total_price = 4;
+  string status = 5;
+  string proposed_time = 6;
+  string expires_at = 7;
 }
 
 message IsOrderCancelledRequest {

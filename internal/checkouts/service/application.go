@@ -29,7 +29,7 @@ func NewApplication(ctx context.Context) (app.Application, func()) {
 	}
 
 	ordersGrpc := adapters.NewOrdersGrpc(ordersClient)
-	productsGrpc := adapters.NewTrainerGrpc(productsClient)
+	productsGrpc := adapters.NewProductsGrpc(productsClient)
 	usersGrpc := adapters.NewUsersGrpc(usersClient)
 
 	return newApplication(ctx, ordersGrpc, productsGrpc, usersGrpc),

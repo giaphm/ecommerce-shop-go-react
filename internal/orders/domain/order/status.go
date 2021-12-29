@@ -51,15 +51,15 @@ func (o Order) Status() Status {
 }
 
 func (o Order) IsCreated() bool {
-	return o.Status() == Created
+	return o.Status() == StatusCreated
 }
 
 func (o Order) IsCompleted() bool {
-	return o.Status() == Completed
+	return o.Status() == StatusCompleted
 }
 
 func (o Order) IsCancelled() bool {
-	return o.Status() == Cancelled
+	return o.Status() == StatusCancelled
 }
 
 func (o *Order) MakeCompletedOrder() error {
@@ -68,7 +68,7 @@ func (o *Order) MakeCompletedOrder() error {
 		return ErrExpiredOrder
 	}
 
-	o.status = Completed
+	o.status = StatusCompleted
 	return nil
 }
 
@@ -77,6 +77,6 @@ func (o *Order) MakeCancelledOrder() error {
 		return ErrCancelledOrder
 	}
 
-	o.status = Cancelled
+	o.status = StatusCancelled
 	return nil
 }

@@ -1,4 +1,4 @@
 set -e
 
 npm install
-yarn serve
+npm start

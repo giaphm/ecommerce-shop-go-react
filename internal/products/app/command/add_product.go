@@ -10,7 +10,7 @@ import (
 type AddProduct struct {
 	uuid        string
 	userUuid    string
-	category    product.Category
+	category    string
 	title       string
 	description string
 	image       string

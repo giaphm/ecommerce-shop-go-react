@@ -11,22 +11,37 @@ type SellProduct struct {
 	uuid string
 }
 
-type UpdateProductHandler struct {
+type SellProductHandler struct {
 	productRepo product.Repository
 }
 
-func NewUpdateProductHandler(productRepo product.Repository) UpdateProductHandler {
+func NewSellProductHandler(productRepo product.Repository) SellProductHandler {
 	if productRepo == nil {
 		panic("nil productRepo")
 	}
 
-	return UpdateProductHandler{productRepo: productRepo}
+	return SellProductHandler{productRepo: productRepo}
 }
 
-func (h UpdateProductHandler) Handle(ctx context.Context, cmd SellProduct) error {
+func (h SellProductHandler) Handle(ctx context.Context, cmd SellProduct) error {
 	if err := h.productRepo.UpdateProduct(ctx, cmd.uuid, func(p *product.Product) (*product.Product, error) {
-		if err := p.MakeProductNewQuantity(p.quantity - 1); err != nil {
-			return nil, err
+		f := product.MustNewFactory(p.GetCategory().String())
+		if p.GetCategory().String() == "tshirt" {
+			tsh, err := f.NewTShirtProduct(
+				p.GetUuid(),
+				p.GetUserUuid(),
+				p.GetTitle(),
+				p.GetDescription(),
+				p.GetImage(),
+				p.GetPrice(),
+				p.GetQuantity(),
+			)
+			if err != nil {
+				return nil, err
+			}
+			if err := tsh.MakeProductNewQuantity(p.GetQuantity() - 1); err != nil {
+				return nil, err
+			}
 		}
 
 		return p, nil
