@@ -9,6 +9,7 @@ import (
 	"github.com/giaphm/ecommerce-shop-go-react/internal/orders/app"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/orders/app/command"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/orders/app/query"
+	"github.com/giaphm/ecommerce-shop-go-react/internal/orders/domain/order"
 )
 
 func NewApplication(ctx context.Context) app.Application {
@@ -17,31 +18,22 @@ func NewApplication(ctx context.Context) app.Application {
 		panic(err)
 	}
 
-	factoryConfig := hour.FactoryConfig{
-		MaxWeeksInTheFutureToSet: 6,
-		MinUtcHour:               12,
-		MaxUtcHour:               20,
-	}
-
-	datesRepository := adapters.NewDatesFirestoreRepository(firestoreClient, factoryConfig)
-
-	hourFactory, err := hour.NewFactory(factoryConfig)
+	orderFactory, err := order.NewFactory()
 	if err != nil {
 		panic(err)
 	}
 
-	hourRepository := adapters.NewFirestoreHourRepository(firestoreClient, hourFactory)
+	orderRepository := adapters.NewFirestoreOrderRepository(firestoreClient, orderFactory)
 
 	return app.Application{
 		Commands: app.Commands{
-			CancelTraining:       command.NewCancelTrainingHandler(hourRepository),
-			ScheduleTraining:     command.NewScheduleTrainingHandler(hourRepository),
-			MakeHoursAvailable:   command.NewMakeHoursAvailableHandler(hourRepository),
-			MakeHoursUnavailable: command.NewMakeHoursUnavailableHandler(hourRepository),
+			AddOrder:      command.NewAddOrderHandler(orderRepository),
+			CompleteOrder: command.NewCompleteOrderHandler(orderRepository),
 		},
 		Queries: app.Queries{
-			HourAvailability:      query.NewHourAvailabilityHandler(hourRepository),
-			TrainerAvailableHours: query.NewAvailableHoursHandler(datesRepository),
+			Order:           query.NewOrderHandler(orderRepository),
+			Orders:          query.NewOrdersHandler(orderRepository),
+			OrderCancelling: query.NewOrderCancellingHandler(orderRepository),
 		},
 	}
 }

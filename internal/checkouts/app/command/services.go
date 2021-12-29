@@ -22,7 +22,7 @@ type OrdersService interface {
 	CompleteOrder(ctx context.Context, orderUuid string, userUuid string) error
 }
 
-type ProductModel struct {
+type Product struct {
 	uuid        string
 	userUuid    string
 	category    string
@@ -34,7 +34,7 @@ type ProductModel struct {
 }
 
 type ProductsService interface {
-	GetProduct(ctx context.Context, productUuid string) (ProductModel, error)
+	GetProduct(ctx context.Context, productUuid string) (Product, error)
 	IsProductAvailable(ctx context.Context, productUuid string) (bool, error)
 	SellProduct(ctx context.Context, productUuid string) error
 }

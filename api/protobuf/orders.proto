@@ -34,7 +34,7 @@ message IsOrderCancelledResponse {
 
 message CompleteOrderRequest {
   string uuid = 1;
-  string order_uuid = 2;
+  string user_uuid = 2;
 }
 
 message EmptyResponse {}

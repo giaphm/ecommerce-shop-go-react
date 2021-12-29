@@ -32,12 +32,12 @@ func (g GrpcServer) IsOrderCancelled(ctx context.Context, request *orders.IsOrde
 }
 
 func (g GrpcServer) CompleteOrder(ctx context.Context, request *orders.CompleteOrderRequest) (*orders.EmptyResponse, error) {
-	cmd := command.MakeStatusCompleted{
-		uuid:      request.uuid,
-		orderUuid: request.OrderUuid,
+	cmd := command.CompleteOrder{
+		uuid:     request.Uuid,
+		userUuid: request.UserUuid,
 	}
 
-	if err := g.app.Commands.MakeStatusCompleted.Handle(ctx, cmd); err != nil {
+	if err := g.app.Commands.CompleteOrder.Handle(ctx, cmd); err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 

@@ -31,17 +31,6 @@ func NewAddCheckoutHandler(checkoutRepo checkout.Repository) AddCheckoutHandler 
 	return AddCheckoutHandler{checkoutRepo: checkoutRepo}
 }
 
-type Product struct {
-	uuid        string
-	userUuid    string
-	category    string
-	title       string
-	description string
-	image       string
-	price       float64
-	quantity    int
-}
-
 func (h AddCheckoutHandler) Handle(ctx context.Context, cmd AddCheckout) error {
 
 	// call get order
@@ -74,8 +63,12 @@ func (h AddCheckoutHandler) Handle(ctx context.Context, cmd AddCheckout) error {
 
 	// call isProductAvaiable for all products
 	for _, productUuid := range order.productUuids {
-		if err := h.productsService.IsProductAvailable(ctx, productUuid); err != nil {
+		isProductAvailable, err := h.productsService.IsProductAvailable(ctx, productUuid)
+		if err != nil {
 			return err
+		}
+		if !isProductAvailable {
+			return errPkg.New("Product %s is not available", productUuid)
 		}
 	}
 
@@ -87,7 +80,7 @@ func (h AddCheckoutHandler) Handle(ctx context.Context, cmd AddCheckout) error {
 	}
 
 	// call completeOrder
-	if err := h.ordersService.CompleteOrder(ctx, cmd.orderUuid); err != nil {
+	if err := h.ordersService.CompleteOrder(ctx, cmd.orderUuid, cmd.userUuid); err != nil {
 		return err
 	}
 
