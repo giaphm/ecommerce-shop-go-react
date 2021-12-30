@@ -40,7 +40,7 @@ func (g GrpcServer) GetOrder(ctx context.Context, request *orders.GetOrderReques
 	}
 
 	return &orders.GetOrderResponse{
-		OrderUuid:    order.GetUuid(),
+		Uuid:         order.GetUuid(),
 		UserUuid:     order.GetUserUuid(),
 		ProductUuids: order.GetProductUuids(),
 		TotalPrice:   order.GetTotalPrice(),

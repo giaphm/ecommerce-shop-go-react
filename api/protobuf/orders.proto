@@ -13,11 +13,11 @@ service OrdersService {
 }
 
 message GetOrderRequest {
-  string order_uuid = 1;
+  string uuid = 1;
 }
 
 message GetOrderResponse {
-  string order_uuid = 1;
+  string uuid = 1;
   string user_uuid = 2;
   repeated string product_uuids = 3;
   float total_price = 4;
@@ -27,7 +27,7 @@ message GetOrderResponse {
 }
 
 message IsOrderCancelledRequest {
-  string order_uuid = 1;
+  string uuid = 1;
 }
 
 message IsOrderCancelledResponse {

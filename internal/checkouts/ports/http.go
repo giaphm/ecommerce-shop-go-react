@@ -41,10 +41,10 @@ func (h HttpServer) CreateCheckout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cmd := command.AddCheckout{
-		uuid:         uuid.New().String(),
-		userUuid:     user.UUID(),
-		orderUuid:    newCheckout.orderUuid,
-		proposedTime: time.Now(),
+		Uuid:         uuid.New().String(),
+		UserUuid:     user.UUID,
+		OrderUuid:    newCheckout.OrderUuid,
+		ProposedTime: time.Now(),
 	}
 
 	err = h.app.Commands.AddCheckout.Handle(r.Context(), cmd)
@@ -52,6 +52,6 @@ func (h HttpServer) CreateCheckout(w http.ResponseWriter, r *http.Request) {
 		httperr.RespondWithSlugError(err, w, r)
 		return
 	}
-	w.Header().Set("content-location", "checkouts/create-checkout/"+cmd.uuid)
+	w.Header().Set("content-location", "checkouts/create-checkout/"+cmd.Uuid)
 	w.WriteHeader(http.StatusCreated)
 }

@@ -12,8 +12,6 @@ import (
 	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/charge"
 	"google.golang.org/api/iterator"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type FirestoreCheckoutRepository struct {
@@ -85,14 +83,19 @@ func (f FirestoreCheckoutRepository) GetCheckouts(ctx context.Context) ([]*check
 	}
 
 	var checkouts []*checkout.Checkout
-	var checkout checkout.Checkout
+	var checkout *query.Checkout
+	// var checkout *checkout.Checkout
 	for _, checkoutSnapshot := range checkoutSnapshots {
-		if err := checkoutSnapshot.DataTo(&checkout); err != nil {
+		if err := checkoutSnapshot.DataTo(checkout); err != nil {
 			return nil, err
 		}
 		// checkoutModelToApp for customizing the response properties to return into api
-		// checkouts = append(checkouts, checkoutModelToApp(checkout))
-		checkouts = append(checkouts, &checkout)
+		checkoutDomain, err := f.checkoutModelToApp(checkout)
+		if err != nil {
+			return nil, err
+		}
+		checkouts = append(checkouts, checkoutDomain)
+		// checkouts = append(checkouts, checkout)
 	}
 	return checkouts, nil
 }
@@ -101,35 +104,35 @@ func (f FirestoreCheckoutRepository) checkoutsCollection() *firestore.Collection
 	return f.firestoreClient.Collection("checkouts")
 }
 
-func (f FirestoreCheckoutRepository) documentRef(checkoutUuid string) *firestore.DocumentRef {
-	return f.checkoutsCollection().Doc(checkoutUuid)
-}
+// func (f FirestoreCheckoutRepository) documentRef(checkoutUuid string) *firestore.DocumentRef {
+// 	return f.checkoutsCollection().Doc(checkoutUuid)
+// }
 
 func (f FirestoreCheckoutRepository) checkoutDocuments(ctx context.Context) ([]*firestore.DocumentSnapshot, error) {
 	return f.checkoutsCollection().Documents(ctx).GetAll()
 }
 
-func (f FirestoreCheckoutRepository) getCheckoutDTO(
-	getDocumentFn func() (doc *firestore.DocumentSnapshot, err error),
-	checkoutUuid string,
-) (*query.Checkout, error) {
+// func (f FirestoreCheckoutRepository) getCheckoutDTO(
+// 	getDocumentFn func() (doc *firestore.DocumentSnapshot, err error),
+// 	checkoutUuid string,
+// ) (*query.Checkout, error) {
 
-	checkoutSnapshot, err := getDocumentFn()
-	if status.Code(err) == codes.NotFound {
-		// in reality this date exists, even if it's not persisted
-		return NewEmptyCheckoutDTO(checkoutUuid), errors.New("Checkout is not found")
-	}
-	if err != nil {
-		return &query.Checkout{}, err
-	}
+// 	checkoutSnapshot, err := getDocumentFn()
+// 	if status.Code(err) == codes.NotFound {
+// 		// in reality this date exists, even if it's not persisted
+// 		return NewEmptyCheckoutDTO(checkoutUuid), errors.New("Checkout is not found")
+// 	}
+// 	if err != nil {
+// 		return &query.Checkout{}, err
+// 	}
 
-	checkoutFirestore := query.Checkout{}
-	if err := checkoutSnapshot.DataTo(&checkoutFirestore); err != nil {
-		return &query.Checkout{}, errors.Wrap(err, "unable to unmarshal checkout.Checkout from Firestore")
-	}
+// 	checkoutFirestore := query.Checkout{}
+// 	if err := checkoutSnapshot.DataTo(&checkoutFirestore); err != nil {
+// 		return &query.Checkout{}, errors.Wrap(err, "unable to unmarshal checkout.Checkout from Firestore")
+// 	}
 
-	return &checkoutFirestore, nil
-}
+// 	return &checkoutFirestore, nil
+// }
 
 func NewEmptyCheckoutDTO(checkoutUuid string) *query.Checkout {
 	return &query.Checkout{
@@ -179,7 +182,7 @@ func checkoutModelToDb(cm *checkout.Checkout) *query.Checkout {
 	}
 }
 
-func (f FirestoreCheckoutRepository) checkoutModelToApp(cm query.Checkout) (*checkout.Checkout, error) {
+func (f FirestoreCheckoutRepository) checkoutModelToApp(cm *query.Checkout) (*checkout.Checkout, error) {
 
 	// return &checkout.Checkout{
 	// 	uuid:         cm.uuid,

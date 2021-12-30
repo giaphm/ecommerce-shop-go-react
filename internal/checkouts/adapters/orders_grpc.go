@@ -4,37 +4,41 @@ import (
 	"context"
 	"time"
 
+	"github.com/giaphm/ecommerce-shop-go-react/internal/checkouts/app/command"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/genproto/orders"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/pkg/errors"
 )
 
-type OrderGrpc struct {
+type OrdersGrpc struct {
 	client orders.OrdersServiceClient
 }
 
-func NewOrderGrpc(client orders.OrdersServiceClient) OrderGrpc {
-	return OrderGrpc{client: client}
+func NewOrdersGrpc(client orders.OrdersServiceClient) OrdersGrpc {
+	return OrdersGrpc{client: client}
 }
 
-type OrderModel struct {
-	uuid         string
-	userUuid     string
-	productUuids []string
-	totalPrice   float32
+// type OrderModel struct {
+// 	uuid         string
+// 	userUuid     string
+// 	productUuids []string
+// 	totalPrice   float32
 
-	status string
+// 	status string
 
-	proposedTime time.Time
-	expiresAt    time.Time
-}
+// 	proposedTime time.Time
+// 	expiresAt    time.Time
+// }
 
-func (s OrderGrpc) GetOrder(ctx context.Context, orderUuid string) (*OrderModel, error) {
+func (s OrdersGrpc) GetOrder(ctx context.Context, orderUuid string) (*command.OrderModel, error) {
 
 	getOrderResponse, err := s.client.GetOrder(ctx, &orders.GetOrderRequest{
-		OrderUuid: orderUuid,
+		Uuid: orderUuid,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	proposedTime, err := protoTimestampToTime(getOrderResponse.ProposedTime)
 	if err != nil {
@@ -46,27 +50,27 @@ func (s OrderGrpc) GetOrder(ctx context.Context, orderUuid string) (*OrderModel,
 		return nil, err
 	}
 
-	return &OrderModel{
-		uuid:         getOrderResponse.Uuid,
-		userUuid:     getOrderResponse.UserUuid,
-		productUuids: getOrderResponse.ProductUuids,
-		totalPrice:   getOrderResponse.TotalPrice,
-		status:       getOrderResponse.Status,
-		proposedTime: proposedTime,
-		expiresAt:    expiresAt,
+	return &command.OrderModel{
+		Uuid:         getOrderResponse.Uuid,
+		UserUuid:     getOrderResponse.UserUuid,
+		ProductUuids: getOrderResponse.ProductUuids,
+		TotalPrice:   getOrderResponse.TotalPrice,
+		Status:       getOrderResponse.Status,
+		ProposedTime: proposedTime,
+		ExpiresAt:    expiresAt,
 	}, err
 }
 
-func (s OrderGrpc) IsOrderCancelled(ctx context.Context, orderUuid string) (bool, error) {
+func (s OrdersGrpc) IsOrderCancelled(ctx context.Context, orderUuid string) (bool, error) {
 
 	isOrderCancelledResponse, err := s.client.IsOrderCancelled(ctx, &orders.IsOrderCancelledRequest{
-		OrderUuid: orderUuid,
+		Uuid: orderUuid,
 	})
 
 	return isOrderCancelledResponse.IsCancelled, err
 }
 
-func (s OrderGrpc) CompleteOrder(ctx context.Context, orderUuid string, userUuid string) error {
+func (s OrdersGrpc) CompleteOrder(ctx context.Context, orderUuid string, userUuid string) error {
 
 	_, err := s.client.CompleteOrder(ctx, &orders.CompleteOrderRequest{
 		Uuid:     orderUuid,

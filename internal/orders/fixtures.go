@@ -19,21 +19,21 @@ func loadFixtures(app app.Application) {
 	ctx := context.Background()
 
 	logrus.Debug("Waiting for trainer service")
-	working := client.WaitForTrainerService(time.Second * 30)
+	working := client.WaitForOrdersService(time.Second * 30)
 	if !working {
-		logrus.Error("Trainer gRPC service is not up")
+		logrus.Error("Orders gRPC service is not up")
 		return
 	}
 
-	logrus.WithField("after", time.Now().Sub(start)).Debug("Trainer service is available")
+	logrus.WithField("after", time.Now().Sub(start)).Debug("Orders service is available")
 
 	if !canLoadFixtures(app, ctx) {
-		logrus.Debug("Trainer fixtures are already loaded")
+		logrus.Debug("Orders fixtures are already loaded")
 		return
 	}
 
 	for {
-		err := loadTrainerFixtures(ctx, app)
+		err := loadOrdersFixtures(ctx, app)
 		if err == nil {
 			break
 		}
@@ -42,10 +42,10 @@ func loadFixtures(app app.Application) {
 		time.Sleep(10 * time.Second)
 	}
 
-	logrus.WithField("after", time.Now().Sub(start)).Debug("Trainer fixtures loaded")
+	logrus.WithField("after", time.Now().Sub(start)).Debug("Orders fixtures loaded")
 }
 
-func loadTrainerFixtures(ctx context.Context, application app.Application) error {
+func loadOrdersFixtures(ctx context.Context, application app.Application) error {
 	maxDate := time.Now().AddDate(0, 0, daysToSet)
 	localRand := rand.New(rand.NewSource(3))
 

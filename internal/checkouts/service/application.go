@@ -9,6 +9,7 @@ import (
 	"github.com/giaphm/ecommerce-shop-go-react/internal/checkouts/app"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/checkouts/app/command"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/checkouts/app/query"
+	"github.com/giaphm/ecommerce-shop-go-react/internal/checkouts/domain/checkout"
 	grpcClient "github.com/giaphm/ecommerce-shop-go-react/internal/common/client"
 )
 
@@ -41,14 +42,14 @@ func NewApplication(ctx context.Context) (app.Application, func()) {
 }
 
 func NewComponentTestApplication(ctx context.Context) app.Application {
-	return newApplication(ctx, OrderServiceMock{}, ProductServiceMock{}, UserServiceMock{})
+	return newApplication(ctx, OrdersServiceMock{}, ProductsServiceMock{}, UsersServiceMock{})
 }
 
 func newApplication(
 	ctx context.Context,
 	ordersGrpc command.OrdersService,
 	productsGrpc command.ProductsService,
-	usersGrpc command.UserService,
+	usersGrpc command.UsersService,
 ) app.Application {
 
 	client, err := firestore.NewClient(ctx, os.Getenv("GCP_PROJECT"))
@@ -56,7 +57,9 @@ func newApplication(
 		panic(err)
 	}
 
-	checkoutsRepository := adapters.NewCheckoutsFirestoreRepository(client)
+	checkoutFactory := checkout.NewFactory()
+
+	checkoutsRepository := adapters.NewFirestoreCheckoutRepository(client, checkoutFactory)
 
 	return app.Application{
 		Commands: app.Commands{

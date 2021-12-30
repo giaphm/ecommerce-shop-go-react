@@ -11,7 +11,7 @@ service ProductsService {
 }
 
 message GetProductRequest {
-  string product_uuid = 1;
+  string uuid = 1;
 }
 
 message GetProductResponse {
@@ -26,7 +26,7 @@ message GetProductResponse {
 }
 
 message IsProductAvailableRequest {
-  string product_uuid = 1;
+  string uuid = 1;
 }
 
 message IsProductAvailableResponse {
@@ -34,7 +34,7 @@ message IsProductAvailableResponse {
 }
 
 message UpdateProductRequest {
-  string product_uuid = 1;
+  string uuid = 1;
 }
 
 message EmptyResponse {}

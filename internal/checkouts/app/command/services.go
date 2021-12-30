@@ -6,35 +6,35 @@ import (
 )
 
 type OrderModel struct {
-	uuid         string
-	userUuid     string
-	productUuids []string
-	totalPrice   float32
+	Uuid         string
+	UserUuid     string
+	ProductUuids []string
+	TotalPrice   float32
 
-	status string
+	Status string
 
-	proposedTime time.Time
-	expiresAt    time.Time
+	ProposedTime time.Time
+	ExpiresAt    time.Time
 }
 type OrdersService interface {
-	GetOrder(ctx context.Context, orderUuid string) (OrderModel, error)
+	GetOrder(ctx context.Context, orderUuid string) (*OrderModel, error)
 	IsOrderCancelled(ctx context.Context, orderUuid string) (bool, error)
 	CompleteOrder(ctx context.Context, orderUuid string, userUuid string) error
 }
 
-type Product struct {
-	uuid        string
-	userUuid    string
-	category    string
-	title       string
-	description string
-	image       string
-	price       float32
-	quantity    int64
+type ProductModel struct {
+	Uuid        string
+	UserUuid    string
+	Category    string
+	Title       string
+	Description string
+	Image       string
+	Price       float32
+	Quantity    int64
 }
 
 type ProductsService interface {
-	GetProduct(ctx context.Context, productUuid string) (Product, error)
+	GetProduct(ctx context.Context, productUuid string) (*ProductModel, error)
 	IsProductAvailable(ctx context.Context, productUuid string) (bool, error)
 	SellProduct(ctx context.Context, productUuid string) error
 }

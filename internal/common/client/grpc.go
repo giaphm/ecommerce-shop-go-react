@@ -7,17 +7,18 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/giaphm/ecommerce-shop-go-react/internal/common/genproto/trainer"
+	"github.com/giaphm/ecommerce-shop-go-react/internal/common/genproto/orders"
+	"github.com/giaphm/ecommerce-shop-go-react/internal/common/genproto/products"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/genproto/users"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
 
-func NewOrdersClient() (client trainer.TrainerServiceClient, close func() error, err error) {
-	grpcAddr := os.Getenv("TRAINER_GRPC_ADDR")
+func NewOrdersClient() (client orders.OrdersServiceClient, close func() error, err error) {
+	grpcAddr := os.Getenv("ORDERS_GRPC_ADDR")
 	if grpcAddr == "" {
-		return nil, func() error { return nil }, errors.New("empty env TRAINER_GRPC_ADDR")
+		return nil, func() error { return nil }, errors.New("empty env ORDERS_GRPC_ADDR")
 	}
 
 	opts, err := grpcDialOpts(grpcAddr)
@@ -30,13 +31,17 @@ func NewOrdersClient() (client trainer.TrainerServiceClient, close func() error,
 		return nil, func() error { return nil }, err
 	}
 
-	return trainer.NewTrainerServiceClient(conn), conn.Close, nil
+	return orders.NewOrdersServiceClient(conn), conn.Close, nil
 }
 
-func NewProductsClient() (client trainer.TrainerServiceClient, close func() error, err error) {
-	grpcAddr := os.Getenv("TRAINER_GRPC_ADDR")
+func WaitForOrdersService(timeout time.Duration) bool {
+	return waitForPort(os.Getenv("ORDERS_GRPC_ADDR"), timeout)
+}
+
+func NewProductsClient() (client products.ProductsServiceClient, close func() error, err error) {
+	grpcAddr := os.Getenv("PRODUCTS_GRPC_ADDR")
 	if grpcAddr == "" {
-		return nil, func() error { return nil }, errors.New("empty env TRAINER_GRPC_ADDR")
+		return nil, func() error { return nil }, errors.New("empty env PRODUCTS_GRPC_ADDR")
 	}
 
 	opts, err := grpcDialOpts(grpcAddr)
@@ -49,11 +54,11 @@ func NewProductsClient() (client trainer.TrainerServiceClient, close func() erro
 		return nil, func() error { return nil }, err
 	}
 
-	return trainer.NewTrainerServiceClient(conn), conn.Close, nil
+	return products.NewProductsServiceClient(conn), conn.Close, nil
 }
 
-func WaitForTrainerService(timeout time.Duration) bool {
-	return waitForPort(os.Getenv("TRAINER_GRPC_ADDR"), timeout)
+func WaitForProductsService(timeout time.Duration) bool {
+	return waitForPort(os.Getenv("PRODUCTS_GRPC_ADDR"), timeout)
 }
 
 func NewUsersClient() (client users.UsersServiceClient, close func() error, err error) {
