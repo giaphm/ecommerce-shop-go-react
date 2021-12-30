@@ -23,6 +23,6 @@ type Product struct {
 	title       string
 	description string
 	image       string
-	price       float64
+	price       float32
 	quantity    int
 }

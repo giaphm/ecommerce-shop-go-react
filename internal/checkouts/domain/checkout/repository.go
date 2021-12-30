@@ -11,7 +11,7 @@ type Repository interface {
 		uuid string,
 		userUuid string,
 		orderUuid string,
-		totalPrice float64,
+		totalPrice float32,
 		proposedTime time.Time,
 	) error
 	GetCheckouts(ctx context.Context) ([]*Checkout, error)

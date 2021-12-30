@@ -50,7 +50,7 @@ func (h AddCheckoutHandler) Handle(ctx context.Context, cmd AddCheckout) error {
 
 	// call get products from order(loop)
 	// calculate total price
-	totalPrice := 0.0
+	var totalPrice float32 = 0.0
 	var products []Product
 	for _, productUuid := range order.productUuids {
 		product, err := h.productsService.GetProduct(ctx, productUuid)
@@ -68,7 +68,7 @@ func (h AddCheckoutHandler) Handle(ctx context.Context, cmd AddCheckout) error {
 			return err
 		}
 		if !isProductAvailable {
-			return errPkg.New("Product %s is not available", productUuid)
+			return errPkg.Errorf("Product %s is not available", productUuid)
 		}
 	}
 

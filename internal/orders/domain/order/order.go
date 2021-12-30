@@ -17,12 +17,40 @@ type Order struct {
 	uuid         string
 	userUuid     string
 	productUuids []string
-	totalPrice   float64
+	totalPrice   float32
 
 	status Status
 
 	proposedTime time.Time
 	expiresAt    time.Time
+}
+
+func (o Order) GetUuid() string {
+	return o.uuid
+}
+
+func (o Order) GetUserUuid() string {
+	return o.userUuid
+}
+
+func (o Order) GetProductUuids() []string {
+	return o.productUuids
+}
+
+func (o Order) GetTotalPrice() float32 {
+	return o.totalPrice
+}
+
+func (o Order) GetStatus() Status {
+	return o.status
+}
+
+func (o Order) GetProposedTime() time.Time {
+	return o.proposedTime
+}
+
+func (o Order) GetExpiresAt() time.Time {
+	return o.expiresAt
 }
 
 type Factory struct {

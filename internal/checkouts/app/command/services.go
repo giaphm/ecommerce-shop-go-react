@@ -9,7 +9,7 @@ type OrderModel struct {
 	uuid         string
 	userUuid     string
 	productUuids []string
-	totalPrice   float64
+	totalPrice   float32
 
 	status string
 
@@ -29,7 +29,7 @@ type Product struct {
 	title       string
 	description string
 	image       string
-	price       float64
+	price       float32
 	quantity    int64
 }
 
@@ -40,5 +40,5 @@ type ProductsService interface {
 }
 
 type UsersService interface {
-	WithdrawUserBalance(ctx context.Context, userUuid string, amountChange int) error
+	WithdrawUserBalance(ctx context.Context, userUuid string, amountChange float32) error
 }

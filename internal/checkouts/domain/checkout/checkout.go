@@ -18,6 +18,19 @@ type Checkout struct {
 	proposedTime time.Time
 }
 
+func (c Checkout) GetUuid() string {
+	return c.uuid
+}
+func (c Checkout) GetUserUuid() string {
+	return c.userUuid
+}
+func (c Checkout) GetProductUuids() string {
+	return c.orderUuid
+}
+func (c Checkout) GetProposedTime() time.Time {
+	return c.proposedTime
+}
+
 type Factory struct {
 }
 

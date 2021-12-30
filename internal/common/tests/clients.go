@@ -77,7 +77,7 @@ func (c ProductHTTPClient) AddProduct(
 	title string,
 	description string,
 	image string,
-	price float64,
+	price float32,
 	quantity int,
 ) string {
 
@@ -106,7 +106,7 @@ func (c ProductHTTPClient) UpdateProduct(
 	title string,
 	description string,
 	image string,
-	price float64,
+	price float32,
 	quantity int,
 ) int {
 

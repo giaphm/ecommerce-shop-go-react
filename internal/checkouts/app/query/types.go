@@ -17,8 +17,8 @@ type Hour struct {
 }
 
 type Checkout struct {
-	uuid         string
-	userUuid     string
-	orderUuid    string
-	proposedTime time.Time
+	Uuid         string
+	UserUuid     string
+	OrderUuid    string
+	ProposedTime time.Time
 }

@@ -9,7 +9,7 @@ type User struct {
 	DisplayName    string
 	Email          string
 	HashedPassword string
-	Balance        float64
+	Balance        float32
 	Role           string
 	LastIP         string
 }
@@ -30,7 +30,7 @@ func (u User) GetEmail() string {
 // 	return u.HashedPassword
 // }
 
-func (u User) GetBalance() float64 {
+func (u User) GetBalance() float32 {
 	return u.Balance
 }
 
@@ -47,7 +47,7 @@ type iUser interface {
 	GetDisplayName() string
 	GetEmail() string
 	// GetHashedPassword() string
-	GetBalance() float64
+	GetBalance() float32
 	GetRole() string
 	GetLastIP() string
 }
@@ -56,7 +56,7 @@ type iUsersFactory interface {
 	MakeUserNewDisplayName(displayName string) error
 	MakeUserNewEmail(email string) error
 	MakeUserNewHashedPassword(hashedPassword string) error
-	MakeUserNewBalance(balance float64) error
+	MakeUserNewBalance(balance float32) error
 	MakeUserNewRole(role string) error
 	MakeUserNewLastIP(lastIP string) error
 }
@@ -97,7 +97,7 @@ func (f Factory) NewUser(
 	displayName string,
 	email string,
 	hashedPassword string,
-	balance float64,
+	balance float32,
 	role string,
 	lastIP string,
 ) (iUser, error) {
@@ -125,7 +125,7 @@ func (f Factory) UnmarshalUserFromDatabase(
 	displayName string,
 	email string,
 	hashedPassword string,
-	balance float64,
+	balance float32,
 	role string,
 	lastIP string,
 ) (iUser, error) {
@@ -154,7 +154,7 @@ func (f Factory) validateUser(
 	displayName string,
 	email string,
 	hashedPassword string,
-	balance float64,
+	balance float32,
 	role string,
 	lastIP string,
 ) error {
@@ -212,7 +212,7 @@ func (u *User) MakeUserNewHashedPassword(hashedPassword string) error {
 	return nil
 }
 
-func (u *User) MakeUserNewBalance(balance float64) error {
+func (u *User) MakeUserNewBalance(balance float32) error {
 	if balance <= 0 {
 		return errors.New("invalid balance")
 	}

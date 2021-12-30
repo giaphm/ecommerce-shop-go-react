@@ -14,10 +14,10 @@ func NewUsersGrpc(client users.UsersServiceClient) UsersGrpc {
 	return UsersGrpc{client: client}
 }
 
-func (s UsersGrpc) DepositeUserBalance(ctx context.Context, userUuid string, amountChange int) error {
-	_, err := s.client.DepositeUserBalance(ctx, &users.DepositeUserBalanceRequest{
+func (s UsersGrpc) WithdrawUserBalance(ctx context.Context, userUuid string, amountChange float32) error {
+	_, err := s.client.WithdrawUserBalance(ctx, &users.WithdrawUserBalanceRequest{
 		UserUuid:     userUuid,
-		AmountChange: int64(amountChange),
+		AmountChange: float32(amountChange),
 	})
 
 	return err

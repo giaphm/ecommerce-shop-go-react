@@ -12,7 +12,7 @@ service UsersService {
 }
 
 message GetUserDisplayNameRequest {
-  string user_id = 1;
+  string user_uuid = 1;
 }
 
 message GetUserDisplayNameResponse {
@@ -20,21 +20,21 @@ message GetUserDisplayNameResponse {
 }
 
 message GetUserBalanceRequest {
-  string user_id = 1;
+  string user_uuid = 1;
 }
 
 message GetUserBalanceResponse {
-  int64 amount = 1;
+  float amount = 1;
 }
 
 message DepositUserBalanceRequest {
-  string user_id = 1;
-  int64 amount_change = 2;
+  string user_uuid = 1;
+  float amount_change = 2;
 }
 
 message WithdrawUserBalanceRequest {
-  string user_id = 1;
-  int64 amount_change = 2;
+  string user_uuid = 1;
+  float amount_change = 2;
 }
 
 message EmptyResponse {}

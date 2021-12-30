@@ -13,7 +13,7 @@ type Product struct {
 	title       string
 	description string
 	image       string
-	price       float64
+	price       float32
 	quantity    int
 }
 
@@ -41,7 +41,7 @@ func (p Product) GetImage() string {
 	return p.image
 }
 
-func (p Product) GetPrice() float64 {
+func (p Product) GetPrice() float32 {
 	return p.price
 }
 
@@ -56,7 +56,7 @@ type iProduct interface {
 	GetTitle() string
 	GetDescription() string
 	GetImage() string
-	GetPrice() float64
+	GetPrice() float32
 	GetQuantity() int
 }
 
@@ -65,7 +65,7 @@ type iProductsFactory interface {
 	MakeProductNewTitle(title string) error
 	MakeProductNewDescription(description string) error
 	MakeProductNewImage(image string) error
-	MakeProductNewPrice(price float64) error
+	MakeProductNewPrice(price float32) error
 	MakeProductNewQuantity(quantity int) error
 }
 
@@ -110,7 +110,7 @@ func (f Factory) NewTShirtProduct(
 	title string,
 	description string,
 	image string,
-	price float64,
+	price float32,
 	quantity int,
 ) (iProductsFactory, error) {
 	if err := f.validateProduct(title, description, image, price, quantity); err != nil {
@@ -125,7 +125,7 @@ func (f Factory) NewTShirtProduct(
 }
 
 // Not yet implementing
-// func (f Factory) NewAssessoriesProduct(title string, description string, image string, price float64, quantity int) (iProduct, error) {
+// func (f Factory) NewAssessoriesProduct(title string, description string, image string, price float32, quantity int) (iProduct, error) {
 // 	if err := f.validateProduct(title, description, image, price, quantity); err != nil {
 // 		return nil, err
 // 	}
@@ -141,7 +141,7 @@ func (f Factory) NewTShirtProduct(
 //
 // It should be used only for unmarshalling from the database!
 // You can't use UnmarshalTShirtFromDatabase as constructor - It may put domain into the invalid state!
-func (f Factory) UnmarshalTShirtProductFromDatabase(uuid string, userUuid string, category Category, title string, description string, image string, price float64, quantity int) (iProductsFactory, error) {
+func (f Factory) UnmarshalTShirtProductFromDatabase(uuid string, userUuid string, category Category, title string, description string, image string, price float32, quantity int) (iProductsFactory, error) {
 	if category.IsZero() {
 		return nil, ErrEmptyCategory
 	}
@@ -168,7 +168,7 @@ var (
 	ErrInvalidQuantity   = errors.New("The product quantity is less than or equal to 0")
 )
 
-func (f Factory) validateProduct(title string, description string, image string, price float64, quantity int) error {
+func (f Factory) validateProduct(title string, description string, image string, price float32, quantity int) error {
 	if title == "" {
 		return ErrEmptyProductTitle
 	}

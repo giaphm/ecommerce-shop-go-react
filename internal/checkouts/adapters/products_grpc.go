@@ -25,13 +25,13 @@ func NewProductGrpc(client products.ProductsServiceClient) ProductGrpc {
 	return ProductGrpc{client: client}
 }
 
-func (s ProductGrpc) GetProduct(ctx context.Context, productUuid string) (Product, error) {
+func (s ProductGrpc) GetProduct(ctx context.Context, productUuid string) (*Product, error) {
 
 	getProductResponse, err := s.client.GetProduct(ctx, &products.GetProductRequest{
 		ProductUuid: productUuid,
 	})
 
-	return Product{
+	return &Product{
 		uuid:        getProductResponse.GetUuid(),
 		userUuid:    getProductResponse.GetUserUuid(),
 		category:    getProductResponse.GetCategory(),

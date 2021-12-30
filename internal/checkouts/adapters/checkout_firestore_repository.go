@@ -37,7 +37,7 @@ func (f FirestoreCheckoutRepository) AddCheckout(
 	uuid string,
 	userUuid string,
 	orderUuid string,
-	totalPrice float64,
+	totalPrice float32,
 	proposedTime time.Time,
 ) error {
 
@@ -46,7 +46,7 @@ func (f FirestoreCheckoutRepository) AddCheckout(
 		stripe.Key = os.Getenv("SK_STRIPE_KEY")
 
 		params := &stripe.ChargeParams{
-			Amount:   stripe.Float64(totalPrice * 100),
+			Amount:   stripe.Int64(int64(totalPrice * 100.0)),
 			Currency: stripe.String(string(stripe.CurrencyUSD)),
 		}
 		params.SetSource("tok_visa")
@@ -65,7 +65,7 @@ func (f FirestoreCheckoutRepository) AddCheckout(
 
 		newCheckoutToDb := checkoutModelToDb(newCheckout)
 
-		newDoc := f.checkoutsCollection().Doc(newCheckoutToDb.uuid)
+		newDoc := f.checkoutsCollection().Doc(newCheckoutToDb.Uuid)
 
 		_, err = newDoc.Create(ctx, newCheckoutToDb)
 		if err != nil {
@@ -84,14 +84,15 @@ func (f FirestoreCheckoutRepository) GetCheckouts(ctx context.Context) ([]*check
 		return nil, err
 	}
 
-	var checkouts []*query.Checkout
-	var checkout query.Checkout
+	var checkouts []*checkout.Checkout
+	var checkout checkout.Checkout
 	for _, checkoutSnapshot := range checkoutSnapshots {
 		if err := checkoutSnapshot.DataTo(&checkout); err != nil {
 			return nil, err
 		}
 		// checkoutModelToApp for customizing the response properties to return into api
-		checkouts = append(checkouts, checkoutModelToApp(checkout))
+		// checkouts = append(checkouts, checkoutModelToApp(checkout))
+		checkouts = append(checkouts, &checkout)
 	}
 	return checkouts, nil
 }
@@ -111,28 +112,28 @@ func (f FirestoreCheckoutRepository) checkoutDocuments(ctx context.Context) ([]*
 func (f FirestoreCheckoutRepository) getCheckoutDTO(
 	getDocumentFn func() (doc *firestore.DocumentSnapshot, err error),
 	checkoutUuid string,
-) (checkout.Checkout, error) {
+) (*query.Checkout, error) {
 
 	checkoutSnapshot, err := getDocumentFn()
 	if status.Code(err) == codes.NotFound {
 		// in reality this date exists, even if it's not persisted
-		return nil, errors.New("Checkout is not found")
+		return NewEmptyCheckoutDTO(checkoutUuid), errors.New("Checkout is not found")
 	}
 	if err != nil {
-		return checkout.Checkout{}, err
+		return &query.Checkout{}, err
 	}
 
-	checkoutFirestore := checkout.Checkout{}
+	checkoutFirestore := query.Checkout{}
 	if err := checkoutSnapshot.DataTo(&checkoutFirestore); err != nil {
-		return checkout.Checkout{}, errors.Wrap(err, "unable to unmarshal checkout.Checkout from Firestore")
+		return &query.Checkout{}, errors.Wrap(err, "unable to unmarshal checkout.Checkout from Firestore")
 	}
 
-	return checkoutFirestore, nil
+	return &checkoutFirestore, nil
 }
 
-func NewEmptyCheckoutDTO(checkoutUuid string) checkout.Checkout {
-	return checkout.Checkout{
-		uuid: checkoutUuid,
+func NewEmptyCheckoutDTO(checkoutUuid string) *query.Checkout {
+	return &query.Checkout{
+		Uuid: checkoutUuid,
 	}
 }
 
@@ -169,26 +170,22 @@ func (f FirestoreCheckoutRepository) RemoveAllCheckouts(ctx context.Context) err
 
 // For some cases, we need to convert custom data type
 func checkoutModelToDb(cm *checkout.Checkout) *query.Checkout {
-	statusString := cm.status.String()
 
 	return &query.Checkout{
-		uuid:         cm.uuid,
-		userUuid:     cm.userUuid,
-		productUuids: cm.productUuids,
-		status:       statusString,
-		proposedTime: cm.proposedTime,
-		expiresAt:    cm.expiresAt,
+		Uuid:         cm.GetUuid(),
+		UserUuid:     cm.GetUserUuid(),
+		OrderUuid:    cm.GetProductUuids(),
+		ProposedTime: cm.GetProposedTime(),
 	}
 }
 
-func checkoutModelToApp(cm query.Checkout) *checkout.Checkout {
+func (f FirestoreCheckoutRepository) checkoutModelToApp(cm query.Checkout) (*checkout.Checkout, error) {
 
-	return &checkout.Checkout{
-		uuid:         cm.uuid,
-		userUuid:     cm.userUuid,
-		productUuids: cm.productUuids,
-		status:       cm.status,
-		proposedTime: cm.proposedTime,
-		expiresAt:    cm.expiresAt,
-	}
+	// return &checkout.Checkout{
+	// 	uuid:         cm.uuid,
+	// 	userUuid:     cm.userUuid,
+	// 	orderUuid:    cm.productUuids,
+	// 	proposedTime: cm.proposedTime,
+	// }
+	return f.checkoutFactory.UnmarshalCheckoutFromDatabase(cm.Uuid, cm.UserUuid, cm.OrderUuid, cm.ProposedTime)
 }

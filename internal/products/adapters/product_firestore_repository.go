@@ -85,7 +85,7 @@ func (f FirestoreProductRepository) AddProduct(
 	title string,
 	description string,
 	image string,
-	price float64,
+	price float32,
 	quantity int) error {
 
 	newProduct := product.Product{

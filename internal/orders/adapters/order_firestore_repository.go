@@ -54,9 +54,9 @@ func (f FirestoreOrderRepository) GetOrders(ctx context.Context) ([]*order.Order
 	}
 
 	var orders []*order.Order
-	var order query.order
+	var order *order.order
 	for _, orderSnapshot := range orderSnapshots {
-		if err := orderSnapshot.DataTo(&order); err != nil {
+		if err := orderSnapshot.DataTo(order); err != nil {
 			return nil, err
 		}
 		// orderModelToApp for customizing the response properties to return into api

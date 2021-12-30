@@ -50,7 +50,7 @@ func (b *TShirtBuilder) Image(image string) *TShirtBuilder {
 	return b
 }
 
-func (b *TShirtBuilder) Price(price float64) *TShirtBuilder {
+func (b *TShirtBuilder) Price(price float32) *TShirtBuilder {
 	b.product.price = price
 	return b
 }
@@ -104,7 +104,7 @@ func (t *TShirt) MakeProductNewImage(image string) error {
 	return nil
 }
 
-func (t *TShirt) MakeProductNewPrice(price float64) error {
+func (t *TShirt) MakeProductNewPrice(price float32) error {
 	if price <= 0 {
 		return errors.New("invalid price")
 	}

@@ -5,9 +5,11 @@ import (
 	"time"
 
 	"github.com/giaphm/ecommerce-shop-go-react/internal/checkouts/app"
+	"github.com/giaphm/ecommerce-shop-go-react/internal/checkouts/app/command"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/auth"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/server/httperr"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 )
 
 type HttpServer struct {
