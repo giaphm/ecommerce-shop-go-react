@@ -16,14 +16,12 @@ func main() {
 
 	ctx := context.Background()
 
-	application := service.NewApplication(ctx)
+	app, cleanup := service.NewApplication(ctx)
+	defer cleanup()
 
 	// go loadFixtures(application)
 
 	server.RunHTTPServer(func(router chi.Router) http.Handler {
-		return ports.HandlerFromMux(
-			ports.NewHttpServer(application),
-			router,
-		)
+		return ports.HandlerFromMux(ports.NewHttpServer(app), router)
 	})
 }

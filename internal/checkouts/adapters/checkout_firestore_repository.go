@@ -82,20 +82,21 @@ func (f FirestoreCheckoutRepository) GetCheckouts(ctx context.Context) ([]*check
 		return nil, err
 	}
 
+	// var checkouts []*query.Checkout
+	// var checkout *query.Checkout
 	var checkouts []*checkout.Checkout
-	var checkout *query.Checkout
-	// var checkout *checkout.Checkout
+	var checkout *checkout.Checkout
 	for _, checkoutSnapshot := range checkoutSnapshots {
 		if err := checkoutSnapshot.DataTo(checkout); err != nil {
 			return nil, err
 		}
 		// checkoutModelToApp for customizing the response properties to return into api
-		checkoutDomain, err := f.checkoutModelToApp(checkout)
-		if err != nil {
-			return nil, err
-		}
-		checkouts = append(checkouts, checkoutDomain)
-		// checkouts = append(checkouts, checkout)
+		// checkoutDomain, err := f.checkoutModelToApp(checkout)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// checkouts = append(checkouts, checkoutDomain)
+		checkouts = append(checkouts, checkout)
 	}
 	return checkouts, nil
 }
