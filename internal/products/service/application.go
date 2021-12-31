@@ -18,7 +18,7 @@ func NewApplication(ctx context.Context) app.Application {
 		panic(err)
 	}
 
-	productFactory, err := product.NewFactory()
+	productFactory, err := product.NewProductsFactory()
 	if err != nil {
 		panic(err)
 	}
@@ -31,9 +31,9 @@ func NewApplication(ctx context.Context) app.Application {
 			UpdateProduct: command.NewUpdateProductHandler(productRepository),
 		},
 		Queries: app.Queries{
-			GetProduct:            query.NewGetProductHandler(productRepository),
-			GetProducts:           query.NewGetProductsHandler(productRepository),
-			GetShopkeeperProducts: query.NewGetShopkeeperProducts(productRepository),
+			Product:            query.NewProductHandler(productRepository),
+			Products:           query.NewProductsHandler(productRepository),
+			ShopkeeperProducts: query.NewShopkeeperProducts(productRepository),
 		},
 	}
 }

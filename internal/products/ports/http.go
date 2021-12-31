@@ -22,22 +22,20 @@ func NewHttpServer(application app.Application) HttpServer {
 	}
 }
 
-func (h HttpServer) GetProduct(w http.ResponseWriter, r *http.Request) {
+func (h HttpServer) GetProduct(w http.ResponseWriter, r *http.Request, productUuid string) {
 	_, err := auth.UserFromCtx(r.Context())
 	if err != nil {
 		httperr.RespondWithSlugError(err, w, r)
 		return
 	}
 
-	queryParams := ParamsForGetProduct(r.Context())
-
-	productModels, err := h.app.Queries.GetProduct.Handle(r.Context(), queryParams.productUuid)
+	productModels, err := h.app.Queries.Product.Handle(r.Context(), productUuid)
 	if err != nil {
 		httperr.RespondWithSlugError(err, w, r)
 		return
 	}
 
-	products := productModelsToResponse(productModels)
+	products := productQueryModelToResponse(productModels)
 	render.Respond(w, r, products)
 }
 
@@ -48,13 +46,13 @@ func (h HttpServer) GetProducts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	productModels, err := h.app.Queries.GetProducts.Handle(r.Context())
+	productModels, err := h.app.Queries.Products.Handle(r.Context())
 	if err != nil {
 		httperr.RespondWithSlugError(err, w, r)
 		return
 	}
 
-	products := productModelsToResponse(productModels)
+	products := productQueryModelsToResponse(productModels)
 	render.Respond(w, r, products)
 }
 
@@ -70,27 +68,40 @@ func (h HttpServer) GetShopkeeperProducts(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	shopkeeperProductModels, err := h.app.Queries.GetShopkeeperProducts.Handle(r.Context(), user)
+	shopkeeperProductModels, err := h.app.Queries.ShopkeeperProducts.Handle(r.Context(), user)
 	if err != nil {
 		httperr.RespondWithSlugError(err, w, r)
 		return
 	}
 
-	shopkeeperProducts := productModelsToResponse(shopkeeperProductModels)
+	shopkeeperProducts := productQueryModelsToResponse(shopkeeperProductModels)
 	render.Respond(w, r, shopkeeperProducts)
 }
 
-func productModelsToResponse(models []query.Product) []Product {
-	var products []Product
+func productQueryModelToResponse(pm *query.Product) *Product {
+
+	return &Product{
+		Category:    pm.Category,
+		Title:       pm.Title,
+		Image:       pm.Image,
+		Description: pm.Description,
+		Price:       pm.Price,
+		Quantity:    pm.Quantity,
+	}
+
+}
+
+func productQueryModelsToResponse(models []*query.Product) []*Product {
+	var products []*Product
 	for _, p := range models {
 
-		products = append(products, Product{
-			category:    p.category,
-			title:       p.title,
-			image:       p.image,
-			description: p.description,
-			price:       p.price,
-			quantity:    p.quantity,
+		products = append(products, &Product{
+			Category:    p.Category,
+			Title:       p.Title,
+			Image:       p.Image,
+			Description: p.Description,
+			Price:       p.Price,
+			Quantity:    p.Quantity,
 		})
 	}
 
@@ -114,14 +125,14 @@ func (h HttpServer) AddProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cmd := command.AddProduct{
-		uuid:        uuid.New().String(),
-		userUuid:    user.uuid,
-		category:    newProduct.category,
-		title:       newProduct.title,
-		description: newProduct.description,
-		image:       newProduct.image,
-		price:       newProduct.price,
-		quantity:    newProduct.quantity,
+		Uuid:        uuid.New().String(),
+		UserUuid:    user.UUID,
+		Category:    newProduct.Category,
+		Title:       newProduct.Title,
+		Description: newProduct.Description,
+		Image:       newProduct.Image,
+		Price:       newProduct.Price,
+		Quantity:    newProduct.Quantity,
 	}
 
 	err = h.app.Commands.AddProduct.Handle(r.Context(), cmd)
@@ -130,11 +141,11 @@ func (h HttpServer) AddProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("content-location", "products/add-product/"+cmd.uuid)
+	w.Header().Set("content-location", "products/add-product/"+cmd.Uuid)
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (h HttpServer) UpdateProduct(w http.ResponseWriter, r *http.Request) {
+func (h HttpServer) UpdateProduct(w http.ResponseWriter, r *http.Request, productUuid string) {
 	user, err := auth.UserFromCtx(r.Context())
 	if err != nil {
 		httperr.RespondWithSlugError(err, w, r)
@@ -146,13 +157,24 @@ func (h HttpServer) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	productUpdate := &ProductUpdate{}
-	if err := render.Decode(r, productUpdate); err != nil {
+	updatedProduct := &UpdatedProduct{}
+	if err := render.Decode(r, updatedProduct); err != nil {
 		httperr.RespondWithSlugError(err, w, r)
 		return
 	}
 
-	err = h.app.Commands.UpdateProduct.Handle(r.Context(), productUpdate.uuid)
+	cmd := command.UpdateProduct{
+		Uuid:        productUuid,
+		UserUuid:    user.UUID,
+		Category:    updatedProduct.Category,
+		Title:       updatedProduct.Title,
+		Description: updatedProduct.Description,
+		Image:       updatedProduct.Image,
+		Price:       updatedProduct.Price,
+		Quantity:    updatedProduct.Quantity,
+	}
+
+	err = h.app.Commands.UpdateProduct.Handle(r.Context(), cmd)
 	if err != nil {
 		httperr.RespondWithSlugError(err, w, r)
 		return
@@ -161,8 +183,7 @@ func (h HttpServer) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h HttpServer) DeleteProduct(w http.ResponseWriter, r *http.Request) {
-	queryParams := ParamsForDeleteProduct(r.Context())
+func (h HttpServer) DeleteProduct(w http.ResponseWriter, r *http.Request, productUuid string) {
 
 	user, err := auth.UserFromCtx(r.Context())
 	if err != nil {
@@ -175,7 +196,7 @@ func (h HttpServer) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.app.Commands.RemoveProduct.Handle(r.Context(), queryParams.productUuid)
+	err = h.app.Commands.RemoveProduct.Handle(r.Context(), productUuid)
 	if err != nil {
 		httperr.RespondWithSlugError(err, w, r)
 		return

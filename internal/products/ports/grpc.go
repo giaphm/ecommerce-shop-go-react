@@ -19,24 +19,24 @@ func NewGrpcServer(application app.Application) GrpcServer {
 }
 
 func (g GrpcServer) GetProduct(ctx context.Context, request *products.GetProductRequest) (*products.GetProductResponse, error) {
-	product, err := g.app.Queries.Product.Handle(ctx, request.ProductUuid)
+	p, err := g.app.Queries.Product.Handle(ctx, request.Uuid)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &products.GetProductResponse{
-		Uuid:        product.GetUuid(),
-		UserUuid:    product.GetUserUuid(),
-		Category:    product.GetCategory(),
-		Title:       product.GetTitle(),
-		Description: product.GetDescription(),
-		Image:       product.GetImage(),
-		Price:       product.GetPrice(),
-		Quantity:    product.GetQuantity(),
+		Uuid:        p.Uuid,
+		UserUuid:    p.UserUuid,
+		Category:    p.Category,
+		Title:       p.Title,
+		Description: p.Description,
+		Image:       p.Image,
+		Price:       p.Price,
+		Quantity:    p.Quantity,
 	}, nil
 }
 
 func (g GrpcServer) IsProductAvailable(ctx context.Context, request *products.IsProductAvailableRequest) (*products.IsProductAvailableResponse, error) {
-	isAvailable, err := g.app.Queries.ProductAvailability.Handle(ctx, request.ProductUuid)
+	isAvailable, err := g.app.Queries.ProductAvailability.Handle(ctx, request.Uuid)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -46,7 +46,7 @@ func (g GrpcServer) IsProductAvailable(ctx context.Context, request *products.Is
 func (g GrpcServer) SellProduct(ctx context.Context, request *products.UpdateProductRequest) (*products.EmptyResponse, error) {
 
 	cmd := command.SellProduct{
-		uuid: request.ProductUuid,
+		Uuid: request.Uuid,
 	}
 
 	err := g.app.Commands.SellProduct.Handle(ctx, cmd)

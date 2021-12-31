@@ -55,7 +55,7 @@ func (b *TShirtBuilder) Price(price float32) *TShirtBuilder {
 	return b
 }
 
-func (b *TShirtBuilder) Quantity(quantity int) *TShirtBuilder {
+func (b *TShirtBuilder) Quantity(quantity int64) *TShirtBuilder {
 	b.product.quantity = quantity
 	return b
 }
@@ -67,7 +67,7 @@ func (tb *TShirtBuilder) Build() *Product {
 ///
 
 func (tsh *TShirt) GetProduct() *Product {
-	return &tsh.product
+	return &(tsh.product)
 }
 
 // ?? non-sense for MakeNewProduct
@@ -119,7 +119,7 @@ func (t *TShirt) MakeProductNewPrice(price float32) error {
 	return nil
 }
 
-func (t *TShirt) MakeProductNewQuantity(quantity int) error {
+func (t *TShirt) MakeProductNewQuantity(quantity int64) error {
 	if quantity < 0 {
 		return errors.New("invalid quantity")
 	}

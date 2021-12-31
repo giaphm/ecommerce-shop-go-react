@@ -19,7 +19,7 @@ func NewRemoveProductHandler(productRepo product.Repository) RemoveProductHandle
 	return RemoveProductHandler{productRepo: productRepo}
 }
 
-func (h RemoveProductHandler) Handler(ctx context.Context, productUuid string) error {
+func (h RemoveProductHandler) Handle(ctx context.Context, productUuid string) error {
 	if err := h.productRepo.RemoveProduct(ctx, productUuid); err != nil {
 		return errors.NewSlugError(err.Error(), "unable-to-remove-product")
 	}

@@ -21,9 +21,9 @@ func NewFirestoreProductRepository(firestoreClient *firestore.Client, productFac
 	if firestoreClient == nil {
 		panic("missing firestoreClient")
 	}
-	if productFactory.IsZero() {
-		panic("missing productFactory")
-	}
+	// if productFactory.IsZero() {
+	// 	panic("missing productFactory")
+	// }
 
 	return &FirestoreProductRepository{firestoreClient, productFactory}
 }
@@ -84,17 +84,27 @@ func (f FirestoreProductRepository) AddProduct(
 	ctx context.Context,
 	uuid string,
 	userUuid string,
-	category product.Category,
+	categoryString string,
 	title string,
 	description string,
 	image string,
 	price float32,
 	quantity int) error {
 
+	productFactory, err := f.productFactory.GetProductFactory(categoryString)
+	if err != nil {
+		return err
+	}
+
+	category, err := product.NewCategoryFromString(categoryString)
+	if err != nil {
+		return err
+	}
+
 	switch category {
 	case product.TShirtCategory:
 		{
-			newTShirtProduct, err := f.productFactory.NewTShirtProduct(uuid, userUuid, title, description, image, price, quantity)
+			newTShirtProduct, err := productFactory.NewTShirtProduct(uuid, userUuid, title, description, image, price, quantity)
 			if err != nil {
 				return err
 			}
@@ -137,11 +147,16 @@ func (f FirestoreProductRepository) UpdateProduct(
 			return err
 		}
 
+		productFactory, err := f.productFactory.GetProductFactory(p.Category)
+		if err != nil {
+			return err
+		}
+
 		switch p.Category {
 		case product.TShirtCategory.String():
 			{
 				// unmarshal found product into domain
-				productDomain, err := f.productFactory.UnmarshalTShirtProductFromDatabase(
+				tsh, err := productFactory.UnmarshalTShirtProductFromDatabase(
 					p.Uuid,
 					p.UserUuid,
 					p.Title,
@@ -154,7 +169,7 @@ func (f FirestoreProductRepository) UpdateProduct(
 				if err != nil {
 					return err
 				}
-				updatedProduct, err := updateFn(productDomain.(*product.Product))
+				updatedProduct, err := updateFn(tsh.GetProduct())
 				if err != nil {
 					return errors.Wrap(err, "unable to update hour")
 				}
@@ -162,7 +177,7 @@ func (f FirestoreProductRepository) UpdateProduct(
 				return transaction.Set(productDocRef, updatedProduct)
 			}
 		}
-
+		return nil
 	})
 
 	return errors.Wrap(err, "firestore transaction failed")
@@ -214,22 +229,22 @@ func (f FirestoreProductRepository) getProductDTO(
 		return nil, errors.New("Product is not found")
 	}
 	if err != nil {
-		return product.Product{}, err
+		return &query.Product{}, err
 	}
 
-	productFirestore := product.Product{}
-	if err := productSnapshot.DataTo(&productFirestore); err != nil {
-		return product.Product{}, errors.Wrap(err, "unable to unmarshal product.Product from Firestore")
+	var productFirestore *query.Product
+	if err := productSnapshot.DataTo(productFirestore); err != nil {
+		return &query.Product{}, errors.Wrap(err, "unable to unmarshal product.Product from Firestore")
 	}
 
 	return productFirestore, nil
 }
 
-func NewEmptyProductDTO(productUuid string) product.Product {
-	return product.Product{
-		productUuid: productUuid,
-	}
-}
+// func NewEmptyProductDTO(productUuid string) product.Product {
+// 	return product.Product{
+// 		productUuid: productUuid,
+// 	}
+// }
 
 // warning: RemoveAllProducts was designed for tests for doing data cleanups
 func (f FirestoreProductRepository) RemoveAllProducts(ctx context.Context) error {

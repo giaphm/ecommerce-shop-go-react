@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var testProductFactory = product.MustNewFactory("tshirt")
+var testProductFactory = product.MustNewFactory()
 
 func TestNewTShirtProduct(t *testing.T) {
 	productUuid := uuid.New().String()

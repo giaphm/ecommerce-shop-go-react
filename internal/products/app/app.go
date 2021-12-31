@@ -14,9 +14,12 @@ type Commands struct {
 	AddProduct    command.AddProductHandler
 	RemoveProduct command.RemoveProductHandler
 	UpdateProduct command.UpdateProductHandler
+	SellProduct   command.SellProductHandler
 }
 
 type Queries struct {
-	GetProduct           query.GetProductHandler
-	GetShopkeeperProduct query.GetShopkeeperProductHandler
+	Product             query.ProductHandler
+	Products            query.ProductsHandler
+	ShopkeeperProducts  query.ShopkeeperProductsHandler
+	ProductAvailability query.ProductAvailabilityHandler
 }

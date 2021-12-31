@@ -14,7 +14,7 @@ type Product struct {
 	description string
 	image       string
 	price       float32
-	quantity    int
+	quantity    int64
 }
 
 func (p Product) GetUuid() string {
@@ -45,20 +45,20 @@ func (p Product) GetPrice() float32 {
 	return p.price
 }
 
-func (p Product) GetQuantity() int {
+func (p Product) GetQuantity() int64 {
 	return p.quantity
 }
 
-type iProduct interface {
-	GetUuid() string
-	GetUserUuid() string
-	GetCategory() Category
-	GetTitle() string
-	GetDescription() string
-	GetImage() string
-	GetPrice() float32
-	GetQuantity() int
-}
+// type iProduct interface {
+// 	GetUuid() string
+// 	GetUserUuid() string
+// 	GetCategory() Category
+// 	GetTitle() string
+// 	GetDescription() string
+// 	GetImage() string
+// 	GetPrice() float32
+// 	GetQuantity() int
+// }
 
 type iProductsFactory interface {
 	GetProduct() *Product
@@ -67,33 +67,34 @@ type iProductsFactory interface {
 	MakeProductNewDescription(description string) error
 	MakeProductNewImage(image string) error
 	MakeProductNewPrice(price float32) error
-	MakeProductNewQuantity(quantity int) error
+	MakeProductNewQuantity(quantity int64) error
+}
+
+func NewTShirtProductFactory() iProductsFactory {
+
+	return &TShirt{}
 }
 
 // productType is lowercase
-func GetProductsFactory(productType string) (iProductsFactory, error) {
+func (f Factory) GetProductsFactory(productType string) (Factory, error) {
 	if productType == "tshirt" {
-		return &TShirt{}, nil
+		return Factory{f: NewTShirtProductFactory()}, nil
 	}
 
-	return nil, fmt.Errorf("wrong product type passed")
+	return Factory{}, fmt.Errorf("wrong product type passed")
 }
 
 type Factory struct {
 	f iProductsFactory
 }
 
-func NewProductsFactory(productType string) (Factory, error) {
-	f, err := GetProductsFactory(productType)
-	if err != nil {
-		return Factory{}, err
-	}
+func NewProductsFactory() (Factory, error) {
 
-	return Factory{f: f}, nil
+	return Factory{}, nil
 }
 
-func MustNewFactory(productType string) Factory {
-	f, err := NewProductsFactory(productType)
+func MustNewFactory() Factory {
+	f, err := NewProductsFactory()
 	if err != nil {
 		panic(err)
 	}
@@ -112,7 +113,7 @@ func (f Factory) NewTShirtProduct(
 	description string,
 	image string,
 	price float32,
-	quantity int,
+	quantity int64,
 ) (iProductsFactory, error) {
 	if err := f.validateProduct(title, description, image, price, quantity); err != nil {
 		return nil, err
@@ -150,7 +151,7 @@ func (f Factory) UnmarshalTShirtProductFromDatabase(
 	description string,
 	image string,
 	price float32,
-	quantity int,
+	quantity int64,
 ) (iProductsFactory, error) {
 
 	category, err := NewCategoryFromString(categoryString)

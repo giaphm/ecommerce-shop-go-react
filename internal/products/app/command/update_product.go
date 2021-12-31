@@ -8,14 +8,14 @@ import (
 )
 
 type UpdateProduct struct {
-	uuid        string
-	userUuid    string
-	category    product.Category
-	title       string
-	description string
-	image       string
-	price       float32
-	quantity    int
+	Uuid        string
+	UserUuid    string
+	Category    string
+	Title       string
+	Description string
+	Image       string
+	Price       float32
+	Quantity    int
 }
 
 type UpdateProductHandler struct {
@@ -31,7 +31,7 @@ func NewUpdateProductHandler(productRepo product.Repository) UpdateProductHandle
 }
 
 func (h UpdateProductHandler) Handle(ctx context.Context, cmd UpdateProduct) error {
-	if err := h.productRepo.UpdateProduct(ctx, cmd.uuid, func(p *product.Product) (*product.Product, error) {
+	if err := h.productRepo.UpdateProduct(ctx, cmd.Uuid, func(p *product.Product) (*product.Product, error) {
 		// build specific product from category
 		productFactory := product.MustNewFactory(p.GetCategory().String())
 
@@ -53,19 +53,19 @@ func (h UpdateProductHandler) Handle(ctx context.Context, cmd UpdateProduct) err
 				if err := tshirtProduct.MakeProductNewCategory(p.GetCategory().String()); err != nil {
 					return nil, err
 				}
-				if err := tshirtProduct.MakeProductNewTitle(cmd.title); err != nil {
+				if err := tshirtProduct.MakeProductNewTitle(cmd.Title); err != nil {
 					return nil, err
 				}
-				if err := tshirtProduct.MakeProductNewDescription(cmd.description); err != nil {
+				if err := tshirtProduct.MakeProductNewDescription(cmd.Description); err != nil {
 					return nil, err
 				}
-				if err := tshirtProduct.MakeProductNewImage(cmd.image); err != nil {
+				if err := tshirtProduct.MakeProductNewImage(cmd.Image); err != nil {
 					return nil, err
 				}
-				if err := tshirtProduct.MakeProductNewPrice(cmd.price); err != nil {
+				if err := tshirtProduct.MakeProductNewPrice(cmd.Price); err != nil {
 					return nil, err
 				}
-				if err := tshirtProduct.MakeProductNewQuantity(cmd.quantity); err != nil {
+				if err := tshirtProduct.MakeProductNewQuantity(cmd.Quantity); err != nil {
 					return nil, err
 				}
 				return tshirtProduct.GetProduct(), nil

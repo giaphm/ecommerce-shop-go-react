@@ -8,14 +8,14 @@ import (
 )
 
 type AddProduct struct {
-	uuid        string
-	userUuid    string
-	category    string
-	title       string
-	description string
-	image       string
-	price       float32
-	quantity    int
+	Uuid        string
+	UserUuid    string
+	Category    string
+	Title       string
+	Description string
+	Image       string
+	Price       float32
+	Quantity    int
 }
 
 type AddProductHandler struct {
@@ -33,14 +33,14 @@ func NewAddProductHandler(productRepo product.Repository) AddProductHandler {
 func (h AddProductHandler) Handle(ctx context.Context, cmd AddProduct) error {
 	if err := h.productRepo.AddProduct(
 		ctx,
-		cmd.uuid,
-		cmd.userUuid,
-		cmd.category,
-		cmd.title,
-		cmd.description,
-		cmd.image,
-		cmd.price,
-		cmd.quantity,
+		cmd.Uuid,
+		cmd.UserUuid,
+		cmd.Category,
+		cmd.Title,
+		cmd.Description,
+		cmd.Image,
+		cmd.Price,
+		cmd.Quantity,
 	); err != nil {
 		return errors.NewSlugError(err.Error(), "unable-to-post-product")
 	}
