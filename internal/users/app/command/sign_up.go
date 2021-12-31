@@ -10,7 +10,7 @@ type SignUp struct {
 	Uuid          string
 	DisplayName   string
 	Email         string
-	HashedPasword string
+	HashedPasword []byte
 	Role          string
 	LastIP        string
 }

@@ -15,14 +15,36 @@ type Error struct {
 
 // User defines model for User.
 type User struct {
-	Balance     int    `json:"balance"`
-	DisplayName string `json:"displayName"`
-	Email       string `json:"email"`
-	Role        string `json:"role"`
+	Balance     float32 `json:"balance"`
+	DisplayName string  `json:"displayName"`
+	Email       string  `json:"email"`
+	Role        string  `json:"role"`
+	Uuid        string  `json:"uuid"`
 }
 
+// UserSignIn defines model for UserSignIn.
+type UserSignIn struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+// UserSignUp defines model for UserSignUp.
+type UserSignUp struct {
+	Balance     float32 `json:"balance"`
+	DisplayName string  `json:"displayName"`
+	Email       string  `json:"email"`
+	Password    string  `json:"password"`
+	Role        string  `json:"role"`
+}
+
+// SignInUserJSONBody defines parameters for SignInUser.
+type SignInUserJSONBody UserSignIn
+
 // SignUpUserJSONBody defines parameters for SignUpUser.
-type SignUpUserJSONBody User
+type SignUpUserJSONBody UserSignUp
+
+// SignInUserJSONRequestBody defines body for SignInUser for application/json ContentType.
+type SignInUserJSONRequestBody SignInUserJSONBody
 
 // SignUpUserJSONRequestBody defines body for SignUpUser for application/json ContentType.
 type SignUpUserJSONRequestBody SignUpUserJSONBody

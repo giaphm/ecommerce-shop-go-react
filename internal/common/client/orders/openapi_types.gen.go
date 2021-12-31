@@ -28,6 +28,7 @@ type Order struct {
 	ProductUuids []string  `json:"productUuids"`
 	ProposedTime time.Time `json:"proposedTime"`
 	Status       string    `json:"status"`
+	TotalPrice   float32   `json:"totalPrice"`
 	UserUuid     string    `json:"userUuid"`
 	Uuid         string    `json:"uuid"`
 }

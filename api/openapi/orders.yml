@@ -113,7 +113,7 @@ components:
 
     Order:
       type: object
-      required: [uuid, userUuid, productUuids, status, proposedTime, expiresAt]
+      required: [uuid, userUuid, productUuids, totalPrice, status, proposedTime, expiresAt]
       properties:
         uuid:
           type: string
@@ -125,6 +125,9 @@ components:
           type: array
           items:
             type: string
+        totalPrice:
+          type: number
+          format: float
         status:
           type: string
         proposedTime:

@@ -91,6 +91,11 @@ type ClientInterface interface {
 	// GetCurrentUser request
 	GetCurrentUser(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// SignInUser request with any body
+	SignInUserWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	SignInUser(ctx context.Context, body SignInUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// SignUpUser request with any body
 	SignUpUserWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -99,6 +104,30 @@ type ClientInterface interface {
 
 func (c *Client) GetCurrentUser(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetCurrentUserRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SignInUserWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSignInUserRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) SignInUser(ctx context.Context, body SignInUserJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSignInUserRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -156,6 +185,46 @@ func NewGetCurrentUserRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewSignInUserRequest calls the generic SignInUser builder with application/json body
+func NewSignInUserRequest(server string, body SignInUserJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewSignInUserRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewSignInUserRequestWithBody generates requests for SignInUser with any type of body
+func NewSignInUserRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/signin")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -246,6 +315,11 @@ type ClientWithResponsesInterface interface {
 	// GetCurrentUser request
 	GetCurrentUserWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetCurrentUserResponse, error)
 
+	// SignInUser request with any body
+	SignInUserWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignInUserResponse, error)
+
+	SignInUserWithResponse(ctx context.Context, body SignInUserJSONRequestBody, reqEditors ...RequestEditorFn) (*SignInUserResponse, error)
+
 	// SignUpUser request with any body
 	SignUpUserWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpUserResponse, error)
 
@@ -275,10 +349,33 @@ func (r GetCurrentUserResponse) StatusCode() int {
 	return 0
 }
 
+type SignInUserResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *UserSignIn
+	JSONDefault  *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r SignInUserResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SignInUserResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type SignUpUserResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *User
+	JSON200      *UserSignUp
 	JSONDefault  *Error
 }
 
@@ -305,6 +402,23 @@ func (c *ClientWithResponses) GetCurrentUserWithResponse(ctx context.Context, re
 		return nil, err
 	}
 	return ParseGetCurrentUserResponse(rsp)
+}
+
+// SignInUserWithBodyWithResponse request with arbitrary body returning *SignInUserResponse
+func (c *ClientWithResponses) SignInUserWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignInUserResponse, error) {
+	rsp, err := c.SignInUserWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSignInUserResponse(rsp)
+}
+
+func (c *ClientWithResponses) SignInUserWithResponse(ctx context.Context, body SignInUserJSONRequestBody, reqEditors ...RequestEditorFn) (*SignInUserResponse, error) {
+	rsp, err := c.SignInUser(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSignInUserResponse(rsp)
 }
 
 // SignUpUserWithBodyWithResponse request with arbitrary body returning *SignUpUserResponse
@@ -357,6 +471,39 @@ func ParseGetCurrentUserResponse(rsp *http.Response) (*GetCurrentUserResponse, e
 	return response, nil
 }
 
+// ParseSignInUserResponse parses an HTTP response from a SignInUserWithResponse call
+func ParseSignInUserResponse(rsp *http.Response) (*SignInUserResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SignInUserResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest UserSignIn
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseSignUpUserResponse parses an HTTP response from a SignUpUserWithResponse call
 func ParseSignUpUserResponse(rsp *http.Response) (*SignUpUserResponse, error) {
 	bodyBytes, err := ioutil.ReadAll(rsp.Body)
@@ -372,7 +519,7 @@ func ParseSignUpUserResponse(rsp *http.Response) (*SignUpUserResponse, error) {
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest User
+		var dest UserSignUp
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

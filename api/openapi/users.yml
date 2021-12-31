@@ -14,6 +14,30 @@ servers:
 security:
   - bearerAuth: []
 paths:
+  /users/signin:
+    post:
+      operationId: signInUser
+      requestBody:
+        description: Provide email and password to signup a new user.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSignIn'
+      responses:
+        '200':
+          description: Sign up successfully!
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSignIn'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /users/signup:
     post:
       operationId: signUpUser
@@ -23,14 +47,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UserSignUp'
       responses:
         '200':
           description: Sign up successfully!
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/UserSignUp'
         default:
           description: unexpected error
           content:
@@ -62,24 +86,23 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    # NewUser:
-    #   type: object
-    #   required:
-    #     - email
-    #     - displayName
-    #     - role
-    #   properties:
-    #     email:
-    #       type: string
-    #     displayName:
-    #       type: string
-    #     role:
-    #       type: string
-    User:
+    UserSignIn:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+
+    UserSignUp:
       type: object
       required:
         - displayName
         - email
+        - password
         - balance
         - role
       properties:
@@ -87,8 +110,32 @@ components:
           type: string
         email:
           type: string
+        password:
+          type: string
         balance:
-          type: integer
+          type: number
+          format: float
+        role:
+          type: string
+          
+    User:
+      type: object
+      required:
+        - uuid
+        - displayName
+        - email
+        - balance
+        - role
+      properties:
+        uuid:
+          type: string
+        displayName:
+          type: string
+        email:
+          type: string
+        balance:
+          type: number
+          format: float
         role:
           type: string
 

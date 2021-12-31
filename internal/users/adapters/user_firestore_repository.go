@@ -27,6 +27,17 @@ type FirestoreUserRepository struct {
 	userFactory     user.Factory
 }
 
+func NewFirestoreUserRepository(firestoreClient *firestore.Client, userFactory user.Factory) *FirestoreUserRepository {
+	if firestoreClient == nil {
+		panic("missing firestoreClient")
+	}
+	// if productFactory.IsZero() {
+	// 	panic("missing productFactory")
+	// }
+
+	return &FirestoreUserRepository{firestoreClient, userFactory}
+}
+
 func (f FirestoreUserRepository) GetUser(ctx context.Context, userUuid string) (*query.User, error) {
 	userDoc, err := f.UserDocumentRef(userUuid).Get(ctx)
 
@@ -126,7 +137,7 @@ func (f FirestoreUserRepository) UpdateLastIP(ctx context.Context, userUuid stri
 }
 
 func (f FirestoreUserRepository) SignIn(ctx context.Context, email string, password string) error {
-	query := f.usersCollection().Query.Where("Email", "==", email).limit(1)
+	query := f.usersCollection().Query.Where("Email", "==", email).Limit(1)
 	userDocIter := query.Documents(ctx)
 
 	// Only get the first document
@@ -151,14 +162,17 @@ func (f FirestoreUserRepository) SignIn(ctx context.Context, email string, passw
 
 func (f FirestoreUserRepository) SignUp(ctx context.Context, uuid string, displayName string, email string, hashedPassword string, role string, lastIP string) error {
 
-	newBalance := 0.0
+	var newBalance float32 = 0.0
 
-	newUserDomain := f.userFactory.NewUser(uuid, displayName, email, hashedPassword, newBalance, role, lastIP)
+	newUserDomain, err := f.userFactory.NewUser(uuid, displayName, email, hashedPassword, newBalance, role, lastIP)
+	if err != nil {
+		return err
+	}
 
 	newUserModel := f.userDomainToUserModel(newUserDomain)
 
 	newDoc := f.usersCollection().Doc(newUserDomain.GetUuid())
-	_, err := newDoc.Create(ctx, newUserModel)
+	_, err = newDoc.Create(ctx, newUserModel)
 	if err != nil {
 		return err
 	}
@@ -186,7 +200,7 @@ func (f FirestoreUserRepository) userModelToUserQuery(userModel *UserModel) *que
 	}
 }
 
-func (f FirestoreUserRepository) userDomainToUserModel(user *user.User) *UserModel {
+func (f FirestoreUserRepository) userDomainToUserModel(user user.IUser) *UserModel {
 	return &UserModel{
 		Uuid:           user.GetUuid(),
 		DisplayName:    user.GetDisplayName(),

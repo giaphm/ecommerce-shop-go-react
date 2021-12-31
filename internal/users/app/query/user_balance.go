@@ -9,14 +9,16 @@ type UserBalanceHandler struct {
 }
 
 type UserBalanceReadModel interface {
-	GetUser(ctx context.Context, userUuid string) (User, error)
+	GetUser(ctx context.Context, userUuid string) (*User, error)
 }
 
-func NewBalanceHandler(readModel UserBalanceReadModel) UserBalanceHandler {
+func NewUserBalanceHandler(readModel UserBalanceReadModel) UserBalanceHandler {
 	return UserBalanceHandler{readModel: readModel}
 }
 
-func (h UserBalanceHandler) Handle(ctx context.Context, userUuid string) (User, error) {
+func (h UserBalanceHandler) Handle(ctx context.Context, userUuid string) (float32, error) {
 
-	return h.readModel.GetUser(ctx, userUuid)
+	user, err := h.readModel.GetUser(ctx, userUuid)
+
+	return user.Balance, err
 }

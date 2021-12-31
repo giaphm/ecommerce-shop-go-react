@@ -9,14 +9,16 @@ type DisplayNameHandler struct {
 }
 
 type DisplayNameReadModel interface {
-	GetUser(ctx context.Context, userUuid string) (User, error)
+	GetUser(ctx context.Context, userUuid string) (*User, error)
 }
 
 func NewDisplayNameHandler(readModel DisplayNameReadModel) DisplayNameHandler {
 	return DisplayNameHandler{readModel: readModel}
 }
 
-func (h DisplayNameHandler) Handle(ctx context.Context, userUuid string) (User, error) {
+func (h DisplayNameHandler) Handle(ctx context.Context, userUuid string) (string, error) {
 
-	return h.readModel.GetUser(ctx, userUuid)
+	user, err := h.readModel.GetUser(ctx, userUuid)
+
+	return user.DisplayName, err
 }

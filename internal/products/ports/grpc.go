@@ -31,7 +31,7 @@ func (g GrpcServer) GetProduct(ctx context.Context, request *products.GetProduct
 		Description: p.Description,
 		Image:       p.Image,
 		Price:       p.Price,
-		Quantity:    int64(p.Quantity),
+		Quantity:    p.Quantity,
 	}, nil
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type GrpcServer struct {
@@ -29,15 +30,9 @@ func (g GrpcServer) GetOrder(ctx context.Context, request *orders.GetOrderReques
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	proposedTimeTimestampProto, err := ptypes.TimestampProto(order.ProposedTime)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
+	proposedTimeTimestampProto := timestamppb.New(order.ProposedTime)
 
-	expiresAtTimestampProto, err := ptypes.TimestampProto(order.ExpiresAt)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
+	expiresAtTimestampProto := timestamppb.New(order.ExpiresAt)
 
 	return &orders.GetOrderResponse{
 		Uuid:         order.Uuid,

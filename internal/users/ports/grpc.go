@@ -9,6 +9,7 @@ import (
 
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/genproto/users"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/users/app"
+	"github.com/giaphm/ecommerce-shop-go-react/internal/users/app/command"
 )
 
 // type GrpcServer struct {
@@ -25,21 +26,21 @@ func NewGrpcServer(application app.Application) GrpcServer {
 
 func (g GrpcServer) GetUserDisplayName(ctx context.Context, request *users.GetUserDisplayNameRequest) (*users.GetUserDisplayNameResponse, error) {
 
-	user, err := g.app.Queries.DisplayName.Handle(ctx, request.UserUuid)
+	userDisplayName, err := g.app.Queries.DisplayName.Handle(ctx, request.UserUuid)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &users.GetUserDisplayNameResponse{UserName: user.UserName}, nil
+	return &users.GetUserDisplayNameResponse{UserName: userDisplayName}, nil
 }
 
 func (g GrpcServer) GetUserBalance(ctx context.Context, request *users.GetUserBalanceRequest) (*users.GetUserBalanceResponse, error) {
 
-	user, err := g.app.Queries.UserBalance.Handle(ctx, request.UserUuid)
+	userBalance, err := g.app.Queries.UserBalance.Handle(ctx, request.UserUuid)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &users.GetUserBalanceResponse{Amount: float32(user.Balance)}, nil
+	return &users.GetUserBalanceResponse{Amount: userBalance}, nil
 }
 
 func (g GrpcServer) WithdrawUserBalance(
@@ -47,9 +48,14 @@ func (g GrpcServer) WithdrawUserBalance(
 	req *users.WithdrawUserBalanceRequest,
 ) (*users.EmptyResponse, error) {
 
-	err := g.app.Commands.WithdrawBalance(ctx, req.UserUuid, float32(req.AmountChange))
+	cmd := command.WithdrawBalance{
+		UserUuid: req.UserUuid,
+		Amount:   req.AmountChange,
+	}
+
+	err := g.app.Commands.WithdrawBalance.Handle(ctx, cmd)
 	if err != nil {
-		return nil, status.Error(codes.Internal, fmt.Sprintf("failed to update balance: %s", err))
+		return nil, status.Error(codes.Internal, fmt.Sprintf("failed to withdraw balance: %s", err))
 	}
 
 	return &users.EmptyResponse{}, nil
@@ -60,7 +66,12 @@ func (g GrpcServer) DepositUserBalance(
 	req *users.DepositUserBalanceRequest,
 ) (*users.EmptyResponse, error) {
 
-	err := g.app.Commands.DepositBalance(ctx, req.UserUuid, int(req.AmountChange))
+	cmd := command.DepositBalance{
+		UserUuid: req.UserUuid,
+		Amount:   req.AmountChange,
+	}
+
+	err := g.app.Commands.DepositBalance.Handle(ctx, cmd)
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("failed to deposite balance: %s", err))
 	}

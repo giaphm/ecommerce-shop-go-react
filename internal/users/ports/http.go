@@ -73,7 +73,7 @@ func (h HttpServer) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 
 func (h HttpServer) SignInUser(w http.ResponseWriter, r *http.Request) {
 
-	var user *User
+	var user *UserSignIn
 	if err := render.Decode(r, user); err != nil {
 		httperr.RespondWithSlugError(err, w, r)
 		return
@@ -86,34 +86,32 @@ func (h HttpServer) SignInUser(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	cmd := command.SignIn{
-		Email:   user.Email,
-		Pasword: user.Password,
+		Email:    user.Email,
+		Password: user.Password,
 	}
 
 	if err := h.app.Commands.SignIn.Handle(r.Context(), cmd); err != nil {
 		httperr.InternalError("cannot-sign-in-user", err, w, r)
 		return
 	}
-
-	w.Header().Set("content-location", "users/sign-in-user/"+cmd.Uuid)
-	w.WriteHeader(http.StatusCreated)
+	// return uuid to test
 }
 
 func (h HttpServer) SignUpUser(w http.ResponseWriter, r *http.Request) {
 
-	var user *User
+	var user *UserSignUp
 	if err := render.Decode(r, user); err != nil {
 		httperr.RespondWithSlugError(err, w, r)
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword(user.Password, 12)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
 	if err != nil {
 		httperr.RespondWithSlugError(err, w, r)
 		return
 	}
 
-	cmd := command.SignUpUser{
+	cmd := command.SignUp{
 		Uuid:          uuid.New().String(),
 		DisplayName:   user.DisplayName,
 		Email:         user.Email,

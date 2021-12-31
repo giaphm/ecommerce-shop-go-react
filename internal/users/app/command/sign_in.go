@@ -7,8 +7,8 @@ import (
 )
 
 type SignIn struct {
-	Email   string
-	Pasword string
+	Email    string
+	Password string
 }
 
 type SignInHandler struct {

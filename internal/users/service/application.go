@@ -18,18 +18,24 @@ func NewApplication(ctx context.Context) app.Application {
 		panic(err)
 	}
 
-	userFactory, err := user.NewFactory()
+	userFactory, err := user.NewUsersFactory()
 	if err != nil {
 		panic(err)
 	}
 
-	userRepository := adapters.NewFirestoreProductRepository(firestoreClient, userFactory)
+	userRepository := adapters.NewFirestoreUserRepository(firestoreClient, userFactory)
 
 	return app.Application{
 		Commands: app.Commands{
-			UpdateLastIP: command.NewUpdateLastIPHandler(userRepository),
+			SignIn:          command.NewSignInHandler(userRepository),
+			SignUp:          command.NewSignUpHandler(userRepository),
+			DepositBalance:  command.NewDepositBalanceHandler(userRepository),
+			WithdrawBalance: command.NewWithdrawBalanceHandler(userRepository),
+			UpdateLastIP:    command.NewUpdateLastIPHandler(userRepository),
 		},
 		Queries: app.Queries{
+			DisplayName: query.NewDisplayNameHandler(userRepository),
+			UserBalance: query.NewUserBalanceHandler(userRepository),
 			CurrentUser: query.NewCurrentUserHandler(userRepository),
 		},
 	}

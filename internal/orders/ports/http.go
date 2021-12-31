@@ -113,6 +113,7 @@ func orderQueryModelToResponse(model *query.Order) *Order {
 		Uuid:         model.Uuid,
 		UserUuid:     model.UserUuid,
 		ProductUuids: model.ProductUuids,
+		TotalPrice:   model.TotalPrice,
 		Status:       model.Status,
 		ProposedTime: model.ProposedTime,
 		ExpiresAt:    model.ExpiresAt,
@@ -124,15 +125,12 @@ func orderQueryModelsToResponse(models []*query.Order) []*Order {
 	var orders []*Order
 
 	for _, o := range models {
-		// status, err := order.NewStatusFromString(o.Status)
-		// if err != nil {
-		// 	return nil
-		// }
 
 		orders = append(orders, &Order{
 			Uuid:         o.Uuid,
 			UserUuid:     o.UserUuid,
 			ProductUuids: o.ProductUuids,
+			TotalPrice:   o.TotalPrice,
 			Status:       o.Status,
 			ProposedTime: o.ProposedTime,
 			ExpiresAt:    o.ExpiresAt,

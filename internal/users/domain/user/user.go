@@ -42,7 +42,7 @@ func (u User) GetLastIP() string {
 	return u.LastIP
 }
 
-type iUser interface {
+type IUser interface {
 	GetUuid() string
 	GetDisplayName() string
 	GetEmail() string
@@ -100,7 +100,7 @@ func (f Factory) NewUser(
 	balance float32,
 	role string,
 	lastIP string,
-) (iUser, error) {
+) (IUser, error) {
 	if err := f.validateUser(displayName, email, hashedPassword, balance, role, lastIP); err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func (f Factory) UnmarshalUserFromDatabase(
 	balance float32,
 	role string,
 	lastIP string,
-) (iUser, error) {
+) (IUser, error) {
 
 	return &User{
 		uuid:           uuid,
