@@ -6,8 +6,8 @@ import (
 )
 
 type Repository interface {
-	GetOrder(ctx context.Context, orderUuid string) (*Order, error)
-	GetOrders(ctx context.Context) ([]*Order, error)
+	// GetOrder(ctx context.Context, orderUuid string) (*Order, error)
+	// GetOrders(ctx context.Context) ([]*Order, error)
 	AddOrder(
 		ctx context.Context,
 		uuid string,

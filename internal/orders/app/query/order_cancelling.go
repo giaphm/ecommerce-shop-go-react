@@ -7,22 +7,22 @@ import (
 )
 
 type OrderCancellingHandler struct {
-	orderRepo order.Repository
+	readModel OrderCancellingReadModel
 }
 
-func NewOrderCancellingHandler(orderRepo order.Repository) OrderCancellingHandler {
-	if orderRepo == nil {
-		panic("nil orderRepo")
-	}
+type OrderCancellingReadModel interface {
+	GetOrder(ctx context.Context, orderUuid string) (*Order, error)
+}
 
-	return OrderCancellingHandler{orderRepo: orderRepo}
+func NewOrderCancellingHandler(readModel OrderCancellingReadModel) OrderCancellingHandler {
+	return OrderCancellingHandler{readModel: readModel}
 }
 
 func (h OrderCancellingHandler) Handle(ctx context.Context, orderUuid string) (bool, error) {
-	o, err := h.orderRepo.GetOrder(ctx, orderUuid)
+	o, err := h.readModel.GetOrder(ctx, orderUuid)
 	if err != nil {
 		return false, err
 	}
 
-	return o.GetStatus() == order.StatusCancelled, nil
+	return o.Status == order.StatusCancelled.String(), nil
 }

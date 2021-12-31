@@ -17,12 +17,12 @@ type Hour struct {
 }
 
 type Product struct {
-	uuid        string
-	userUuid    string
-	category    product.Category
-	title       string
-	description string
-	image       string
-	price       float32
-	quantity    int
+	Uuid        string
+	UserUuid    string
+	Category    string
+	Title       string
+	Description string
+	Image       string
+	Price       float32
+	Quantity    int
 }

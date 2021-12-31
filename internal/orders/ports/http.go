@@ -31,7 +31,7 @@ func (h HttpServer) GetOrder(w http.ResponseWriter, r *http.Request, queryParams
 		return
 	}
 
-	order := orderModelToResponse(orderModel)
+	order := orderQueryModelToResponse(orderModel)
 	render.Respond(w, r, order)
 }
 
@@ -42,7 +42,7 @@ func (h HttpServer) GetOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	order := orderModelsToResponse(orderModel)
+	order := orderQueryModelsToResponse(orderModel)
 	render.Respond(w, r, order)
 }
 
@@ -106,7 +106,7 @@ func (h HttpServer) CancelOrder(w http.ResponseWriter, r *http.Request, orderUUI
 	w.WriteHeader(http.StatusCreated)
 }
 
-func orderModelToResponse(model *query.Order) *Order {
+func orderQueryModelToResponse(model *query.Order) *Order {
 	// status := order.NewStatusFromString(model.status)
 
 	o := &Order{
@@ -120,7 +120,7 @@ func orderModelToResponse(model *query.Order) *Order {
 	return o
 }
 
-func orderModelsToResponse(models []*query.Order) []*Order {
+func orderQueryModelsToResponse(models []*query.Order) []*Order {
 	var orders []*Order
 
 	for _, o := range models {

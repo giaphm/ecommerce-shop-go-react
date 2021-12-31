@@ -14,5 +14,5 @@ type Repository interface {
 		totalPrice float32,
 		proposedTime time.Time,
 	) error
-	GetCheckouts(ctx context.Context) ([]*Checkout, error)
+	GetCheckouts(ctx context.Context) ([]*Checkout, error) // not need when using readModel
 }

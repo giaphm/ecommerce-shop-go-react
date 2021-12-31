@@ -28,7 +28,7 @@ func NewFirestoreProductRepository(firestoreClient *firestore.Client, productFac
 	return &FirestoreProductRepository{firestoreClient, productFactory}
 }
 
-func (f FirestoreProductRepository) GetProduct(ctx context.Context, productUuid string) (*product.Product, error) {
+func (f FirestoreProductRepository) GetProduct(ctx context.Context, productUuid string) (*query.Product, error) {
 	productFirestore, err := f.getProductDTO(
 		// getProductDTO has a callback function,
 		// that should be used both for transactional and non transactional query,
@@ -41,30 +41,30 @@ func (f FirestoreProductRepository) GetProduct(ctx context.Context, productUuid 
 	if err != nil {
 		return nil, err
 	}
-	product := productModelToApp(productFirestore)
 
-	return product, nil
+	return productFirestore, nil
 }
 
-func (f FirestoreProductRepository) GetProducts(ctx context.Context) ([]*product.Product, error) {
+func (f FirestoreProductRepository) GetProducts(ctx context.Context) ([]*query.Product, error) {
 	productSnapshots, err := f.productDocuments(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	var products []*product.Product
-	var product product.product
+	var products []*query.Product
+	var product *query.product
 	for _, productSnapshot := range productSnapshots {
 		if err := productSnapshot.DataTo(&product); err != nil {
 			return nil, err
 		}
 		// productModelToApp for customizing the response properties to return into api
-		products = append(products, productModelToApp(product))
+		products = append(products, product)
+		// products = append(products, productModelToApp(product))
 	}
 	return products, nil
 }
 
-func (f FirestoreProductRepository) GetShopkeeperProducts(ctx context.Context, userUuid string) ([]product.Product, error) {
+func (f FirestoreProductRepository) GetShopkeeperProducts(ctx context.Context, userUuid string) ([]*query.Product, error) {
 	productSnapshots, err := f.productShopkeeperDocuments(ctx, userUuid)
 	if err != nil {
 		return nil, err
@@ -194,7 +194,7 @@ func (f FirestoreProductRepository) productShopkeeperDocuments(ctx context.Conte
 func (f FirestoreProductRepository) getProductDTO(
 	getDocumentFn func() (doc *firestore.DocumentSnapshot, err error),
 	productUuid string,
-) (product.Product, error) {
+) (*query.Product, error) {
 
 	productSnapshot, err := getDocumentFn()
 	if status.Code(err) == codes.NotFound {
@@ -265,7 +265,7 @@ func ProductModelToDb(pm product.Product) query.Product {
 	}
 }
 
-func productModelToApp(pm product.Product) query.Product {
+func productModelToApp(pm query.Product) product.Product {
 	category, err := product.NewCategoryFromString(pm.category)
 	if err != nil {
 		return nil

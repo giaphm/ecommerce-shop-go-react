@@ -5,8 +5,8 @@ import (
 )
 
 type Repository interface {
-	GetProduct(ctx context.Context, productUuid string) (*Product, error)
-	GetShopkeeperProduct(ctx context.Context, productUuid string) (*Product, error)
+	// GetProduct(ctx context.Context, productUuid string) (*Product, error)
+	// GetShopkeeperProduct(ctx context.Context, productUuid string) (*Product, error)
 	AddProduct(
 		ctx context.Context,
 		uuid string,

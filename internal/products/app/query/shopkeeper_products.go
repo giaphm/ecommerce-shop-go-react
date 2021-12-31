@@ -11,14 +11,14 @@ type ShopkeeperProductsHandler struct {
 }
 
 type ShopkeeperProductsReadModel interface {
-	GetShopkeeperProducts(ctx context.Context) ([]Product, error)
+	GetShopkeeperProducts(ctx context.Context, userUuid string) ([]*Product, error)
 }
 
 func NewShopkeeperProductsHandler(readModel ShopkeeperProductsReadModel) ShopkeeperProductsHandler {
 	return ShopkeeperProductsHandler{readModel: readModel}
 }
 
-func (h ShopkeeperProductsHandler) Handle(ctx context.Context, user auth.User) (p []Product, err error) {
+func (h ShopkeeperProductsHandler) Handle(ctx context.Context, user auth.User) ([]*Product, error) {
 	// start := time.Now()
 	// defer func() {
 	// 	logrus.
@@ -31,5 +31,5 @@ func (h ShopkeeperProductsHandler) Handle(ctx context.Context, user auth.User) (
 	// 	return nil, errors.NewIncorrectInputError("date-from-after-date-to", "Date from after date to")
 	// }
 
-	return h.readModel.GetShopkeeperProducts(ctx, user.UUID())
+	return h.readModel.GetShopkeeperProducts(ctx, user.UUID)
 }

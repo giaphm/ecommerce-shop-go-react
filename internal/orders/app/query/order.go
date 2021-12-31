@@ -1,6 +1,8 @@
 package query
 
-import "context"
+import (
+	"context"
+)
 
 type OrderHandler struct {
 	readModel OrderReadModel

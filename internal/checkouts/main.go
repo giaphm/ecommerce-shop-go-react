@@ -22,6 +22,9 @@ func main() {
 	// go loadFixtures(application)
 
 	server.RunHTTPServer(func(router chi.Router) http.Handler {
-		return ports.HandlerFromMux(ports.NewHttpServer(app), router)
+		return ports.HandlerFromMux(
+			ports.NewHttpServer(app),
+			router,
+		)
 	})
 }

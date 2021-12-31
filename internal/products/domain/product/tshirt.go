@@ -6,6 +6,10 @@ type TShirt struct {
 	product Product
 }
 
+func (tsh *TShirt) GetProduct() Product {
+	return tsh.product
+}
+
 // type TShirtProduct struct {
 // 	product Product
 // }

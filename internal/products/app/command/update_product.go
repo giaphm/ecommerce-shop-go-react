@@ -32,26 +32,49 @@ func NewUpdateProductHandler(productRepo product.Repository) UpdateProductHandle
 
 func (h UpdateProductHandler) Handle(ctx context.Context, cmd UpdateProduct) error {
 	if err := h.productRepo.UpdateProduct(ctx, cmd.uuid, func(p *product.Product) (*product.Product, error) {
-		if err := p.MakeProductNewCategory(product.NewCategoryFromString(p.category)); err != nil {
-			return nil, err
-		}
-		if err := p.MakeProductNewTitle(cmd.title); err != nil {
-			return nil, err
-		}
-		if err := p.MakeProductNewDescription(cmd.description); err != nil {
-			return nil, err
-		}
-		if err := p.MakeProductNewImage(cmd.image); err != nil {
-			return nil, err
-		}
-		if err := p.MakeProductNewPrice(cmd.price); err != nil {
-			return nil, err
-		}
-		if err := p.MakeProductNewQuantity(cmd.quantity); err != nil {
-			return nil, err
-		}
+		// build specific product from category
+		productFactory := product.MustNewFactory(p.GetCategory().String())
 
-		return p, nil
+		switch p.GetCategory() {
+		case product.TShirtCategory:
+			{
+				tshirtProduct, err := productFactory.NewTShirtProduct(
+					p.GetUuid(),
+					p.GetUserUuid(),
+					p.GetTitle(),
+					p.GetDescription(),
+					p.GetImage(),
+					p.GetPrice(),
+					p.GetQuantity(),
+				)
+				if err != nil {
+					return nil, err
+				}
+				if err := tshirtProduct.MakeProductNewCategory(p.GetCategory().String()); err != nil {
+					return nil, err
+				}
+				if err := tshirtProduct.MakeProductNewTitle(cmd.title); err != nil {
+					return nil, err
+				}
+				if err := tshirtProduct.MakeProductNewDescription(cmd.description); err != nil {
+					return nil, err
+				}
+				if err := tshirtProduct.MakeProductNewImage(cmd.image); err != nil {
+					return nil, err
+				}
+				if err := tshirtProduct.MakeProductNewPrice(cmd.price); err != nil {
+					return nil, err
+				}
+				if err := tshirtProduct.MakeProductNewQuantity(cmd.quantity); err != nil {
+					return nil, err
+				}
+				return tshirtProduct.GetProduct(), nil
+			}
+			// case product.AssessoriesCategory: {
+
+			// }
+		}
+		return nil, nil
 	}); err != nil {
 		return errors.NewSlugError(err.Error(), "unable-to-update-product")
 	}

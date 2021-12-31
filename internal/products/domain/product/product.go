@@ -61,6 +61,7 @@ type iProduct interface {
 }
 
 type iProductsFactory interface {
+	GetProduct() Product
 	MakeProductNewCategory(newCategoryString string) error
 	MakeProductNewTitle(title string) error
 	MakeProductNewDescription(description string) error
@@ -75,7 +76,7 @@ func GetProductsFactory(productType string) (iProductsFactory, error) {
 		return &TShirt{}, nil
 	}
 
-	return nil, fmt.Errorf("Wrong product type passed")
+	return nil, fmt.Errorf("wrong product type passed")
 }
 
 type Factory struct {

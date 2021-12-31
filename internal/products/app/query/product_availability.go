@@ -2,27 +2,26 @@ package query
 
 import (
 	"context"
-
-	"github.com/giaphm/ecommerce-shop-go-react/internal/products/domain/product"
 )
 
 type ProductAvailabilityHandler struct {
-	productRepo product.Repository
+	readModel ProductAvailabilityReadModel
 }
 
-func NewProductAvailabilityHandler(productRepo product.Repository) ProductAvailabilityHandler {
-	if productRepo == nil {
-		panic("nil productRepo")
-	}
+type ProductAvailabilityReadModel interface {
+	GetProduct(ctx context.Context, productUuid string) (*Product, error)
+}
 
-	return ProductAvailabilityHandler{productRepo: productRepo}
+func NewProductAvailabilityHandler(readModel ProductAvailabilityReadModel) ProductAvailabilityHandler {
+
+	return ProductAvailabilityHandler{readModel: readModel}
 }
 
 func (h ProductAvailabilityHandler) Handle(ctx context.Context, productUuid string) (bool, error) {
-	product, err := h.productRepo.GetProduct(ctx, productUuid)
+	product, err := h.readModel.GetProduct(ctx, productUuid)
 	if err != nil {
 		return false, err
 	}
 
-	return product.quantity > 0, nil
+	return product.Quantity > 0, nil
 }

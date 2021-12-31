@@ -9,14 +9,14 @@ type ProductsHandler struct {
 }
 
 type ProductsReadModel interface {
-	GetProducts(ctx context.Context) ([]Product, error)
+	GetProducts(ctx context.Context) ([]*Product, error)
 }
 
 func NewProductsHandler(readModel ProductsReadModel) ProductsHandler {
 	return ProductsHandler{readModel: readModel}
 }
 
-func (h ProductsHandler) Handle(ctx context.Context) (p []Product, err error) {
+func (h ProductsHandler) Handle(ctx context.Context) (p []*Product, err error) {
 	// start := time.Now()
 	// defer func() {
 	// 	logrus.
