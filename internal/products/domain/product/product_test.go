@@ -113,15 +113,16 @@ func TestUnmarshalTShirtProductFromDatabase(t *testing.T) {
 	productUuid := uuid.New().String()
 	userUuid := uuid.New().String()
 	title := "tshirt-1"
+	category := "tshirt"
 	description := "This is a new item of our shop."
 	image := ""
 	var price float32 = 10.1
 	quantity := -5
 
-	tsh, err := testProductFactory.UnmarshalTShirtProductFromDatabase(productUuid, userUuid, title, product.TShirtCategory, description, image, price, quantity)
+	tsh, err := testProductFactory.UnmarshalTShirtProductFromDatabase(productUuid, userUuid, title, category, description, image, price, quantity)
 	require.NoError(t, err)
 
-	assert.EqualValuesf(t, product.TShirtCategory, tsh.GetProduct().GetCategory())
+	assert.Equal(t, product.TShirtCategory, tsh.GetProduct().GetCategory())
 	assert.Equal(t, title, tsh.GetProduct().GetTitle())
 	assert.Equal(t, description, tsh.GetProduct().GetDescription())
 	assert.Equal(t, image, tsh.GetProduct().GetImage())

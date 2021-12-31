@@ -52,7 +52,7 @@ func (f FirestoreProductRepository) GetProducts(ctx context.Context) ([]*query.P
 	}
 
 	var products []*query.Product
-	var product *query.product
+	var product *query.Product
 	for _, productSnapshot := range productSnapshots {
 		if err := productSnapshot.DataTo(&product); err != nil {
 			return nil, err
@@ -70,9 +70,12 @@ func (f FirestoreProductRepository) GetShopkeeperProducts(ctx context.Context, u
 		return nil, err
 	}
 	var products []*query.Product
+	var product *query.Product
 	for _, productSnapshot := range productSnapshots {
-		product := productSnapshot.Data()
-		products = append(products, productModelToApp(product))
+		if err := productSnapshot.DataTo(product); err != nil {
+			return nil, err
+		}
+		products = append(products, product)
 	}
 	return products, nil
 }
@@ -88,28 +91,17 @@ func (f FirestoreProductRepository) AddProduct(
 	price float32,
 	quantity int) error {
 
-	newProduct := product.Product{
-		uuid:        uuid,
-		userUuid:    userUuid,
-		category:    category,
-		title:       title,
-		description: description,
-		image:       image,
-		price:       price,
-		quantity:    quantity,
-	}
-
-	switch newProduct.category {
+	switch category {
 	case product.TShirtCategory:
 		{
-			newTShirtProduct, err := f.productFactory.NewTShirtProduct(newProduct.uuid, newProduct.userUuid, newProduct.title, newProduct.description, newProduct.image, newProduct.price, newProduct.quantity)
+			newTShirtProduct, err := f.productFactory.NewTShirtProduct(uuid, userUuid, title, description, image, price, quantity)
 			if err != nil {
 				return err
 			}
 
-			newTShirtProductToDb := ProductModelToDb(newTShirtProduct)
+			newTShirtProductToDb := ProductModelToDb(newTShirtProduct.GetProduct())
 
-			newDoc := f.productsCollection().Doc(newTShirtProductToDb.uuid)
+			newDoc := f.productsCollection().Doc(newTShirtProductToDb.Uuid)
 			_, err = newDoc.Create(ctx, newTShirtProductToDb)
 			if err != nil {
 				return err
@@ -117,7 +109,7 @@ func (f FirestoreProductRepository) AddProduct(
 		}
 		// case AssessoriesCategory:
 		// 	{
-		// 		newAssessoriesProduct := f.productFactory.NewAssessoriesProduct(newProduct.userUuid, newProduct.title, newProduct.description, newProduct.image, newProduct.price, newProduct.quantity)
+		// 		newAssessoriesProduct := f.productFactory.NewAssessoriesProduct(userUuid, title, description, image, price, quantity)
 		// 	}
 	}
 
@@ -133,7 +125,7 @@ func (f FirestoreProductRepository) UpdateProduct(
 		productDocRef := f.documentRef(productUuid)
 
 		// get all orders that have the product uuid
-		product, err := f.getProductDTO(
+		p, err := f.getProductDTO(
 			// getDateDTO should be used both for transactional and non transactional query,
 			// the best way for that is to use closure
 			func() (doc *firestore.DocumentSnapshot, err error) {
@@ -145,12 +137,32 @@ func (f FirestoreProductRepository) UpdateProduct(
 			return err
 		}
 
-		updatedProduct, err := updateFn(product)
-		if err != nil {
-			return errors.Wrap(err, "unable to update hour")
+		switch p.Category {
+		case product.TShirtCategory.String():
+			{
+				// unmarshal found product into domain
+				productDomain, err := f.productFactory.UnmarshalTShirtProductFromDatabase(
+					p.Uuid,
+					p.UserUuid,
+					p.Title,
+					p.Category,
+					p.Description,
+					p.Image,
+					p.Price,
+					p.Quantity,
+				)
+				if err != nil {
+					return err
+				}
+				updatedProduct, err := updateFn(productDomain.(*product.Product))
+				if err != nil {
+					return errors.Wrap(err, "unable to update hour")
+				}
+
+				return transaction.Set(productDocRef, updatedProduct)
+			}
 		}
 
-		return transaction.Set(productDocRef, updatedProduct)
 	})
 
 	return errors.Wrap(err, "firestore transaction failed")
@@ -250,35 +262,17 @@ func (f FirestoreProductRepository) RemoveAllProducts(ctx context.Context) error
 	}
 }
 
-func ProductModelToDb(pm product.Product) query.Product {
-	categoryString := pm.category.String()
+func ProductModelToDb(pm *product.Product) *query.Product {
+	categoryString := pm.GetCategory().String()
 
-	return query.Product{
-		uuid:        pm.uuid,
-		userUuid:    pm.userUuid,
-		category:    categoryString,
-		title:       pm.title,
-		description: pm.description,
-		image:       pm.image,
-		price:       pm.price,
-		quantity:    pm.quantity,
-	}
-}
-
-func productModelToApp(pm query.Product) product.Product {
-	category, err := product.NewCategoryFromString(pm.category)
-	if err != nil {
-		return nil
-	}
-
-	return query.Product{
-		uuid:        pm.uuid,
-		userUuid:    pm.userUuid,
-		category:    category,
-		title:       pm.title,
-		description: pm.description,
-		image:       pm.image,
-		price:       pm.price,
-		quantity:    pm.quantity,
+	return &query.Product{
+		Uuid:        pm.GetUuid(),
+		UserUuid:    pm.GetUserUuid(),
+		Category:    categoryString,
+		Title:       pm.GetTitle(),
+		Description: pm.GetDescription(),
+		Image:       pm.GetImage(),
+		Price:       pm.GetPrice(),
+		Quantity:    pm.GetQuantity(),
 	}
 }

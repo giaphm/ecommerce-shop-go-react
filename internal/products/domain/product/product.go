@@ -61,7 +61,7 @@ type iProduct interface {
 }
 
 type iProductsFactory interface {
-	GetProduct() Product
+	GetProduct() *Product
 	MakeProductNewCategory(newCategoryString string) error
 	MakeProductNewTitle(title string) error
 	MakeProductNewDescription(description string) error
@@ -142,8 +142,19 @@ func (f Factory) NewTShirtProduct(
 //
 // It should be used only for unmarshalling from the database!
 // You can't use UnmarshalTShirtFromDatabase as constructor - It may put domain into the invalid state!
-func (f Factory) UnmarshalTShirtProductFromDatabase(uuid string, userUuid string, category Category, title string, description string, image string, price float32, quantity int) (iProductsFactory, error) {
-	if category.IsZero() {
+func (f Factory) UnmarshalTShirtProductFromDatabase(
+	uuid string,
+	userUuid string,
+	title string,
+	categoryString string,
+	description string,
+	image string,
+	price float32,
+	quantity int,
+) (iProductsFactory, error) {
+
+	category, err := NewCategoryFromString(categoryString)
+	if err != nil {
 		return nil, ErrEmptyCategory
 	}
 

@@ -6,10 +6,6 @@ type TShirt struct {
 	product Product
 }
 
-func (tsh *TShirt) GetProduct() Product {
-	return tsh.product
-}
-
 // type TShirtProduct struct {
 // 	product Product
 // }
@@ -66,6 +62,12 @@ func (b *TShirtBuilder) Quantity(quantity int) *TShirtBuilder {
 
 func (tb *TShirtBuilder) Build() *Product {
 	return tb.product
+}
+
+///
+
+func (tsh *TShirt) GetProduct() *Product {
+	return &tsh.product
 }
 
 // ?? non-sense for MakeNewProduct
