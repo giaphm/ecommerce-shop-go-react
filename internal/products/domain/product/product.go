@@ -60,7 +60,7 @@ func (p Product) GetQuantity() int {
 // 	GetQuantity() int
 // }
 
-type iProductsFactory interface {
+type IProductsFactory interface {
 	GetProduct() *Product
 	MakeProductNewCategory(newCategoryString string) error
 	MakeProductNewTitle(title string) error
@@ -70,7 +70,7 @@ type iProductsFactory interface {
 	MakeProductNewQuantity(quantity int) error
 }
 
-func NewTShirtProductFactory() iProductsFactory {
+func NewTShirtProductFactory() IProductsFactory {
 
 	return &TShirt{}
 }
@@ -85,7 +85,7 @@ func (f Factory) GetProductsFactory(productType string) (Factory, error) {
 }
 
 type Factory struct {
-	f iProductsFactory
+	f IProductsFactory
 }
 
 func NewProductsFactory() (Factory, error) {
@@ -114,7 +114,7 @@ func (f Factory) NewTShirtProduct(
 	image string,
 	price float32,
 	quantity int,
-) (iProductsFactory, error) {
+) (IProductsFactory, error) {
 	if err := f.validateProduct(title, description, image, price, quantity); err != nil {
 		return nil, err
 	}
@@ -152,7 +152,7 @@ func (f Factory) UnmarshalTShirtProductFromDatabase(
 	image string,
 	price float32,
 	quantity int,
-) (iProductsFactory, error) {
+) (IProductsFactory, error) {
 
 	category, err := NewCategoryFromString(categoryString)
 	if err != nil {

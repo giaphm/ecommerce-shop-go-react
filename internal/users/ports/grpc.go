@@ -23,14 +23,23 @@ func NewGrpcServer(application app.Application) GrpcServer {
 	return GrpcServer{app: application}
 }
 
+func (g GrpcServer) GetUserDisplayName(ctx context.Context, request *users.GetUserDisplayNameRequest) (*users.GetUserDisplayNameResponse, error) {
+
+	user, err := g.app.Queries.DisplayName.Handle(ctx, request.UserUuid)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &users.GetUserDisplayNameResponse{UserName: user.UserName}, nil
+}
+
 func (g GrpcServer) GetUserBalance(ctx context.Context, request *users.GetUserBalanceRequest) (*users.GetUserBalanceResponse, error) {
 
-	user, err := g.app.Queries.CurrentUserHandler.Handle(ctx, request.UserId)
+	user, err := g.app.Queries.UserBalance.Handle(ctx, request.UserUuid)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &users.GetUserBalanceResponse{Amount: int64(user.Balance)}, nil
+	return &users.GetUserBalanceResponse{Amount: float32(user.Balance)}, nil
 }
 
 func (g GrpcServer) WithdrawUserBalance(
@@ -38,7 +47,7 @@ func (g GrpcServer) WithdrawUserBalance(
 	req *users.WithdrawUserBalanceRequest,
 ) (*users.EmptyResponse, error) {
 
-	err := g.app.Commands.WithdrawBalance(ctx, req.UserUuid, int(req.AmountChange))
+	err := g.app.Commands.WithdrawBalance(ctx, req.UserUuid, float32(req.AmountChange))
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("failed to update balance: %s", err))
 	}

@@ -9,8 +9,10 @@ require (
 	github.com/go-chi/chi v4.1.0+incompatible
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/go-chi/render v1.0.1
+	github.com/google/uuid v1.1.2
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.5.0
+	golang.org/x/crypto v0.0.0-20191112222119-e1110fd1c708
 	google.golang.org/api v0.21.0
 	google.golang.org/grpc v1.28.0
 )

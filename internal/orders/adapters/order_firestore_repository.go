@@ -13,6 +13,16 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+type OrderModel struct {
+	Uuid         string    `firestore:"Uuid"`
+	UserUuid     string    `firestore:"UserUuid"`
+	ProductUuids []string  `firestore:"ProductUuids"`
+	TotalPrice   float32   `firestore:"TotalPrice"`
+	Status       string    `firestore:"Status"`
+	ProposedTime time.Time `firestore:"ProposedTime"`
+	ExpiresAt    time.Time `firestore:"ExpiresAt"`
+}
+
 type FirestoreOrderRepository struct {
 	firestoreClient *firestore.Client
 	orderFactory    order.Factory
@@ -42,9 +52,9 @@ func (f FirestoreOrderRepository) GetOrder(ctx context.Context, orderUuid string
 	if err != nil {
 		return nil, err
 	}
-	// order := orderModelToApp(orderFirestore)
+	order := f.orderModelToOrderQuery(orderFirestore)
 
-	return orderFirestore, nil
+	return order, nil
 }
 
 func (f FirestoreOrderRepository) GetOrders(ctx context.Context) ([]*query.Order, error) {
@@ -53,17 +63,16 @@ func (f FirestoreOrderRepository) GetOrders(ctx context.Context) ([]*query.Order
 		return nil, err
 	}
 
-	var orders []*query.Order
-	var order *query.Order
+	var orders []*OrderModel
+	var order *OrderModel
 	for _, orderSnapshot := range orderSnapshots {
 		if err := orderSnapshot.DataTo(order); err != nil {
 			return nil, err
 		}
-		// orderModelToApp for customizing the response properties to return into api
 		orders = append(orders, order)
-		// orders = append(orders, orderModelToApp(order))
 	}
-	return orders, nil
+
+	return f.orderModelsToOrderQueries(orders), nil
 }
 
 func (f FirestoreOrderRepository) AddOrder(
@@ -80,11 +89,11 @@ func (f FirestoreOrderRepository) AddOrder(
 		return err
 	}
 
-	newOrderToDb := orderModelToDb(newOrder)
+	newOrderModel := f.orderDomainToOrderModel(newOrder)
 
-	newDoc := f.ordersCollection().Doc(newOrderToDb.Uuid)
+	newDoc := f.ordersCollection().Doc(newOrderModel.Uuid)
 
-	_, err = newDoc.Create(ctx, newOrderToDb)
+	_, err = newDoc.Create(ctx, newOrderModel)
 	if err != nil {
 		return err
 	}
@@ -102,7 +111,7 @@ func (f FirestoreOrderRepository) UpdateOrder(
 		orderDocRef := f.documentRef(orderUuid)
 
 		// get all orders that have the order uuid
-		order, err := f.getOrderDTO(
+		orderModel, err := f.getOrderDTO(
 			// getDateDTO should be used both for transactional and non transactional query,
 			// the best way for that is to use closure
 			func() (doc *firestore.DocumentSnapshot, err error) {
@@ -116,24 +125,26 @@ func (f FirestoreOrderRepository) UpdateOrder(
 
 		// unmarshal order into domain
 		orderDomain, err := f.orderFactory.UnmarshalOrderFromDatabase(
-			order.Uuid,
-			order.UserUuid,
-			order.ProductUuids,
-			order.TotalPrice,
-			order.Status,
-			order.ProposedTime,
-			order.ExpiresAt,
+			orderModel.Uuid,
+			orderModel.UserUuid,
+			orderModel.ProductUuids,
+			orderModel.TotalPrice,
+			orderModel.Status,
+			orderModel.ProposedTime,
+			orderModel.ExpiresAt,
 		)
 		if err != nil {
 			return err
 		}
 
-		updatedOrder, err := updateFn(orderDomain)
+		updatedOrderDomain, err := updateFn(orderDomain)
 		if err != nil {
-			return errors.Wrap(err, "unable to update hour")
+			return errors.Wrap(err, "unable to update order")
 		}
 
-		return transaction.Set(orderDocRef, updatedOrder)
+		updatedOrderModel := f.orderDomainToOrderModel(updatedOrderDomain)
+
+		return transaction.Set(orderDocRef, updatedOrderModel)
 	})
 
 	return errors.Wrap(err, "firestore transaction failed")
@@ -173,7 +184,7 @@ func (f FirestoreOrderRepository) orderDocuments(ctx context.Context) ([]*firest
 func (f FirestoreOrderRepository) getOrderDTO(
 	getDocumentFn func() (doc *firestore.DocumentSnapshot, err error),
 	orderUuid string,
-) (*query.Order, error) {
+) (*OrderModel, error) {
 
 	orderSnapshot, err := getDocumentFn()
 	if status.Code(err) == codes.NotFound {
@@ -181,12 +192,12 @@ func (f FirestoreOrderRepository) getOrderDTO(
 		return nil, errors.New("Order is not found")
 	}
 	if err != nil {
-		return &query.Order{}, err
+		return &OrderModel{}, err
 	}
 
-	orderFirestore := query.Order{}
+	orderFirestore := OrderModel{}
 	if err := orderSnapshot.DataTo(&orderFirestore); err != nil {
-		return &query.Order{}, errors.Wrap(err, "unable to unmarshal order.Order from Firestore")
+		return &OrderModel{}, errors.Wrap(err, "unable to unmarshal orderFirestore from Firestore")
 	}
 
 	return &orderFirestore, nil
@@ -229,16 +240,41 @@ func (f FirestoreOrderRepository) RemoveAllOrders(ctx context.Context) error {
 	}
 }
 
-// For some cases, we need to convert custom data type
-func orderModelToDb(om *order.Order) *query.Order {
-	statusString := om.GetStatus().String()
+func (f FirestoreOrderRepository) orderModelToOrderQuery(om *OrderModel) *query.Order {
 
 	return &query.Order{
-		Uuid:         om.GetUuid(),
-		UserUuid:     om.GetUserUuid(),
-		ProductUuids: om.GetProductUuids(),
-		Status:       statusString,
-		ProposedTime: om.GetProposedTime(),
-		ExpiresAt:    om.GetExpiresAt(),
+		Uuid:         om.Uuid,
+		UserUuid:     om.UserUuid,
+		ProductUuids: om.ProductUuids,
+		TotalPrice:   om.TotalPrice,
+		Status:       om.Status,
+		ProposedTime: om.ProposedTime,
+		ExpiresAt:    om.ExpiresAt,
+	}
+}
+
+func (f FirestoreOrderRepository) orderModelsToOrderQueries(om []*OrderModel) []*query.Order {
+
+	var orders []*query.Order
+	var order *query.Order
+
+	for _, o := range om {
+		order = f.orderModelToOrderQuery(o)
+		orders = append(orders, order)
+	}
+
+	return orders
+}
+
+func (f FirestoreOrderRepository) orderDomainToOrderModel(o *order.Order) *OrderModel {
+
+	return &OrderModel{
+		Uuid:         o.GetUuid(),
+		UserUuid:     o.GetUserUuid(),
+		ProductUuids: o.GetProductUuids(),
+		TotalPrice:   o.GetTotalPrice(),
+		Status:       o.GetStatus().String(),
+		ProposedTime: o.GetProposedTime(),
+		ExpiresAt:    o.GetExpiresAt(),
 	}
 }

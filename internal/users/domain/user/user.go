@@ -26,9 +26,9 @@ func (u User) GetEmail() string {
 	return u.Email
 }
 
-// func (u User) GetHashedPassword() string {
-// 	return u.HashedPassword
-// }
+func (u User) GetHashedPassword() string {
+	return u.HashedPassword
+}
 
 func (u User) GetBalance() float32 {
 	return u.Balance
@@ -46,7 +46,7 @@ type iUser interface {
 	GetUuid() string
 	GetDisplayName() string
 	GetEmail() string
-	// GetHashedPassword() string
+	GetHashedPassword() string
 	GetBalance() float32
 	GetRole() string
 	GetLastIP() string

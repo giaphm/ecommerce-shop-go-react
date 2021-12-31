@@ -9,14 +9,14 @@ type CurrentUserHandler struct {
 }
 
 type CurrentUserReadModel interface {
-	GetUser(ctx context.Context, userUuid string) (UserModel, error)
+	GetUser(ctx context.Context, userUuid string) (User, error)
 }
 
-func NewCurrentUserProductHandler(readModel CurrentUserReadModel) CurrentUserHandler {
+func NewCurrentUserHandler(readModel CurrentUserReadModel) CurrentUserHandler {
 	return CurrentUserHandler{readModel: readModel}
 }
 
-func (h CurrentUserHandler) Handle(ctx context.Context, userUuid string) (UserModel, error) {
+func (h CurrentUserHandler) Handle(ctx context.Context, userUuid string) (User, error) {
 
 	return h.readModel.GetUser(ctx, userUuid)
 }

@@ -12,7 +12,7 @@ import (
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/server"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/products/ports"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/products/service"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"google.golang.org/grpc"
 )
 

@@ -11,9 +11,15 @@ type Application struct {
 }
 
 type Commands struct {
-	UpdateLastIP command.UpdateLastIPHandler
+	SignIn          command.SignInHandler
+	SignUp          command.SignUpHandler
+	DepositBalance  command.DepositBalanceHandler
+	WithdrawBalance command.WithdrawBalanceHandler
+	UpdateLastIP    command.UpdateLastIPHandler
 }
 
 type Queries struct {
 	CurrentUser query.CurrentUserHandler
+	DisplayName query.DisplayNameHandler
+	UserBalance query.UserBalanceHandler
 }

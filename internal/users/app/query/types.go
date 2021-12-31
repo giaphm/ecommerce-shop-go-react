@@ -1,11 +1,11 @@
 package query
 
-type UserModel struct {
-	uuid           string
+type User struct {
+	Uuid           string
 	DisplayName    string
 	Email          string
 	HashedPassword string
-	Balance        int
+	Balance        float32
 	Role           string
 	LastIP         string
 }

@@ -14,6 +14,13 @@ import (
 	"google.golang.org/api/iterator"
 )
 
+type CheckoutModel struct {
+	Uuid         string    `firestore:"Uuid"`
+	UserUuid     string    `firestore:"UserUuid"`
+	OrderUuid    string    `firestore:"OrderUuid"`
+	ProposedTime time.Time `firestore:"ProposedTime"`
+}
+
 type FirestoreCheckoutRepository struct {
 	firestoreClient *firestore.Client
 	checkoutFactory checkout.Factory
@@ -61,11 +68,11 @@ func (f FirestoreCheckoutRepository) AddCheckout(
 			return err
 		}
 
-		newCheckoutToDb := checkoutModelToDb(newCheckout)
+		newCheckoutModel := f.checkoutDomainToCheckoutModel(newCheckout)
 
-		newDoc := f.checkoutsCollection().Doc(newCheckoutToDb.Uuid)
+		newDoc := f.checkoutsCollection().Doc(newCheckoutModel.Uuid)
 
-		_, err = newDoc.Create(ctx, newCheckoutToDb)
+		_, err = newDoc.Create(ctx, newCheckoutModel)
 		if err != nil {
 			return err
 		}
@@ -84,8 +91,8 @@ func (f FirestoreCheckoutRepository) GetCheckouts(ctx context.Context) ([]*check
 
 	// var checkouts []*query.Checkout
 	// var checkout *query.Checkout
-	var checkouts []*checkout.Checkout
-	var checkout *checkout.Checkout
+	var checkouts []*CheckoutModel
+	var checkout *CheckoutModel
 	for _, checkoutSnapshot := range checkoutSnapshots {
 		if err := checkoutSnapshot.DataTo(checkout); err != nil {
 			return nil, err
@@ -98,7 +105,7 @@ func (f FirestoreCheckoutRepository) GetCheckouts(ctx context.Context) ([]*check
 		// checkouts = append(checkouts, checkoutDomain)
 		checkouts = append(checkouts, checkout)
 	}
-	return checkouts, nil
+	return f.checkoutModelsToCheckoutDomain(checkouts)
 }
 
 func (f FirestoreCheckoutRepository) checkoutsCollection() *firestore.CollectionRef {
@@ -173,17 +180,37 @@ func (f FirestoreCheckoutRepository) RemoveAllCheckouts(ctx context.Context) err
 }
 
 // For some cases, we need to convert custom data type
-func checkoutModelToDb(cm *checkout.Checkout) *query.Checkout {
+func (f FirestoreCheckoutRepository) checkoutDomainToCheckoutModel(c *checkout.Checkout) *CheckoutModel {
 
-	return &query.Checkout{
-		Uuid:         cm.GetUuid(),
-		UserUuid:     cm.GetUserUuid(),
-		OrderUuid:    cm.GetProductUuids(),
-		ProposedTime: cm.GetProposedTime(),
+	return &CheckoutModel{
+		Uuid:         c.GetUuid(),
+		UserUuid:     c.GetUserUuid(),
+		OrderUuid:    c.GetProductUuids(),
+		ProposedTime: c.GetProposedTime(),
 	}
 }
 
-// func (f FirestoreCheckoutRepository) checkoutModelToApp(cm *query.Checkout) (*checkout.Checkout, error) {
+func (f FirestoreCheckoutRepository) checkoutModelToCheckoutDomain(c *CheckoutModel) (*checkout.Checkout, error) {
+
+	return f.checkoutFactory.UnmarshalCheckoutFromDatabase(c.Uuid, c.UserUuid, c.OrderUuid, c.ProposedTime)
+}
+
+func (f FirestoreCheckoutRepository) checkoutModelsToCheckoutDomain(cm []*CheckoutModel) ([]*checkout.Checkout, error) {
+
+	var checkouts []*checkout.Checkout
+
+	for _, c := range cm {
+		checkout, err := f.checkoutModelToCheckoutDomain(c)
+		if err != nil {
+			return nil, err
+		}
+		checkouts = append(checkouts, checkout)
+	}
+
+	return checkouts, nil
+}
+
+// func (f FirestoreCheckoutRepository) checkoutModelToCheckoutQuery(cm *CheckoutModel) (*query.Checkout, error) {
 
 // return &checkout.Checkout{
 // 	uuid:         cm.uuid,

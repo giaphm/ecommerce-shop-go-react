@@ -48,34 +48,34 @@ func loadProductsFixtures(ctx context.Context, application app.Application) erro
 
 	productsFixtures := []command.AddProduct{
 		{
-			uuid:        uuid.New().String,
-			userUuid:    uuid.New().String,
-			category:    product.TShirtCategory,
-			title:       "title 1",
-			description: "description 1",
-			image:       "image 1",
-			price:       10,
-			quantity:    5,
+			Uuid:        uuid.New().String(),
+			UserUuid:    uuid.New().String(),
+			Category:    product.TShirtCategory.String(),
+			Title:       "title 1",
+			Description: "description 1",
+			Image:       "image 1",
+			Price:       10,
+			Quantity:    5,
 		},
 		{
-			uuid:        uuid.New().String,
-			userUuid:    uuid.New().String,
-			category:    product.TShirtCategory,
-			title:       "title 2",
-			description: "description 2",
-			image:       "image 2",
-			price:       10,
-			quantity:    5,
+			Uuid:        uuid.New().String(),
+			UserUuid:    uuid.New().String(),
+			Category:    product.TShirtCategory.String(),
+			Title:       "title 2",
+			Description: "description 2",
+			Image:       "image 2",
+			Price:       10,
+			Quantity:    5,
 		},
 		{
-			uuid:        uuid.New().String,
-			userUuid:    uuid.New().String,
-			category:    product.TShirtCategory,
-			title:       "title 3",
-			description: "description 3",
-			image:       "image 3",
-			price:       10,
-			quantity:    5,
+			Uuid:        uuid.New().String(),
+			UserUuid:    uuid.New().String(),
+			Category:    product.TShirtCategory.String(),
+			Title:       "title 3",
+			Description: "description 3",
+			Image:       "image 3",
+			Price:       10,
+			Quantity:    5,
 		},
 	}
 
@@ -89,7 +89,7 @@ func loadProductsFixtures(ctx context.Context, application app.Application) erro
 
 func canLoadFixtures(app app.Application, ctx context.Context) bool {
 	for {
-		_, err := app.Queries.GetProducts.Handle(ctx)
+		_, err := app.Queries.Products.Handle(ctx)
 		if err == nil {
 
 			return true

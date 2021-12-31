@@ -8,8 +8,8 @@ import (
 )
 
 type UpdateLastIP struct {
-	userUuid   string
-	remoteAddr string
+	UserUuid   string
+	RemoteAddr string
 }
 
 type UpdateLastIPHandler struct {
@@ -25,14 +25,14 @@ func NewUpdateLastIPHandler(userRepo user.Repository) UpdateLastIPHandler {
 }
 
 func (h UpdateLastIPHandler) Handle(ctx context.Context, cmd UpdateLastIP) error {
-	host, _, err := net.SplitHostPort(cmd.remoteAddr)
+	host, _, err := net.SplitHostPort(cmd.RemoteAddr)
 	if err == nil {
-		err = h.userRepo.UpdateLastIP(ctx, cmd.userUuid, host)
+		err = h.userRepo.UpdateLastIP(ctx, cmd.UserUuid, host)
 		if err != nil {
 			// httperr.InternalError("internal-server-error", err, w, r)
 			return err
 		}
 	}
 
-	return nil
+	return err
 }

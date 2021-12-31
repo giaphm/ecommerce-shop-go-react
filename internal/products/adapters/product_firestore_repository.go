@@ -12,6 +12,17 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+type ProductModel struct {
+	Uuid        string  `firestore:"Uuid"`
+	UserUuid    string  `firestore:"UserUuid"`
+	Category    string  `firestore:"Category"`
+	Title       string  `firestore:"Title"`
+	Description string  `firestore:"Description"`
+	Image       string  `firestore:"Image"`
+	Price       float32 `firestore:"Price"`
+	Quantity    int     `firestore:"Quantity"`
+}
+
 type FirestoreProductRepository struct {
 	firestoreClient *firestore.Client
 	productFactory  product.Factory
@@ -29,7 +40,7 @@ func NewFirestoreProductRepository(firestoreClient *firestore.Client, productFac
 }
 
 func (f FirestoreProductRepository) GetProduct(ctx context.Context, productUuid string) (*query.Product, error) {
-	productFirestore, err := f.getProductDTO(
+	productModel, err := f.getProductDTO(
 		// getProductDTO has a callback function,
 		// that should be used both for transactional and non transactional query,
 		// the best way for that is to use closure
@@ -42,7 +53,8 @@ func (f FirestoreProductRepository) GetProduct(ctx context.Context, productUuid 
 		return nil, err
 	}
 
-	return productFirestore, nil
+	// convert productModel to productQuery
+	return f.productModelToProductQuery(productModel), nil
 }
 
 func (f FirestoreProductRepository) GetProducts(ctx context.Context) ([]*query.Product, error) {
@@ -51,17 +63,20 @@ func (f FirestoreProductRepository) GetProducts(ctx context.Context) ([]*query.P
 		return nil, err
 	}
 
-	var products []*query.Product
-	var product *query.Product
+	var products []*ProductModel
+	var product *ProductModel
+
 	for _, productSnapshot := range productSnapshots {
-		if err := productSnapshot.DataTo(&product); err != nil {
+		if err := productSnapshot.DataTo(product); err != nil {
 			return nil, err
 		}
+
 		// productModelToApp for customizing the response properties to return into api
 		products = append(products, product)
 		// products = append(products, productModelToApp(product))
 	}
-	return products, nil
+
+	return f.productModelsToProductQueries(products), nil
 }
 
 func (f FirestoreProductRepository) GetShopkeeperProducts(ctx context.Context, userUuid string) ([]*query.Product, error) {
@@ -69,15 +84,19 @@ func (f FirestoreProductRepository) GetShopkeeperProducts(ctx context.Context, u
 	if err != nil {
 		return nil, err
 	}
-	var products []*query.Product
-	var product *query.Product
+
+	var products []*ProductModel
+	var product *ProductModel
+
 	for _, productSnapshot := range productSnapshots {
 		if err := productSnapshot.DataTo(product); err != nil {
 			return nil, err
 		}
+
 		products = append(products, product)
 	}
-	return products, nil
+
+	return f.productModelsToProductQueries(products), nil
 }
 
 func (f FirestoreProductRepository) AddProduct(
@@ -105,15 +124,17 @@ func (f FirestoreProductRepository) AddProduct(
 	switch category {
 	case product.TShirtCategory:
 		{
-			newTShirtProduct, err := productFactory.NewTShirtProduct(uuid, userUuid, title, description, image, price, quantity)
+			newTShirtProductDomain, err := productFactory.NewTShirtProduct(uuid, userUuid, title, description, image, price, quantity)
 			if err != nil {
 				return err
 			}
 
-			newTShirtProductToDb := ProductModelToDb(newTShirtProduct.GetProduct())
+			newTShirtProductModel := f.productDomainToProductModel(newTShirtProductDomain.GetProduct())
 
-			newDoc := f.productsCollection().Doc(newTShirtProductToDb.Uuid)
-			_, err = newDoc.Create(ctx, newTShirtProductToDb)
+			newTShirtProductQuery := f.productModelToProductQuery(newTShirtProductModel)
+
+			newDoc := f.productsCollection().Doc(newTShirtProductQuery.Uuid)
+			_, err = newDoc.Create(ctx, newTShirtProductModel)
 			if err != nil {
 				return err
 			}
@@ -136,7 +157,7 @@ func (f FirestoreProductRepository) UpdateProduct(
 		productDocRef := f.documentRef(productUuid)
 
 		// get all orders that have the product uuid
-		p, err := f.getProductDTO(
+		productModel, err := f.getProductDTO(
 			// getDateDTO should be used both for transactional and non transactional query,
 			// the best way for that is to use closure
 			func() (doc *firestore.DocumentSnapshot, err error) {
@@ -148,34 +169,29 @@ func (f FirestoreProductRepository) UpdateProduct(
 			return err
 		}
 
-		productFactory, err := f.productFactory.GetProductsFactory(p.Category)
+		productQuery := f.productModelToProductQuery(productModel)
+
+		// get new product factory (for tshirt)
+		f.productFactory, err = f.productFactory.GetProductsFactory(productQuery.Category)
 		if err != nil {
 			return err
 		}
 
-		switch p.Category {
+		switch productQuery.Category {
 		case product.TShirtCategory.String():
 			{
-				// unmarshal found product into domain
-				tsh, err := productFactory.UnmarshalTShirtProductFromDatabase(
-					p.Uuid,
-					p.UserUuid,
-					p.Title,
-					p.Category,
-					p.Description,
-					p.Image,
-					p.Price,
-					p.Quantity,
-				)
+				// unmarshal found productModel into tshirt product domain
+				tshirtProductDomain, err := f.tshirtProductModelToTShirtProductDomain(productModel)
 				if err != nil {
 					return err
 				}
-				updatedProduct, err := updateFn(tsh.GetProduct())
+
+				updatedTShirtProductDomain, err := updateFn(tshirtProductDomain.GetProduct())
 				if err != nil {
 					return errors.Wrap(err, "unable to update hour")
 				}
 
-				return transaction.Set(productDocRef, updatedProduct)
+				return transaction.Set(productDocRef, updatedTShirtProductDomain)
 			}
 		}
 		return nil
@@ -222,7 +238,7 @@ func (f FirestoreProductRepository) productShopkeeperDocuments(ctx context.Conte
 func (f FirestoreProductRepository) getProductDTO(
 	getDocumentFn func() (doc *firestore.DocumentSnapshot, err error),
 	productUuid string,
-) (*query.Product, error) {
+) (*ProductModel, error) {
 
 	productSnapshot, err := getDocumentFn()
 	if status.Code(err) == codes.NotFound {
@@ -230,15 +246,15 @@ func (f FirestoreProductRepository) getProductDTO(
 		return nil, errors.New("Product is not found")
 	}
 	if err != nil {
-		return &query.Product{}, err
+		return &ProductModel{}, err
 	}
 
-	var productFirestore *query.Product
-	if err := productSnapshot.DataTo(productFirestore); err != nil {
-		return &query.Product{}, errors.Wrap(err, "unable to unmarshal product.Product from Firestore")
+	var productModel *ProductModel
+	if err := productSnapshot.DataTo(productModel); err != nil {
+		return &ProductModel{}, errors.Wrap(err, "unable to unmarshal product.Product from Firestore")
 	}
 
-	return productFirestore, nil
+	return productModel, nil
 }
 
 // func NewEmptyProductDTO(productUuid string) product.Product {
@@ -278,17 +294,57 @@ func (f FirestoreProductRepository) RemoveAllProducts(ctx context.Context) error
 	}
 }
 
-func ProductModelToDb(pm *product.Product) *query.Product {
-	categoryString := pm.GetCategory().String()
+func (f FirestoreProductRepository) productModelToProductQuery(pm *ProductModel) *query.Product {
 
 	return &query.Product{
-		Uuid:        pm.GetUuid(),
-		UserUuid:    pm.GetUserUuid(),
-		Category:    categoryString,
-		Title:       pm.GetTitle(),
-		Description: pm.GetDescription(),
-		Image:       pm.GetImage(),
-		Price:       pm.GetPrice(),
-		Quantity:    pm.GetQuantity(),
+		Uuid:        pm.Uuid,
+		UserUuid:    pm.UserUuid,
+		Category:    pm.Category,
+		Title:       pm.Title,
+		Description: pm.Description,
+		Image:       pm.Image,
+		Price:       pm.Price,
+		Quantity:    pm.Quantity,
 	}
+}
+
+func (f FirestoreProductRepository) productModelsToProductQueries(pm []*ProductModel) []*query.Product {
+
+	var products []*query.Product
+	var product *query.Product
+
+	for _, p := range pm {
+		product = f.productModelToProductQuery(p)
+		products = append(products, product)
+	}
+
+	return products
+}
+
+func (f FirestoreProductRepository) productDomainToProductModel(p *product.Product) *ProductModel {
+
+	return &ProductModel{
+		Uuid:        p.GetUuid(),
+		UserUuid:    p.GetUserUuid(),
+		Category:    p.GetCategory().String(),
+		Title:       p.GetTitle(),
+		Description: p.GetDescription(),
+		Image:       p.GetImage(),
+		Price:       p.GetPrice(),
+		Quantity:    p.GetQuantity(),
+	}
+}
+
+func (f FirestoreProductRepository) tshirtProductModelToTShirtProductDomain(pm *ProductModel) (product.IProductsFactory, error) {
+
+	return f.productFactory.UnmarshalTShirtProductFromDatabase(
+		pm.Uuid,
+		pm.UserUuid,
+		pm.Category,
+		pm.Title,
+		pm.Description,
+		pm.Image,
+		pm.Price,
+		pm.Quantity,
+	)
 }
