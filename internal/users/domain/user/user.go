@@ -8,7 +8,7 @@ type User struct {
 	uuid           string
 	DisplayName    string
 	Email          string
-	HashedPassword string
+	HashedPassword []byte
 	Balance        float32
 	Role           string
 	LastIP         string
@@ -26,7 +26,7 @@ func (u User) GetEmail() string {
 	return u.Email
 }
 
-func (u User) GetHashedPassword() string {
+func (u User) GetHashedPassword() []byte {
 	return u.HashedPassword
 }
 
@@ -46,7 +46,7 @@ type IUser interface {
 	GetUuid() string
 	GetDisplayName() string
 	GetEmail() string
-	GetHashedPassword() string
+	GetHashedPassword() []byte
 	GetBalance() float32
 	GetRole() string
 	GetLastIP() string
@@ -55,7 +55,7 @@ type IUser interface {
 type iUsersFactory interface {
 	MakeUserNewDisplayName(displayName string) error
 	MakeUserNewEmail(email string) error
-	MakeUserNewHashedPassword(hashedPassword string) error
+	MakeUserNewHashedPassword(hashedPassword []byte) error
 	MakeUserNewBalance(balance float32) error
 	MakeUserNewRole(role string) error
 	MakeUserNewLastIP(lastIP string) error
@@ -96,7 +96,7 @@ func (f Factory) NewUser(
 	uuid string,
 	displayName string,
 	email string,
-	hashedPassword string,
+	hashedPassword []byte,
 	balance float32,
 	role string,
 	lastIP string,
@@ -124,7 +124,7 @@ func (f Factory) UnmarshalUserFromDatabase(
 	uuid string,
 	displayName string,
 	email string,
-	hashedPassword string,
+	hashedPassword []byte,
 	balance float32,
 	role string,
 	lastIP string,
@@ -153,7 +153,7 @@ var (
 func (f Factory) validateUser(
 	displayName string,
 	email string,
-	hashedPassword string,
+	hashedPassword []byte,
 	balance float32,
 	role string,
 	lastIP string,
@@ -166,9 +166,9 @@ func (f Factory) validateUser(
 		return ErrEmptyEmail
 	}
 
-	if hashedPassword == "" {
-		return ErrEmptyHashedPassword
-	}
+	// if hashedPassword == "" {
+	// 	return ErrEmptyHashedPassword
+	// }
 
 	if balance <= 0 {
 		return ErrInvalidBalance
@@ -203,10 +203,10 @@ func (u *User) MakeUserNewEmail(email string) error {
 	return nil
 }
 
-func (u *User) MakeUserNewHashedPassword(hashedPassword string) error {
-	if hashedPassword == "" {
-		return errors.New("empty hashedPassword")
-	}
+func (u *User) MakeUserNewHashedPassword(hashedPassword []byte) error {
+	// if hashedPassword == "" {
+	// 	return errors.New("empty hashedPassword")
+	// }
 
 	u.HashedPassword = hashedPassword
 	return nil

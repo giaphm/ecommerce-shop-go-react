@@ -160,7 +160,7 @@ func (f FirestoreUserRepository) SignIn(ctx context.Context, email string, passw
 	return nil
 }
 
-func (f FirestoreUserRepository) SignUp(ctx context.Context, uuid string, displayName string, email string, hashedPassword string, role string, lastIP string) error {
+func (f FirestoreUserRepository) SignUp(ctx context.Context, uuid string, displayName string, email string, hashedPassword []byte, role string, lastIP string) error {
 
 	var newBalance float32 = 0.0
 
@@ -205,7 +205,7 @@ func (f FirestoreUserRepository) userDomainToUserModel(user user.IUser) *UserMod
 		Uuid:           user.GetUuid(),
 		DisplayName:    user.GetDisplayName(),
 		Email:          user.GetEmail(),
-		HashedPassword: user.GetHashedPassword(),
+		HashedPassword: string(user.GetHashedPassword()),
 		Balance:        user.GetBalance(),
 		Role:           user.GetRole(),
 		LastIP:         user.GetLastIP(),
