@@ -11,14 +11,13 @@ type Application struct {
 }
 
 type Commands struct {
-	CancelTraining   command.CancelTrainingHandler
-	ScheduleTraining command.ScheduleTrainingHandler
-
-	MakeHoursAvailable   command.MakeHoursAvailableHandler
-	MakeHoursUnavailable command.MakeHoursUnavailableHandler
+	AddOrder      command.AddOrderHandler
+	CompleteOrder command.CompleteOrderHandler
+	CancelOrder   command.CancelOrderHandler
 }
 
 type Queries struct {
-	HourAvailability      query.HourAvailabilityHandler
-	TrainerAvailableHours query.AvailableHoursHandler
+	Order           query.OrderHandler
+	Orders          query.OrdersHandler
+	OrderCancelling query.OrderCancellingHandler
 }

@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/auth"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/server/httperr"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/orders/app"
@@ -24,10 +23,9 @@ func NewHttpServer(application app.Application) HttpServer {
 	}
 }
 
-func (h HttpServer) GetOrder(w http.ResponseWriter, r *http.Request) {
-	queryParams := ParamsForGetOrder(r.Context())
+func (h HttpServer) GetOrder(w http.ResponseWriter, r *http.Request, queryParams GetOrderParams) {
 
-	orderModel, err := h.app.Queries.Order.Handle(r.Context(), queryParams.orderUuid)
+	orderModel, err := h.app.Queries.Order.Handle(r.Context(), queryParams.OrderUuid)
 	if err != nil {
 		httperr.RespondWithSlugError(err, w, r)
 		return
@@ -67,10 +65,10 @@ func (h HttpServer) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cmd := command.AddOrder{
-		uuid:         uuid.New().String(),
-		userUuid:     user.uuid,
-		productUuids: newOrder.productUuids,
-		proposedTime: time.Now(),
+		Uuid:         uuid.New().String(),
+		UserUuid:     user.UUID,
+		ProductUuids: newOrder.ProductUuids,
+		ProposedTime: time.Now(),
 	}
 
 	err = h.app.Commands.AddOrder.Handle(r.Context(), cmd)
@@ -78,11 +76,11 @@ func (h HttpServer) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		httperr.RespondWithSlugError(err, w, r)
 		return
 	}
-	w.Header().Set("content-location", "orders/create-order/"+cmd.uuid)
+	w.Header().Set("content-location", "orders/create-order/"+cmd.Uuid)
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (h HttpServer) CancelOrder(w http.ResponseWriter, r *http.Request) {
+func (h HttpServer) CancelOrder(w http.ResponseWriter, r *http.Request, orderUUID string) {
 	user, err := auth.UserFromCtx(r.Context())
 	if err != nil {
 		httperr.RespondWithSlugError(err, w, r)
@@ -94,11 +92,9 @@ func (h HttpServer) CancelOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	queryParams := ParamsForCancelOrder(ctx)
-
 	cmd := command.CancelOrder{
-		uuid:     queryParams.OrderUuid,
-		userUuid: user.uuid,
+		Uuid:     orderUUID,
+		UserUuid: user.UUID,
 	}
 
 	err = h.app.Commands.CancelOrder.Handle(r.Context(), cmd)
@@ -106,132 +102,41 @@ func (h HttpServer) CancelOrder(w http.ResponseWriter, r *http.Request) {
 		httperr.RespondWithSlugError(err, w, r)
 		return
 	}
-	w.Header().Set("content-location", "orders/cancel-order/"+cmd.uuid)
+	w.Header().Set("content-location", "orders/cancel-order/"+cmd.Uuid)
 	w.WriteHeader(http.StatusCreated)
 }
 
-func orderModelToResponse(model query.Order) Order {
-	status := order.NewStatusFromString(model.status)
+func orderModelToResponse(model *query.Order) *Order {
+	// status := order.NewStatusFromString(model.status)
 
-	order := Order{
-		uuid:         model.uuid,
-		userUuid:     model.userUuid,
-		productUuids: model.productUuids,
-		status:       status,
-		proposedTime: model.proposedTime,
-		expiresAt:    model.expiresAt,
+	o := &Order{
+		Uuid:         model.Uuid,
+		UserUuid:     model.UserUuid,
+		ProductUuids: model.ProductUuids,
+		Status:       model.Status,
+		ProposedTime: model.ProposedTime,
+		ExpiresAt:    model.ExpiresAt,
 	}
-	return order
+	return o
 }
 
-func orderModelsToResponse(models []query.Order) []Order {
-	var orders []Order
+func orderModelsToResponse(models []*query.Order) []*Order {
+	var orders []*Order
 
 	for _, o := range models {
-		status := order.NewStatusFromString(o.status)
+		// status, err := order.NewStatusFromString(o.Status)
+		// if err != nil {
+		// 	return nil
+		// }
 
-		orders = append(orders, Order{
-			uuid:         o.uuid,
-			userUuid:     o.userUuid,
-			productUuids: o.productUuids,
-			status:       status,
-			proposedTime: o.proposedTime,
-			expiresAt:    o.expiresAt,
+		orders = append(orders, &Order{
+			Uuid:         o.Uuid,
+			UserUuid:     o.UserUuid,
+			ProductUuids: o.ProductUuids,
+			Status:       o.Status,
+			ProposedTime: o.ProposedTime,
+			ExpiresAt:    o.ExpiresAt,
 		})
 	}
 	return orders
-}
-
-func (h HttpServer) GetTrainerAvailableHours(w http.ResponseWriter, r *http.Request) {
-	queryParams := r.Context().Value("GetTrainerAvailableHoursParams").(*GetTrainerAvailableHoursParams)
-
-	dateModels, err := h.app.Queries.TrainerAvailableHours.Handle(r.Context(), query.AvailableHours{
-		From: queryParams.DateFrom,
-		To:   queryParams.DateTo,
-	})
-	if err != nil {
-		httperr.RespondWithSlugError(err, w, r)
-		return
-	}
-
-	dates := dateModelsToResponse(dateModels)
-	render.Respond(w, r, dates)
-}
-
-func dateModelsToResponse(models []query.Date) []Date {
-	var dates []Date
-	for _, d := range models {
-		var hours []Hour
-		for _, h := range d.Hours {
-			hours = append(hours, Hour{
-				Available:            h.Available,
-				HasTrainingScheduled: h.HasTrainingScheduled,
-				Hour:                 h.Hour,
-			})
-		}
-
-		dates = append(dates, Date{
-			Date: openapi_types.Date{
-				Time: d.Date,
-			},
-			HasFreeHours: d.HasFreeHours,
-			Hours:        hours,
-		})
-	}
-
-	return dates
-}
-
-func (h HttpServer) MakeHourAvailable(w http.ResponseWriter, r *http.Request) {
-	user, err := auth.UserFromCtx(r.Context())
-	if err != nil {
-		httperr.RespondWithSlugError(err, w, r)
-		return
-	}
-
-	if user.Role != "trainer" {
-		httperr.Unauthorised("invalid-role", nil, w, r)
-		return
-	}
-
-	hourUpdate := &HourUpdate{}
-	if err := render.Decode(r, hourUpdate); err != nil {
-		httperr.RespondWithSlugError(err, w, r)
-		return
-	}
-
-	err = h.app.Commands.MakeHoursAvailable.Handle(r.Context(), hourUpdate.Hours)
-	if err != nil {
-		httperr.RespondWithSlugError(err, w, r)
-		return
-	}
-
-	w.WriteHeader(http.StatusNoContent)
-}
-
-func (h HttpServer) MakeHourUnavailable(w http.ResponseWriter, r *http.Request) {
-	user, err := auth.UserFromCtx(r.Context())
-	if err != nil {
-		httperr.RespondWithSlugError(err, w, r)
-		return
-	}
-
-	if user.Role != "trainer" {
-		httperr.Unauthorised("invalid-role", nil, w, r)
-		return
-	}
-
-	hourUpdate := &HourUpdate{}
-	if err := render.Decode(r, hourUpdate); err != nil {
-		httperr.RespondWithSlugError(err, w, r)
-		return
-	}
-
-	err = h.app.Commands.MakeHoursUnavailable.Handle(r.Context(), hourUpdate.Hours)
-	if err != nil {
-		httperr.RespondWithSlugError(err, w, r)
-		return
-	}
-
-	w.WriteHeader(http.StatusNoContent)
 }

@@ -9,10 +9,11 @@ import (
 )
 
 type AddOrder struct {
-	uuid         string
-	userUuid     string
-	productUuids []string
-	proposedTime time.Time
+	Uuid         string
+	UserUuid     string
+	ProductUuids []string
+	TotalPrice   float32
+	ProposedTime time.Time
 }
 
 type AddOrderHandler struct {
@@ -21,7 +22,7 @@ type AddOrderHandler struct {
 
 func NewAddOrderHandler(orderRepo order.Repository) AddOrderHandler {
 	if orderRepo == nil {
-		panic("nil productRepo")
+		panic("nil orderRepo")
 	}
 
 	return AddOrderHandler{orderRepo: orderRepo}
@@ -30,12 +31,13 @@ func NewAddOrderHandler(orderRepo order.Repository) AddOrderHandler {
 func (h AddOrderHandler) Handle(ctx context.Context, cmd AddOrder) error {
 	if err := h.orderRepo.AddOrder(
 		ctx,
-		cmd.uuid,
-		cmd.userUuid,
-		cmd.productUuids,
-		cmd.proposedTime,
+		cmd.Uuid,
+		cmd.UserUuid,
+		cmd.ProductUuids,
+		cmd.TotalPrice,
+		cmd.ProposedTime,
 	); err != nil {
-		return errors.NewSlugError(err.Error(), "unable-to-post-product")
+		return errors.NewSlugError(err.Error(), "unable-to-add-order")
 	}
 	return nil
 }

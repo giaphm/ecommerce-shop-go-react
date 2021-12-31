@@ -42,9 +42,9 @@ func (f FirestoreOrderRepository) GetOrder(ctx context.Context, orderUuid string
 	if err != nil {
 		return nil, err
 	}
-	order := orderModelToApp(orderFirestore)
+	// order := orderModelToApp(orderFirestore)
 
-	return order, nil
+	return orderFirestore, nil
 }
 
 func (f FirestoreOrderRepository) GetOrders(ctx context.Context) ([]*order.Order, error) {
@@ -54,13 +54,14 @@ func (f FirestoreOrderRepository) GetOrders(ctx context.Context) ([]*order.Order
 	}
 
 	var orders []*order.Order
-	var order *order.order
+	var order *order.Order
 	for _, orderSnapshot := range orderSnapshots {
 		if err := orderSnapshot.DataTo(order); err != nil {
 			return nil, err
 		}
 		// orderModelToApp for customizing the response properties to return into api
-		orders = append(orders, orderModelToApp(order))
+		orders = append(orders, order)
+		// orders = append(orders, orderModelToApp(order))
 	}
 	return orders, nil
 }
@@ -70,16 +71,20 @@ func (f FirestoreOrderRepository) AddOrder(
 	uuid string,
 	userUuid string,
 	productUuids []string,
+	totalPrice float32,
 	proposedTime time.Time,
 ) error {
 
-	newOrder := f.orderFactory.NewCreatedOrder(uuid, userUuid, productUuids, proposedTime)
+	newOrder, err := f.orderFactory.NewCreatedOrder(uuid, userUuid, productUuids, totalPrice, proposedTime)
+	if err != nil {
+		return err
+	}
 
 	newOrderToDb := orderModelToDb(newOrder)
 
-	newDoc := f.ordersCollection().Doc(newOrderToDb.uuid)
+	newDoc := f.ordersCollection().Doc(newOrderToDb.Uuid)
 
-	_, err := newDoc.Create(ctx, newOrderToDb)
+	_, err = newDoc.Create(ctx, newOrderToDb)
 	if err != nil {
 		return err
 	}
@@ -154,7 +159,7 @@ func (f FirestoreOrderRepository) orderDocuments(ctx context.Context) ([]*firest
 func (f FirestoreOrderRepository) getOrderDTO(
 	getDocumentFn func() (doc *firestore.DocumentSnapshot, err error),
 	orderUuid string,
-) (order.Order, error) {
+) (*order.Order, error) {
 
 	orderSnapshot, err := getDocumentFn()
 	if status.Code(err) == codes.NotFound {
@@ -162,22 +167,22 @@ func (f FirestoreOrderRepository) getOrderDTO(
 		return nil, errors.New("Order is not found")
 	}
 	if err != nil {
-		return order.Order{}, err
+		return &order.Order{}, err
 	}
 
 	orderFirestore := order.Order{}
 	if err := orderSnapshot.DataTo(&orderFirestore); err != nil {
-		return order.Order{}, errors.Wrap(err, "unable to unmarshal order.Order from Firestore")
+		return &order.Order{}, errors.Wrap(err, "unable to unmarshal order.Order from Firestore")
 	}
 
-	return orderFirestore, nil
+	return &orderFirestore, nil
 }
 
-func NewEmptyOrderDTO(orderUuid string) order.Order {
-	return order.Order{
-		uuid: orderUuid,
-	}
-}
+// func NewEmptyOrderDTO(orderUuid string) order.Order {
+// 	return order.Order{
+// 		uuid: orderUuid,
+// 	}
+// }
 
 // warning: RemoveAllOrders was designed for tests for doing data cleanups
 func (f FirestoreOrderRepository) RemoveAllOrders(ctx context.Context) error {
@@ -211,27 +216,27 @@ func (f FirestoreOrderRepository) RemoveAllOrders(ctx context.Context) error {
 }
 
 // For some cases, we need to convert custom data type
-func orderModelToDb(om order.Order) *query.Order {
-	statusString := om.status.String()
+func orderModelToDb(om *order.Order) *query.Order {
+	statusString := om.GetStatus().String()
 
-	return query.Order{
-		uuid:         om.uuid,
-		userUuid:     om.userUuid,
-		productUuids: om.productUuids,
-		status:       statusString,
-		proposedTime: om.proposedTime,
-		expiresAt:    om.expiresAt,
+	return &query.Order{
+		Uuid:         om.GetUuid(),
+		UserUuid:     om.GetUserUuid(),
+		ProductUuids: om.GetProductUuids(),
+		Status:       statusString,
+		ProposedTime: om.GetProposedTime(),
+		ExpiresAt:    om.GetExpiresAt(),
 	}
 }
 
-func orderModelToApp(om query.Order) *order.Order {
+// func orderModelToApp(om query.Order) *order.Order {
 
-	return &order.Order{
-		uuid:         om.uuid,
-		userUuid:     om.userUuid,
-		productUuids: om.productUuids,
-		status:       om.status,
-		proposedTime: om.proposedTime,
-		expiresAt:    om.expiresAt,
-	}
-}
+// 	return &order.Order{
+// 		uuid:         om.uuid,
+// 		userUuid:     om.userUuid,
+// 		productUuids: om.productUuids,
+// 		status:       om.status,
+// 		proposedTime: om.proposedTime,
+// 		expiresAt:    om.expiresAt,
+// 	}
+// }

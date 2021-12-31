@@ -14,11 +14,11 @@ servers:
 security:
   - bearerAuth: []
 paths:
-  /orders/{orderUuid}:
+  /order:
     get:
       operationId: getOrder
       parameters:
-        - in: path
+        - in: query
           name: orderUuid
           schema:
             type: string

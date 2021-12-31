@@ -13,6 +13,7 @@ type Repository interface {
 		uuid string,
 		userUuid string,
 		productUuids []string,
+		totalPrice float32,
 		proposedTime time.Time,
 	) error
 	UpdateOrder(

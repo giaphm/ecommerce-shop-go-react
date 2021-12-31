@@ -19,10 +19,10 @@ func NewOrderCancellingHandler(orderRepo order.Repository) OrderCancellingHandle
 }
 
 func (h OrderCancellingHandler) Handle(ctx context.Context, orderUuid string) (bool, error) {
-	order, err := h.orderRepo.GetOrder(ctx, orderUuid)
+	o, err := h.orderRepo.GetOrder(ctx, orderUuid)
 	if err != nil {
 		return false, err
 	}
 
-	return order.status == order.Cancelled, nil
+	return o.GetStatus() == order.StatusCancelled, nil
 }

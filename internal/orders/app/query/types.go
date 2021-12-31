@@ -17,12 +17,13 @@ type Hour struct {
 }
 
 type Order struct {
-	uuid       string
-	userUuid   string
-	totalPrice float64
+	Uuid         string
+	UserUuid     string
+	ProductUuids []string
+	TotalPrice   float32
 
-	status Status
+	Status string
 
-	proposedTime time.Time
-	expiresAt    time.Time
+	ProposedTime time.Time
+	ExpiresAt    time.Time
 }

@@ -2,17 +2,14 @@ package command
 
 import (
 	"context"
-	"time"
 
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/errors"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/orders/domain/order"
 )
 
 type CompleteOrder struct {
-	uuid         string
-	userUuid     string
-	productUuids []string
-	proposedTime time.Time
+	Uuid     string
+	UserUuid string
 }
 
 type CompleteOrderHandler struct {
@@ -21,7 +18,7 @@ type CompleteOrderHandler struct {
 
 func NewCompleteOrderHandler(orderRepo order.Repository) CompleteOrderHandler {
 	if orderRepo == nil {
-		panic("nil productRepo")
+		panic("nil orderRepo")
 	}
 
 	return CompleteOrderHandler{orderRepo: orderRepo}
@@ -30,15 +27,15 @@ func NewCompleteOrderHandler(orderRepo order.Repository) CompleteOrderHandler {
 func (h CompleteOrderHandler) Handle(ctx context.Context, cmd CompleteOrder) error {
 	if err := h.orderRepo.UpdateOrder(
 		ctx,
-		cmd.uuid,
+		cmd.Uuid,
 		func(o *order.Order) (*order.Order, error) {
 			if err := o.MakeCompletedOrder(); err != nil {
 				return nil, err
 			}
 
-			return p, nil
+			return o, nil
 		}); err != nil {
-		return errors.NewSlugError(err.Error(), "unable-to-post-product")
+		return errors.NewSlugError(err.Error(), "unable-to-complete-order")
 	}
 	return nil
 }

@@ -9,14 +9,14 @@ type OrdersHandler struct {
 }
 
 type OrdersReadModel interface {
-	GetOrders(ctx context.Context) ([]Order, error)
+	GetOrders(ctx context.Context) ([]*Order, error)
 }
 
-func NewProductsHandler(readModel OrdersReadModel) OrdersHandler {
+func NewOrdersHandler(readModel OrdersReadModel) OrdersHandler {
 	return OrdersHandler{readModel: readModel}
 }
 
-func (h OrdersHandler) Handle(ctx context.Context) (p []Order, err error) {
+func (h OrdersHandler) Handle(ctx context.Context) ([]*Order, error) {
 	// start := time.Now()
 	// defer func() {
 	// 	logrus.

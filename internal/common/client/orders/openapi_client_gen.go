@@ -90,6 +90,9 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// GetOrder request
+	GetOrder(ctx context.Context, params *GetOrderParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetOrders request
 	GetOrders(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -100,9 +103,18 @@ type ClientInterface interface {
 
 	// CancelOrder request
 	CancelOrder(ctx context.Context, orderUUID string, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
 
-	// GetOrder request
-	GetOrder(ctx context.Context, orderUuid string, reqEditors ...RequestEditorFn) (*http.Response, error)
+func (c *Client) GetOrder(ctx context.Context, params *GetOrderParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetOrderRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) GetOrders(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -153,16 +165,47 @@ func (c *Client) CancelOrder(ctx context.Context, orderUUID string, reqEditors .
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetOrder(ctx context.Context, orderUuid string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetOrderRequest(c.Server, orderUuid)
+// NewGetOrderRequest generates requests for GetOrder
+func NewGetOrderRequest(server string, params *GetOrderParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+
+	operationPath := fmt.Sprintf("/order")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
 		return nil, err
 	}
-	return c.Client.Do(req)
+
+	queryValues := queryURL.Query()
+
+	if queryFrag, err := runtime.StyleParamWithLocation("form", true, "orderUuid", runtime.ParamLocationQuery, params.OrderUuid); err != nil {
+		return nil, err
+	} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		return nil, err
+	} else {
+		for k, v := range parsed {
+			for _, v2 := range v {
+				queryValues.Add(k, v2)
+			}
+		}
+	}
+
+	queryURL.RawQuery = queryValues.Encode()
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
 }
 
 // NewGetOrdersRequest generates requests for GetOrders
@@ -266,40 +309,6 @@ func NewCancelOrderRequest(server string, orderUUID string) (*http.Request, erro
 	return req, nil
 }
 
-// NewGetOrderRequest generates requests for GetOrder
-func NewGetOrderRequest(server string, orderUuid string) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "orderUuid", runtime.ParamLocationPath, orderUuid)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/orders/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -343,6 +352,9 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// GetOrder request
+	GetOrderWithResponse(ctx context.Context, params *GetOrderParams, reqEditors ...RequestEditorFn) (*GetOrderResponse, error)
+
 	// GetOrders request
 	GetOrdersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOrdersResponse, error)
 
@@ -353,9 +365,29 @@ type ClientWithResponsesInterface interface {
 
 	// CancelOrder request
 	CancelOrderWithResponse(ctx context.Context, orderUUID string, reqEditors ...RequestEditorFn) (*CancelOrderResponse, error)
+}
 
-	// GetOrder request
-	GetOrderWithResponse(ctx context.Context, orderUuid string, reqEditors ...RequestEditorFn) (*GetOrderResponse, error)
+type GetOrderResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *Order
+	JSONDefault  *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r GetOrderResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetOrderResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type GetOrdersResponse struct {
@@ -425,27 +457,13 @@ func (r CancelOrderResponse) StatusCode() int {
 	return 0
 }
 
-type GetOrderResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *Order
-	JSONDefault  *Error
-}
-
-// Status returns HTTPResponse.Status
-func (r GetOrderResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
+// GetOrderWithResponse request returning *GetOrderResponse
+func (c *ClientWithResponses) GetOrderWithResponse(ctx context.Context, params *GetOrderParams, reqEditors ...RequestEditorFn) (*GetOrderResponse, error) {
+	rsp, err := c.GetOrder(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
 	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetOrderResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
+	return ParseGetOrderResponse(rsp)
 }
 
 // GetOrdersWithResponse request returning *GetOrdersResponse
@@ -483,13 +501,37 @@ func (c *ClientWithResponses) CancelOrderWithResponse(ctx context.Context, order
 	return ParseCancelOrderResponse(rsp)
 }
 
-// GetOrderWithResponse request returning *GetOrderResponse
-func (c *ClientWithResponses) GetOrderWithResponse(ctx context.Context, orderUuid string, reqEditors ...RequestEditorFn) (*GetOrderResponse, error) {
-	rsp, err := c.GetOrder(ctx, orderUuid, reqEditors...)
+// ParseGetOrderResponse parses an HTTP response from a GetOrderWithResponse call
+func ParseGetOrderResponse(rsp *http.Response) (*GetOrderResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetOrderResponse(rsp)
+
+	response := &GetOrderResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest Order
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParseGetOrdersResponse parses an HTTP response from a GetOrdersWithResponse call
@@ -565,39 +607,6 @@ func ParseCancelOrderResponse(rsp *http.Response) (*CancelOrderResponse, error) 
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
-		var dest Error
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSONDefault = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetOrderResponse parses an HTTP response from a GetOrderWithResponse call
-func ParseGetOrderResponse(rsp *http.Response) (*GetOrderResponse, error) {
-	bodyBytes, err := ioutil.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetOrderResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest Order
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
 		var dest Error
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {

@@ -23,9 +23,9 @@ func NewFirestoreCheckoutRepository(firestoreClient *firestore.Client, checkoutF
 	if firestoreClient == nil {
 		panic("missing firestoreClient")
 	}
-	if checkoutFactory.IsZero() {
-		panic("missing checkoutFactory")
-	}
+	// if checkoutFactory.IsZero() {
+	// 	panic("missing checkoutFactory")
+	// }
 
 	return &FirestoreCheckoutRepository{firestoreClient, checkoutFactory}
 }
@@ -183,13 +183,13 @@ func checkoutModelToDb(cm *checkout.Checkout) *query.Checkout {
 	}
 }
 
-func (f FirestoreCheckoutRepository) checkoutModelToApp(cm *query.Checkout) (*checkout.Checkout, error) {
+// func (f FirestoreCheckoutRepository) checkoutModelToApp(cm *query.Checkout) (*checkout.Checkout, error) {
 
-	// return &checkout.Checkout{
-	// 	uuid:         cm.uuid,
-	// 	userUuid:     cm.userUuid,
-	// 	orderUuid:    cm.productUuids,
-	// 	proposedTime: cm.proposedTime,
-	// }
-	return f.checkoutFactory.UnmarshalCheckoutFromDatabase(cm.Uuid, cm.UserUuid, cm.OrderUuid, cm.ProposedTime)
-}
+// return &checkout.Checkout{
+// 	uuid:         cm.uuid,
+// 	userUuid:     cm.userUuid,
+// 	orderUuid:    cm.productUuids,
+// 	proposedTime: cm.proposedTime,
+// }
+// 	return f.checkoutFactory.UnmarshalCheckoutFromDatabase(cm.Uuid, cm.UserUuid, cm.OrderUuid, cm.ProposedTime)
+// }

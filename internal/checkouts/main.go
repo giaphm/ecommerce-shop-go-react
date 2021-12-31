@@ -8,7 +8,7 @@ import (
 	"github.com/giaphm/ecommerce-shop-go-react/internal/checkouts/service"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/logs"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/server"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 )
 
 func main() {

@@ -18,10 +18,10 @@ func NewApplication(ctx context.Context) app.Application {
 		panic(err)
 	}
 
-	orderFactory, err := order.NewFactory()
-	if err != nil {
-		panic(err)
-	}
+	orderFactory := order.NewFactory()
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	orderRepository := adapters.NewFirestoreOrderRepository(firestoreClient, orderFactory)
 

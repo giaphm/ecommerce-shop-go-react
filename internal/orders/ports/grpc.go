@@ -24,27 +24,27 @@ func NewGrpcServer(application app.Application) GrpcServer {
 
 // Get Order
 func (g GrpcServer) GetOrder(ctx context.Context, request *orders.GetOrderRequest) (*orders.GetOrderResponse, error) {
-	order, err := g.app.Queries.Order.Handle(ctx, request.OrderUuid)
+	order, err := g.app.Queries.Order.Handle(ctx, request.Uuid)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	proposedTimeTimestampProto, err := ptypes.TimestampProto(order.GetProposedTime())
+	proposedTimeTimestampProto, err := ptypes.TimestampProto(order.ProposedTime)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	expiresAtTimestampProto, err := ptypes.TimestampProto(order.GetExpiresAt())
+	expiresAtTimestampProto, err := ptypes.TimestampProto(order.ExpiresAt)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &orders.GetOrderResponse{
-		Uuid:         order.GetUuid(),
-		UserUuid:     order.GetUserUuid(),
-		ProductUuids: order.GetProductUuids(),
-		TotalPrice:   order.GetTotalPrice(),
-		Status:       order.GetStatus(),
+		Uuid:         order.Uuid,
+		UserUuid:     order.UserUuid,
+		ProductUuids: order.ProductUuids,
+		TotalPrice:   order.TotalPrice,
+		Status:       order.Status,
 		ProposedTime: proposedTimeTimestampProto,
 		ExpiresAt:    expiresAtTimestampProto,
 	}, nil
@@ -53,7 +53,7 @@ func (g GrpcServer) GetOrder(ctx context.Context, request *orders.GetOrderReques
 // Get Orders
 
 func (g GrpcServer) IsOrderCancelled(ctx context.Context, request *orders.IsOrderCancelledRequest) (*orders.IsOrderCancelledResponse, error) {
-	isCancelled, err := g.app.Queries.OrderCancelling.Handle(ctx, request.OrderUuid)
+	isCancelled, err := g.app.Queries.OrderCancelling.Handle(ctx, request.Uuid)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -65,8 +65,8 @@ func (g GrpcServer) IsOrderCancelled(ctx context.Context, request *orders.IsOrde
 
 func (g GrpcServer) CompleteOrder(ctx context.Context, request *orders.CompleteOrderRequest) (*orders.EmptyResponse, error) {
 	cmd := command.CompleteOrder{
-		uuid:     request.Uuid,
-		userUuid: request.UserUuid,
+		Uuid:     request.Uuid,
+		UserUuid: request.UserUuid,
 	}
 
 	if err := g.app.Commands.CompleteOrder.Handle(ctx, cmd); err != nil {

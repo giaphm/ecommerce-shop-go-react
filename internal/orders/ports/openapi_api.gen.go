@@ -15,6 +15,9 @@ import (
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
+	// (GET /order)
+	GetOrder(w http.ResponseWriter, r *http.Request, params GetOrderParams)
+
 	// (GET /orders)
 	GetOrders(w http.ResponseWriter, r *http.Request)
 
@@ -23,9 +26,6 @@ type ServerInterface interface {
 
 	// (PUT /orders/cancel-order/{orderUUID})
 	CancelOrder(w http.ResponseWriter, r *http.Request, orderUUID string)
-
-	// (GET /orders/{orderUuid})
-	GetOrder(w http.ResponseWriter, r *http.Request, orderUuid string)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -36,6 +36,42 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.HandlerFunc) http.HandlerFunc
+
+// GetOrder operation middleware
+func (siw *ServerInterfaceWrapper) GetOrder(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{""})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetOrderParams
+
+	// ------------- Required query parameter "orderUuid" -------------
+	if paramValue := r.URL.Query().Get("orderUuid"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "orderUuid"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "orderUuid", r.URL.Query(), &params.OrderUuid)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "orderUuid", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetOrder(w, r, params)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
 
 // GetOrders operation middleware
 func (siw *ServerInterfaceWrapper) GetOrders(w http.ResponseWriter, r *http.Request) {
@@ -90,34 +126,6 @@ func (siw *ServerInterfaceWrapper) CancelOrder(w http.ResponseWriter, r *http.Re
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CancelOrder(w, r, orderUUID)
-	}
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler(w, r.WithContext(ctx))
-}
-
-// GetOrder operation middleware
-func (siw *ServerInterfaceWrapper) GetOrder(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var err error
-
-	// ------------- Path parameter "orderUuid" -------------
-	var orderUuid string
-
-	err = runtime.BindStyledParameter("simple", false, "orderUuid", chi.URLParam(r, "orderUuid"), &orderUuid)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "orderUuid", Err: err})
-		return
-	}
-
-	ctx = context.WithValue(ctx, BearerAuthScopes, []string{""})
-
-	var handler = func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetOrder(w, r, orderUuid)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -241,6 +249,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/order", wrapper.GetOrder)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/orders", wrapper.GetOrders)
 	})
 	r.Group(func(r chi.Router) {
@@ -248,9 +259,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Put(options.BaseURL+"/orders/cancel-order/{orderUUID}", wrapper.CancelOrder)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/orders/{orderUuid}", wrapper.GetOrder)
 	})
 
 	return r

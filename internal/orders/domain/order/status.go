@@ -46,20 +46,16 @@ var (
 	ErrCancelledOrder = errors.New("order is already cancelled")
 )
 
-func (o Order) Status() Status {
-	return o.status
-}
-
 func (o Order) IsCreated() bool {
-	return o.Status() == StatusCreated
+	return o.GetStatus() == StatusCreated
 }
 
 func (o Order) IsCompleted() bool {
-	return o.Status() == StatusCompleted
+	return o.GetStatus() == StatusCompleted
 }
 
 func (o Order) IsCancelled() bool {
-	return o.Status() == StatusCancelled
+	return o.GetStatus() == StatusCancelled
 }
 
 func (o *Order) MakeCompletedOrder() error {

@@ -37,6 +37,12 @@ type Orders struct {
 	Trainings *[]Order `json:"trainings,omitempty"`
 }
 
+// GetOrderParams defines parameters for GetOrder.
+type GetOrderParams struct {
+	// The order uuid.
+	OrderUuid string `json:"orderUuid"`
+}
+
 // CreateOrderJSONBody defines parameters for CreateOrder.
 type CreateOrderJSONBody CreateOrder
 

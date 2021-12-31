@@ -72,6 +72,7 @@ func (f Factory) NewCreatedOrder(
 	uuid string,
 	userUuid string,
 	productUuids []string,
+	totalPrice float32,
 	proposedTime time.Time,
 ) (*Order, error) {
 
@@ -89,6 +90,7 @@ func (f Factory) NewCreatedOrder(
 		uuid:         uuid,
 		userUuid:     userUuid,
 		productUuids: productUuids,
+		totalPrice:   totalPrice,
 		status:       StatusCreated,
 		proposedTime: proposedTime,
 		expiresAt:    time.Now().Add(1 * time.Hour),
@@ -103,6 +105,7 @@ func (f Factory) UnmarshalOrderFromDatabase(
 	uuid string,
 	userUuid string,
 	productUuids []string,
+	totalPrice float32,
 	status string,
 	proposedTime time.Time,
 	expiresAt time.Time,
@@ -112,11 +115,17 @@ func (f Factory) UnmarshalOrderFromDatabase(
 		return nil, ErrEmptyStatus
 	}
 
+	statusString, err := NewStatusFromString(status)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Order{
 		uuid:         uuid,
 		userUuid:     userUuid,
 		productUuids: productUuids,
-		status:       NewStatusFromString(status),
+		totalPrice:   totalPrice,
+		status:       statusString,
 		proposedTime: proposedTime,
 		expiresAt:    expiresAt,
 	}, nil
