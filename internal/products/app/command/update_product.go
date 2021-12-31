@@ -33,12 +33,17 @@ func NewUpdateProductHandler(productRepo product.Repository) UpdateProductHandle
 func (h UpdateProductHandler) Handle(ctx context.Context, cmd UpdateProduct) error {
 	if err := h.productRepo.UpdateProduct(ctx, cmd.Uuid, func(p *product.Product) (*product.Product, error) {
 		// build specific product from category
-		productFactory := product.MustNewFactory(p.GetCategory().String())
+		f := product.MustNewFactory()
 
 		switch p.GetCategory() {
 		case product.TShirtCategory:
 			{
-				tshirtProduct, err := productFactory.NewTShirtProduct(
+				tshirtFactory, err := f.GetProductsFactory(p.GetCategory().String())
+				if err != nil {
+					return nil, err
+				}
+
+				tshirtProduct, err := tshirtFactory.NewTShirtProduct(
 					p.GetUuid(),
 					p.GetUserUuid(),
 					p.GetTitle(),

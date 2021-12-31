@@ -19,7 +19,7 @@ func TestNewTShirtProduct(t *testing.T) {
 	description := "This is a new item of our shop."
 	image := ""
 	var price float32 = 10.1
-	quantity := 5
+	var quantity int64 = 5
 	tsh, err := testProductFactory.NewTShirtProduct(productUuid, userUuid, title, description, image, price, quantity)
 	require.NoError(t, err)
 
@@ -38,7 +38,7 @@ func TestNewTShirtProduct_empty_name(t *testing.T) {
 	description := "This is a new item of our shop."
 	image := ""
 	var price float32 = 10.1
-	quantity := 5
+	var quantity int64 = 5
 	_, err := testProductFactory.NewTShirtProduct(productUuid, userUuid, title, description, image, price, quantity)
 
 	assert.Equal(t, product.ErrEmptyProductTitle, err)
@@ -51,7 +51,7 @@ func TestNewTShirtProduct_empty_description(t *testing.T) {
 	description := ""
 	image := ""
 	var price float32 = 10.1
-	quantity := 5
+	var quantity int64 = 5
 	_, err := testProductFactory.NewTShirtProduct(productUuid, userUuid, title, description, image, price, quantity)
 
 	assert.Equal(t, product.ErrEmptyDescription, err)
@@ -64,7 +64,7 @@ func TestNewTShirtProduct_invalid_price_zero(t *testing.T) {
 	description := "This is a new item of our shop."
 	image := ""
 	var price float32 = 0
-	quantity := 5
+	var quantity int64 = 5
 	_, err := testProductFactory.NewTShirtProduct(productUuid, userUuid, title, description, image, price, quantity)
 
 	assert.Equal(t, product.ErrInvalidPrice, err)
@@ -77,7 +77,7 @@ func TestNewTShirtProduct_invalid_price_negative(t *testing.T) {
 	description := "This is a new item of our shop."
 	image := ""
 	var price float32 = -10
-	quantity := 5
+	var quantity int64 = 5
 	_, err := testProductFactory.NewTShirtProduct(productUuid, userUuid, title, description, image, price, quantity)
 
 	assert.Equal(t, product.ErrInvalidPrice, err)
@@ -90,7 +90,7 @@ func TestNewTShirtProduct_invalid_quantity_zero(t *testing.T) {
 	description := "This is a new item of our shop."
 	image := ""
 	var price float32 = 10.1
-	quantity := 0
+	var quantity int64 = 0
 	_, err := testProductFactory.NewTShirtProduct(productUuid, userUuid, title, description, image, price, quantity)
 
 	assert.Equal(t, product.ErrInvalidQuantity, err)
@@ -103,7 +103,7 @@ func TestNewTShirtProduct_invalid_quantity_negative(t *testing.T) {
 	description := "This is a new item of our shop."
 	image := ""
 	var price float32 = 10.1
-	quantity := -5
+	var quantity int64 = -5
 	_, err := testProductFactory.NewTShirtProduct(productUuid, userUuid, title, description, image, price, quantity)
 
 	assert.Equal(t, product.ErrInvalidQuantity, err)
@@ -117,7 +117,7 @@ func TestUnmarshalTShirtProductFromDatabase(t *testing.T) {
 	description := "This is a new item of our shop."
 	image := ""
 	var price float32 = 10.1
-	quantity := -5
+	var quantity int64 = -5
 
 	tsh, err := testProductFactory.UnmarshalTShirtProductFromDatabase(productUuid, userUuid, title, category, description, image, price, quantity)
 	require.NoError(t, err)

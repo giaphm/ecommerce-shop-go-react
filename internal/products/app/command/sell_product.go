@@ -25,9 +25,15 @@ func NewSellProductHandler(productRepo product.Repository) SellProductHandler {
 
 func (h SellProductHandler) Handle(ctx context.Context, cmd SellProduct) error {
 	if err := h.productRepo.UpdateProduct(ctx, cmd.Uuid, func(p *product.Product) (*product.Product, error) {
-		f := product.MustNewFactory(p.GetCategory().String())
+		f := product.MustNewFactory()
+
 		if p.GetCategory().String() == "tshirt" {
-			tsh, err := f.NewTShirtProduct(
+			tshirtFactory, err := f.GetProductsFactory(p.GetCategory().String())
+			if err != nil {
+				return nil, err
+			}
+
+			tsh, err := tshirtFactory.NewTShirtProduct(
 				p.GetUuid(),
 				p.GetUserUuid(),
 				p.GetTitle(),
@@ -39,6 +45,7 @@ func (h SellProductHandler) Handle(ctx context.Context, cmd SellProduct) error {
 			if err != nil {
 				return nil, err
 			}
+
 			if err := tsh.MakeProductNewQuantity(p.GetQuantity() - 1); err != nil {
 				return nil, err
 			}

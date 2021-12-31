@@ -24,5 +24,5 @@ type Product struct {
 	Description string
 	Image       string
 	Price       float32
-	Quantity    int64
+	Quantity    int
 }

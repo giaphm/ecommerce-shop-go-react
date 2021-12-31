@@ -89,9 +89,10 @@ func (f FirestoreProductRepository) AddProduct(
 	description string,
 	image string,
 	price float32,
-	quantity int) error {
+	quantity int,
+) error {
 
-	productFactory, err := f.productFactory.GetProductFactory(categoryString)
+	productFactory, err := f.productFactory.GetProductsFactory(categoryString)
 	if err != nil {
 		return err
 	}
@@ -147,7 +148,7 @@ func (f FirestoreProductRepository) UpdateProduct(
 			return err
 		}
 
-		productFactory, err := f.productFactory.GetProductFactory(p.Category)
+		productFactory, err := f.productFactory.GetProductsFactory(p.Category)
 		if err != nil {
 			return err
 		}

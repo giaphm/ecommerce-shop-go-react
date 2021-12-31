@@ -14,7 +14,7 @@ type Product struct {
 	description string
 	image       string
 	price       float32
-	quantity    int64
+	quantity    int
 }
 
 func (p Product) GetUuid() string {
@@ -45,7 +45,7 @@ func (p Product) GetPrice() float32 {
 	return p.price
 }
 
-func (p Product) GetQuantity() int64 {
+func (p Product) GetQuantity() int {
 	return p.quantity
 }
 
@@ -67,7 +67,7 @@ type iProductsFactory interface {
 	MakeProductNewDescription(description string) error
 	MakeProductNewImage(image string) error
 	MakeProductNewPrice(price float32) error
-	MakeProductNewQuantity(quantity int64) error
+	MakeProductNewQuantity(quantity int) error
 }
 
 func NewTShirtProductFactory() iProductsFactory {
@@ -113,7 +113,7 @@ func (f Factory) NewTShirtProduct(
 	description string,
 	image string,
 	price float32,
-	quantity int64,
+	quantity int,
 ) (iProductsFactory, error) {
 	if err := f.validateProduct(title, description, image, price, quantity); err != nil {
 		return nil, err
@@ -151,7 +151,7 @@ func (f Factory) UnmarshalTShirtProductFromDatabase(
 	description string,
 	image string,
 	price float32,
-	quantity int64,
+	quantity int,
 ) (iProductsFactory, error) {
 
 	category, err := NewCategoryFromString(categoryString)
@@ -181,7 +181,14 @@ var (
 	ErrInvalidQuantity   = errors.New("The product quantity is less than or equal to 0")
 )
 
-func (f Factory) validateProduct(title string, description string, image string, price float32, quantity int) error {
+func (f Factory) validateProduct(
+	title string,
+	description string,
+	image string,
+	price float32,
+	quantity int,
+) error {
+
 	if title == "" {
 		return ErrEmptyProductTitle
 	}

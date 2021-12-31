@@ -33,7 +33,7 @@ func NewApplication(ctx context.Context) app.Application {
 		Queries: app.Queries{
 			Product:            query.NewProductHandler(productRepository),
 			Products:           query.NewProductsHandler(productRepository),
-			ShopkeeperProducts: query.NewShopkeeperProducts(productRepository),
+			ShopkeeperProducts: query.NewShopkeeperProductsHandler(productRepository),
 		},
 	}
 }
