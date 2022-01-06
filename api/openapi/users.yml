@@ -1,0 +1,170 @@
+openapi: "3.0.0"
+info:
+  version: "1.0.0"
+  title: Ecommerce shop users
+  description: This is Openapi generator server for generate ecommerce shop users api
+  contact:
+    name: giaphm
+    url: http://github.com/giaphm
+servers:
+  - url: https://{hostname}/api
+    variables:
+      hostname:
+        default: localhost
+security:
+  - bearerAuth: []
+paths:
+  /users:
+    get:
+      operationId: getUsers
+      responses:
+        '200':
+          description: todo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Users'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/signin:
+    post:
+      operationId: signIn
+      requestBody:
+        description: Provide email and password to signup a new user.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSignIn'
+      responses:
+        '200':
+          description: Sign up successfully!
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSignIn'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/signup:
+    post:
+      operationId: signUp
+      requestBody:
+        description: Provide email and password to signup a new user.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSignUp'
+      responses:
+        '200':
+          description: Sign up successfully!
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSignUp'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/current:
+    get:
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: todo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    UserSignIn:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+
+    UserSignUp:
+      type: object
+      required:
+        - displayName
+        - email
+        - password
+        - role
+      properties:
+        displayName:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          
+    User:
+      type: object
+      required:
+        - uuid
+        - displayName
+        - email
+        - balance
+        - role
+      properties:
+        uuid:
+          type: string
+        displayName:
+          type: string
+        email:
+          type: string
+        balance:
+          type: number
+          format: float
+        role:
+          type: string
+
+    Users:
+      type: array
+      items:
+        $ref: '#/components/schemas/User'
+
+    Error:
+      type: object
+      required:
+        - slug
+        - message
+      properties:
+        slug:
+          type: string
+        message:
+          type: string

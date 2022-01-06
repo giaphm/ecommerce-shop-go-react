@@ -1,0 +1,184 @@
+openapi: "3.0.0"
+info:
+  version: "1.0.0"
+  title: Ecommerce shop orders
+  description: This is Openapi generator server for generate ecommerce shop orders api
+  contact:
+    name: giaphm
+    url: http://github.com/giaphm
+servers:
+  - url: https://{hostname}/api
+    variables:
+      hostname:
+        default: localhost
+security:
+  - bearerAuth: []
+paths:
+  /order:
+    get:
+      operationId: getOrder
+      parameters:
+        - in: query
+          name: orderUuid
+          schema:
+            type: string
+          required: true
+          description: The order uuid.
+      responses:
+        '200':
+          description: todo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /orders:
+    get:
+      operationId: getOrders
+      responses:
+        '200':
+          description: todo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Orders'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      operationId: createOrder
+      requestBody:
+        description: Provide productUuids, proposedTime to create an order.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewOrder'
+      responses:
+        '204':
+          description: Create an order successfully!
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /orders/cancel-order/{orderUUID}:
+    put:
+      operationId: cancelOrder
+      parameters:
+        - in: path
+          name: orderUUID
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: Provide order uuid to cancel.
+      responses:
+        '204':
+          description: Cancelling this order successfully!
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+
+    NewOrder:
+      type: object
+      required: [userUuid, orderItems, totalPrice]
+      properties:
+        userUuid:
+          type: string
+          format: uuid
+        orderItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/NewOrderItem'
+        totalPrice:
+          type: number
+          format: float
+
+    NewOrderItem:
+      type: object
+      required: [productUuid, quantity]
+      properties:
+        productUuid:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+
+    Orders:
+      type: array
+      items:
+        $ref: '#/components/schemas/Order'
+
+    Order:
+      type: object
+      required: [uuid, userUuid, orderItems, totalPrice, status, proposedTime, expiresAt]
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        userUuid:
+          type: string
+          format: uuid
+        orderItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        totalPrice:
+          type: number
+          format: float
+        status:
+          type: string
+        proposedTime:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+
+    OrderItem:
+      type: object
+      required: [uuid, productUuid, quantity]
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        productUuid:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+
+    Error:
+      type: object
+      required:
+        - slug
+        - message
+      properties:
+        slug:
+          type: string
+        message:
+          type: string

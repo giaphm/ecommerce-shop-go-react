@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package products;
+
+option go_package ="./products"; // Specify the RPC file generation path address
+
+service ProductsService {
+  rpc GetProduct(GetProductRequest) returns (GetProductResponse) {}
+  rpc IsProductAvailable(IsProductAvailableRequest) returns (IsProductAvailableResponse) {}
+  rpc SellProduct(UpdateProductRequest) returns (EmptyResponse) {}
+}
+
+message GetProductRequest {
+  string uuid = 1;
+}
+
+message GetProductResponse {
+  string uuid = 1;
+  string user_uuid = 2;
+  string category = 3;
+  string title = 4;
+  string description = 5;
+  string image = 6;
+  float price = 7;
+  int64 quantity = 8; 
+}
+
+message IsProductAvailableRequest {
+  string uuid = 1;
+}
+
+message IsProductAvailableResponse {
+  bool is_available = 1;
+}
+
+message UpdateProductRequest {
+  string uuid = 1;
+}
+
+message EmptyResponse {}
