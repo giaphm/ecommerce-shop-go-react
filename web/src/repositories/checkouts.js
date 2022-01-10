@@ -1,4 +1,4 @@
-import { DefaultApi as CheckoutsDefaultApi, ApiClient as CheckoutsApiClient, Checkout } from './clients/checkouts/src';
+import { DefaultApi as CheckoutsDefaultApi, ApiClient as CheckoutsApiClient, NewCheckout } from './clients/checkouts/src';
 
 let checkoutsClient;
 
@@ -21,7 +21,7 @@ if (typeof window == "object") {
   
   createCheckout = function(orderUuid, notes, proposedTime){
   
-    const newCheckout = new Checkout(orderUuid, notes, proposedTime)
+    const newCheckout = new NewCheckout(orderUuid, notes, proposedTime)
   
     checkoutsAPI.createCheckout(newCheckout, (error, data, response) => {
       if (!error){
@@ -30,7 +30,7 @@ if (typeof window == "object") {
         console.log('response', response)
         return
       }
-      console.error(err)
+      console.error(error)
     })
   }
   

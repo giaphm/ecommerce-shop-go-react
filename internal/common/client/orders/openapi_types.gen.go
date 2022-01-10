@@ -51,6 +51,12 @@ type OrderItem struct {
 // Orders defines model for Orders.
 type Orders []Order
 
+// GetUserOrdersParams defines parameters for GetUserOrders.
+type GetUserOrdersParams struct {
+	// The user uuid.
+	UserUuid string `json:"userUuid"`
+}
+
 // GetOrderParams defines parameters for GetOrder.
 type GetOrderParams struct {
 	// The order uuid.

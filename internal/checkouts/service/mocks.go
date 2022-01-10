@@ -65,3 +65,7 @@ type UsersServiceMock struct {
 func (u UsersServiceMock) WithdrawUserBalance(ctx context.Context, userUuid string, amountChange float32) error {
 	return nil
 }
+
+func (u UsersServiceMock) DepositUserBalance(ctx context.Context, userUuid string, amountChange float32) error {
+	return nil
+}

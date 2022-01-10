@@ -47,6 +47,17 @@ func (h HttpServer) GetOrders(w http.ResponseWriter, r *http.Request) {
 	render.Respond(w, r, orders)
 }
 
+func (h HttpServer) GetUserOrders(w http.ResponseWriter, r *http.Request, queryParams GetUserOrdersParams) {
+	orderModels, err := h.app.Queries.UserOrders.Handle(r.Context(), queryParams.UserUuid)
+	if err != nil {
+		httperr.RespondWithSlugError(err, w, r)
+		return
+	}
+
+	orders := orderQueryModelsToResponse(orderModels)
+	render.Respond(w, r, orders)
+}
+
 func (h HttpServer) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	user, err := auth.UserFromCtx(r.Context())
 	if err != nil {
@@ -85,6 +96,8 @@ func (h HttpServer) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		}
 		newOrderItems = append(newOrderItems, newOrderItem)
 	}
+
+	fmt.Println("time.Now()", time.Now())
 
 	cmd := command.AddOrder{
 		Uuid:         uuid.New().String(),

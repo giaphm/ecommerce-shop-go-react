@@ -70,6 +70,11 @@ func (g GrpcServer) IsOrderCancelled(ctx context.Context, request *orders.IsOrde
 }
 
 func (g GrpcServer) CompleteOrder(ctx context.Context, request *orders.CompleteOrderRequest) (*orders.EmptyResponse, error) {
+	// proposedTime, err := protoTimestampToTime(request.ProposedTime)
+	// if err != nil {
+	// 	return nil, status.Error(codes.Internal, err.Error())
+	// }
+
 	cmd := command.CompleteOrder{
 		Uuid:     request.Uuid,
 		UserUuid: request.UserUuid,

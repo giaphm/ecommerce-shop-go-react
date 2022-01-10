@@ -33,6 +33,7 @@ func NewApplication(ctx context.Context) app.Application {
 		Queries: app.Queries{
 			Order:           query.NewOrderHandler(orderRepository),
 			Orders:          query.NewOrdersHandler(orderRepository),
+			UserOrders:      query.NewUserOrdersHandler(orderRepository),
 			OrderCancelling: query.NewOrderCancellingHandler(orderRepository),
 		},
 	}

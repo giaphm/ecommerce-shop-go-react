@@ -49,6 +49,7 @@ func (h SellProductHandler) Handle(ctx context.Context, cmd SellProduct) error {
 			if err := tsh.MakeProductNewQuantity(p.GetQuantity() - 1); err != nil {
 				return nil, err
 			}
+			return tsh.GetProduct(), nil
 		}
 
 		return p, nil

@@ -156,6 +156,7 @@ export default function ViewProduct(props: any) {
 
   return (
     <Layout>
+      <Box sx={{width: "70%"}} xs={12} sm={8} md={4}>
         <Card
           sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
         >
@@ -208,7 +209,7 @@ export default function ViewProduct(props: any) {
         </Typography>
       </Container>
     </Box>
-      <form onSubmit={submit}>
+      {/* <form onSubmit={submit}>
         <div className="mt-5 mb-3">
           <FormControl sx={{ minWidth: 120 }} error={!availableCategories.includes(category)}>
             <InputLabel id="category">Category</InputLabel>
@@ -279,7 +280,8 @@ export default function ViewProduct(props: any) {
             Update this product
           </Button>
         </div>
-      </form>
+      </form> */}
+      </Box> 
     </Layout>
   );
 }

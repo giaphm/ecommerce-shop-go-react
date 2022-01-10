@@ -83,6 +83,25 @@ func (f FirestoreOrderRepository) GetOrders(ctx context.Context) ([]*query.Order
 	return f.orderModelsToOrderQueries(orders), nil
 }
 
+func (f FirestoreOrderRepository) GetUserOrders(ctx context.Context, userUuid string) ([]*query.Order, error) {
+	orderSnapshots, err := f.userOrderDocuments(ctx, userUuid)
+	if err != nil {
+		return nil, err
+	}
+
+	var orders []*OrderModel
+	var order *OrderModel
+	for _, orderSnapshot := range orderSnapshots {
+		order = &OrderModel{}
+		if err := orderSnapshot.DataTo(order); err != nil {
+			return nil, err
+		}
+		orders = append(orders, order)
+	}
+
+	return f.orderModelsToOrderQueries(orders), nil
+}
+
 func (f FirestoreOrderRepository) AddOrder(
 	ctx context.Context,
 	uuid string,
@@ -218,6 +237,13 @@ func (f FirestoreOrderRepository) orderDocumentRef(orderUuid string) *firestore.
 
 func (f FirestoreOrderRepository) orderDocuments(ctx context.Context) ([]*firestore.DocumentSnapshot, error) {
 	return f.ordersCollection().Documents(ctx).GetAll()
+}
+
+func (f FirestoreOrderRepository) userOrderDocuments(
+	ctx context.Context,
+	userUuid string,
+	) ([]*firestore.DocumentSnapshot, error) {
+	return f.ordersCollection().Where("UserUuid", "==", userUuid).Documents(ctx).GetAll()
 }
 
 // orderItems collection is sub-collection in orders collection

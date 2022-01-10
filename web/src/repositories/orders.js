@@ -1,10 +1,12 @@
-import { DefaultApi as OrdersDefaultApi, ApiClient as OrdersApiClient, CreateOrder } from './clients/orders/src';
+import { DefaultApi as OrdersDefaultApi, ApiClient as OrdersApiClient, NewOrder, NewOrderItem } from './clients/orders/src';
 
 let ordersClient;
 
 let getOrder;
 
 let getOrders;
+
+let getUserOrders;
 
 let createOrder;
 
@@ -49,11 +51,31 @@ if (typeof window == "object") {
     })
   }
   
-  createOrder = function(productUuids, totalPrice) {
+  getUserOrders = function(userUuid, callback) {
   
-    const createOrder = new CreateOrder(productUuids, totalPrice)
+    ordersAPI.getUserOrders(userUuid, (error, data, response) => {
+      if (!error) {
+        callback(data)
+        console.log("data", data)
+        console.log("response", response)
+        return
+      }
+      console.error(error)
+    })
+  }
   
-    ordersAPI.createOrder(createOrder, (error, data, response) => {
+  createOrder = function(userUuid, orderItems, totalPrice) {
+
+    const newOrderItems = [];
+
+    orderItems.map(orderItem => {
+      const newOrderItem = new NewOrderItem(orderItem.productUuid, orderItem.quantity);
+      newOrderItems.push(newOrderItem);
+    })
+  
+    const newOrder = new NewOrder(userUuid, newOrderItems, totalPrice)
+  
+    ordersAPI.createOrder(newOrder, (error, data, response) => {
       if (!error) {
         console.log("data", data)
         console.log("response", response)
@@ -81,6 +103,8 @@ export { ordersClient };
 export { getOrder };
 
 export { getOrders };
+
+export { getUserOrders };
 
 export { createOrder };
 

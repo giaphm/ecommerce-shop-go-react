@@ -84,9 +84,9 @@ func (h AddCheckoutHandler) Handle(ctx context.Context, cmd AddCheckout) error {
 		}
 	}
 
-	// call sellproduct for all products(loop)
+	// call sellProduct
 	for _, orderItem := range order.OrderItems {
-		if err := h.productsService.SellProduct(ctx, orderItem.ProductUuid); err != nil {
+		if err = h.productsService.SellProduct(ctx, orderItem.ProductUuid); err != nil {
 			return err
 		}
 	}
@@ -96,9 +96,20 @@ func (h AddCheckoutHandler) Handle(ctx context.Context, cmd AddCheckout) error {
 		return err
 	}
 
-	// call WithdrawBalanceUser
+	// call WithdrawBalanceUser for user buying
 	if err := h.usersService.WithdrawUserBalance(ctx, cmd.UserUuid, totalPrice); err != nil {
 		return err
+	}
+
+	for _, orderItem := range order.OrderItems {
+		product, err := h.productsService.GetProduct(ctx, orderItem.ProductUuid)
+		if err != nil {
+			return err
+		}
+		// call DepositBalanceUser for shopkeeper
+		if err := h.usersService.DepositUserBalance(ctx, product.UserUuid, product.Price); err != nil {
+			return err
+		}
 	}
 
 	// call stripe to handle payment and Create a transaction (adapters)

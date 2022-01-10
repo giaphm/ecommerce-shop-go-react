@@ -15,6 +15,9 @@ import (
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
+	// (GET /checkouts/user-orders)
+	GetUserOrders(w http.ResponseWriter, r *http.Request, params GetUserOrdersParams)
+
 	// (GET /order)
 	GetOrder(w http.ResponseWriter, r *http.Request, params GetOrderParams)
 
@@ -36,6 +39,42 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.HandlerFunc) http.HandlerFunc
+
+// GetUserOrders operation middleware
+func (siw *ServerInterfaceWrapper) GetUserOrders(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{""})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetUserOrdersParams
+
+	// ------------- Required query parameter "userUuid" -------------
+	if paramValue := r.URL.Query().Get("userUuid"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "userUuid"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "userUuid", r.URL.Query(), &params.UserUuid)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "userUuid", Err: err})
+		return
+	}
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetUserOrders(w, r, params)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
 
 // GetOrder operation middleware
 func (siw *ServerInterfaceWrapper) GetOrder(w http.ResponseWriter, r *http.Request) {
@@ -248,6 +287,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
 
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/checkouts/user-orders", wrapper.GetUserOrders)
+	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/order", wrapper.GetOrder)
 	})

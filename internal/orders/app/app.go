@@ -19,5 +19,6 @@ type Commands struct {
 type Queries struct {
 	Order           query.OrderHandler
 	Orders          query.OrdersHandler
+	UserOrders      query.UserOrdersHandler
 	OrderCancelling query.OrderCancellingHandler
 }

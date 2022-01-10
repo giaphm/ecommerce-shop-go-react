@@ -1,6 +1,7 @@
 package order
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -59,7 +60,17 @@ func (o Order) IsCancelled() bool {
 }
 
 func (o *Order) MakeCompletedOrder() error {
-	isExpired := (time.Now()).Before(o.expiresAt)
+	// get the location
+	location, _ := time.LoadLocation("Asia/Ho_Chi_Minh")
+
+	fmt.Println("time.Now()", time.Now())
+	fmt.Println("time.Now().UTC()", time.Now().UTC())
+	fmt.Println("time.Now().In(location)", time.Now().In(location))
+	fmt.Println("o.expiresAt", o.expiresAt)
+	fmt.Println("o.expiresAt.UTC()", o.expiresAt.UTC())
+
+	isExpired := (time.Now().UTC()).After(o.expiresAt.UTC())
+	fmt.Println("isExpired", isExpired)
 	if isExpired {
 		return ErrExpiredOrder
 	}

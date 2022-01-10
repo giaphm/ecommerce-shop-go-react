@@ -43,6 +43,7 @@ message IsOrderCancelledResponse {
 message CompleteOrderRequest {
   string uuid = 1;
   string user_uuid = 2;
+  google.protobuf.Timestamp proposed_time = 3;
 }
 
 message EmptyResponse {}

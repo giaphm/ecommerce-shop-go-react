@@ -81,11 +81,19 @@ func (s OrdersGrpc) IsOrderCancelled(ctx context.Context, orderUuid string) (boo
 	return isOrderCancelledResponse.IsCancelled, err
 }
 
-func (s OrdersGrpc) CompleteOrder(ctx context.Context, orderUuid string, userUuid string) error {
+func (s OrdersGrpc) CompleteOrder(
+	ctx context.Context,
+	orderUuid string,
+	userUuid string,
+	// proposedTime time.Time,
+) error {
+
+	// proposedTimestamp := timestamppb.New(proposedTime)
 
 	_, err := s.client.CompleteOrder(ctx, &orders.CompleteOrderRequest{
 		Uuid:     orderUuid,
 		UserUuid: userUuid,
+		// ProposedTime: proposedTimestamp,
 	})
 
 	return err

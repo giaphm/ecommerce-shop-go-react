@@ -26,7 +26,12 @@ type OrderModel struct {
 type OrdersService interface {
 	GetOrder(ctx context.Context, orderUuid string) (*OrderModel, error)
 	IsOrderCancelled(ctx context.Context, orderUuid string) (bool, error)
-	CompleteOrder(ctx context.Context, orderUuid string, userUuid string) error
+	CompleteOrder(
+		ctx context.Context,
+		orderUuid string,
+		userUuid string,
+		// proposedTime time.Time,
+	) error
 }
 
 type ProductModel struct {
@@ -48,4 +53,5 @@ type ProductsService interface {
 
 type UsersService interface {
 	WithdrawUserBalance(ctx context.Context, userUuid string, amountChange float32) error
+	DepositUserBalance(ctx context.Context, userUuid string, amountChange float32) error
 }

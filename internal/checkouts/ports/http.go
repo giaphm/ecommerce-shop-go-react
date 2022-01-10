@@ -31,10 +31,10 @@ func (h HttpServer) CreateCheckout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user.Role != "shopkeeper" {
-		httperr.Unauthorised("invalid-role", nil, w, r)
-		return
-	}
+	// if user.Role != "shopkeeper" {
+	// 	httperr.Unauthorised("invalid-role", nil, w, r)
+	// 	return
+	// }
 
 	var newCheckout *NewCheckout
 	newCheckout = &NewCheckout{}
@@ -43,12 +43,16 @@ func (h HttpServer) CreateCheckout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("newCheckout", newCheckout)
+	fmt.Println("newCheckout.ProposedTime", newCheckout.ProposedTime)
+	fmt.Println("time.Now()", time.Now())
+
 	cmd := command.AddCheckout{
 		Uuid:         uuid.New().String(),
 		UserUuid:     user.UUID,
 		OrderUuid:    newCheckout.OrderUuid,
 		Notes:        newCheckout.Notes,
-		ProposedTime: time.Now(),
+		ProposedTime: newCheckout.ProposedTime,
 	}
 
 	err = h.app.Commands.AddCheckout.Handle(r.Context(), cmd)

@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/errors"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/orders/domain/order"
@@ -29,6 +30,7 @@ func (h CompleteOrderHandler) Handle(ctx context.Context, cmd CompleteOrder) err
 		ctx,
 		cmd.Uuid,
 		func(o *order.Order) (*order.Order, error) {
+			fmt.Println("o.MakeCompletedOrder()")
 			if err := o.MakeCompletedOrder(); err != nil {
 				return nil, err
 			}

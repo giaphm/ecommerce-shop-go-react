@@ -2,6 +2,7 @@ package adapters
 
 import (
 	"context"
+	"log"
 	"os"
 	"time"
 
@@ -58,11 +59,13 @@ func (f FirestoreCheckoutRepository) AddCheckout(
 		params.SetSource("tok_visa")
 		params.AddMetadata("key", "value")
 
-		_, err := charge.New(params)
+		ch, err := charge.New(params)
 
 		if err != nil {
+			log.Fatal(err)
 			return err
 		}
+		log.Printf("%v\n", ch.ID)
 
 		newCheckout, err := f.checkoutFactory.NewCheckout(uuid, userUuid, orderUuid, proposedTime)
 		if err != nil {
