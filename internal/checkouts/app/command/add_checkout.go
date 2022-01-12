@@ -15,6 +15,7 @@ type AddCheckout struct {
 	OrderUuid    string
 	Notes        string
 	ProposedTime time.Time
+	TokenId      string
 }
 
 type AddCheckoutHandler struct {
@@ -119,7 +120,9 @@ func (h AddCheckoutHandler) Handle(ctx context.Context, cmd AddCheckout) error {
 		cmd.UserUuid,
 		cmd.OrderUuid,
 		totalPrice,
+		cmd.Notes,
 		cmd.ProposedTime,
+		cmd.TokenId,
 	); err != nil {
 		return errors.NewSlugError(err.Error(), "unable-to-add-checkout")
 	}

@@ -12,6 +12,8 @@ import {
   Avatar,
   ListItemText,
   ListSubheader,
+  Backdrop,
+  CircularProgress,
 } from "@mui/material";
 
 import { styled } from "@mui/material/styles";
@@ -94,6 +96,7 @@ const Home: NextPage = () => {
     totalPrice: 0.0,
   });
   const [isLoading, setIsLoading] = React.useState(false);
+  const [openBackdrop, setOpenBackdrop] = React.useState(false);
 
   const classes = useStyles();
 
@@ -119,45 +122,64 @@ const Home: NextPage = () => {
     if (isCurrentUserLoggedIn) {
       const currentUser = Auth.currentUser();
       console.log("currentUser", currentUser);
-      UsersAPI.loginUser(currentUser["email"], currentUser["password"])
-        .then(function (currentUser: any) {
-          // toast.message("Hey buddy!")
-          // "go inside hooks update currentUserAppCtx"
+      // toast.message("Hey buddy!")
+      Auth.waitForAuthReady()
+        .then(() => {
+          return Auth.getJwtToken(false)
+        })
+        .then((token: string) => setApiClientsAuth(token))
+        .then(() => {
+          console.log("ProductsAPI.productsClient", ProductsAPI.productsClient);
+        
+          console.log("UsersAPI.usersClient", UsersAPI.usersClient);
+          console.log("currentUser", currentUser);
           currentUserAppCtx!.fetchCurrentUser({
             uuid: currentUser["uuid"],
             email: currentUser["email"],
             displayName: currentUser["displayName"],
             role: currentUser["role"],
+            balance: currentUser["balance"],
           });
           console.log("currentUserAppCtx", currentUserAppCtx);
+    
+          UsersAPI.getUsers((users: any) => {
+            console.log("UsersAPI.usersClient", UsersAPI.usersClient);
+            console.log(
+              "UsersAPI.usersClient.authentications",
+              UsersAPI.usersClient.authentications
+            );
+            console.log("users", users);
+            console.log("setUsers(users);");
+            setUsers(users);
+            
+            ProductsAPI.getProducts((products: any) => {
+              console.log("ProductsAPI.productsClient", ProductsAPI.productsClient);
+              console.log(
+                "ProductsAPI.productsClient.authentications",
+                ProductsAPI.productsClient.authentications
+              );
+              console.log("products", products);
+              const productsWithDisplayName: any[] = [];
+              products.map((product: any) => {
+                // console.log("product", product);
+                users.forEach((user: any) => {
+                  // console.log("user", user);
+                  if (user.uuid === product.userUuid) {
+                    productsWithDisplayName.push({
+                      displayName: user.displayName,
+                      ...product,
+                    });
+                  }
+                });
+              });
+              console.log("setProducts(productsWithDisplayName)");
+              setProducts(productsWithDisplayName);
+            });
+        
+            console.log("setIsLoading(true);");
+            setIsLoading(true);
+          });
         })
-        .catch((error: unknown) => {
-          // toast.error("Failed to log in")
-          console.error(error);
-        });
-
-      // // set token in header again
-      // Auth.getJwtToken(false).then((token: any) => {
-      //   console.log("token", token)
-      //   setApiClientsAuth(token)
-      // })
-
-      // console.log("ProductsAPI.productsClient", ProductsAPI.productsClient);
-
-      // console.log("UsersAPI.usersClient", UsersAPI.usersClient);
-
-      // console.log("LoggedIn and set currentUserAppCtx again")
-      // // fetchCurrentUser is async => new useEffect to chase the updates
-      // const currentUser = Auth.currentUser();
-      // console.log("currentUser", currentUser);
-      // currentUserAppCtx!.fetchCurrentUser({
-      //   uuid: currentUser["uuid"],
-      //   email: currentUser["email"],
-      //   displayName: currentUser["name"],
-      //   role: currentUser["role"],
-      // });
-      console.log("setIsLoading(true);");
-      setIsLoading(true);
     } else if (!currentUserAppCtx!["uuid"]) {
       Router.push("/login");
     }
@@ -167,53 +189,64 @@ const Home: NextPage = () => {
     console.log("currentUserAppCtx", currentUserAppCtx);
 
     // "go inside hooks update users"
-    UsersAPI.getUsers((users: any) => {
-      console.log("UsersAPI.usersClient", UsersAPI.usersClient);
-      console.log(
-        "UsersAPI.usersClient.authentications",
-        UsersAPI.usersClient.authentications
-      );
-      console.log("users", users);
-      console.log("setUsers(users);");
-      setUsers(users);
-    });
+    // UsersAPI.getUsers((users: any) => {
+    //   console.log("UsersAPI.usersClient", UsersAPI.usersClient);
+    //   console.log(
+    //     "UsersAPI.usersClient.authentications",
+    //     UsersAPI.usersClient.authentications
+    //   );
+    //   console.log("users", users);
+    //   console.log("setUsers(users);");
+    //   setUsers(users);
+    // });
   }, [currentUserAppCtx]);
 
   React.useEffect(() => {
     console.log("currentUserAppCtx", currentUserAppCtx);
 
-    ProductsAPI.getProducts((products: any) => {
-      console.log("ProductsAPI.productsClient", ProductsAPI.productsClient);
-      console.log(
-        "ProductsAPI.productsClient.authentications",
-        ProductsAPI.productsClient.authentications
-      );
-      console.log("products", products);
-      const productsWithDisplayName: any[] = [];
-      products.map((product: any) => {
-        // console.log("product", product);
-        users.forEach((user: any) => {
-          // console.log("user", user);
-          if (user.uuid === product.userUuid) {
-            productsWithDisplayName.push({
-              displayName: user.displayName,
-              ...product,
-            });
-          }
-        });
-      });
-      console.log("setProducts(productsWithDisplayName)");
-      setProducts(productsWithDisplayName);
-    });
+    // ProductsAPI.getProducts((products: any) => {
+    //   console.log("ProductsAPI.productsClient", ProductsAPI.productsClient);
+    //   console.log(
+    //     "ProductsAPI.productsClient.authentications",
+    //     ProductsAPI.productsClient.authentications
+    //   );
+    //   console.log("products", products);
+    //   const productsWithDisplayName: any[] = [];
+    //   products.map((product: any) => {
+    //     // console.log("product", product);
+    //     users.forEach((user: any) => {
+    //       // console.log("user", user);
+    //       if (user.uuid === product.userUuid) {
+    //         productsWithDisplayName.push({
+    //           displayName: user.displayName,
+    //           ...product,
+    //         });
+    //       }
+    //     });
+    //   });
+    //   console.log("setProducts(productsWithDisplayName)");
+    //   setProducts(productsWithDisplayName);
+    // });
 
-    console.log("setIsLoading(true);");
-    setIsLoading(true);
+    // console.log("setIsLoading(true);");
+    // setIsLoading(true);
   }, [users]);
 
+  const handleOpenBackdrop = () => {
+    setOpenBackdrop(true);
+  }
+  
+  const handleCloseBackdrop = () => {
+    setOpenBackdrop(false);
+  }
+  
   const viewProductHandler = (productUuid: string) => {
-    Router.push({
+    console.log("handleOpenBackdrop();")
+    handleOpenBackdrop();
+
+    setTimeout(() => Router.push({
       pathname: `/product/view/${productUuid}`,
-    });
+    }), 500);
   };
 
   const addProductToOrderHandler = (
@@ -223,6 +256,9 @@ const Home: NextPage = () => {
     productPrice: number
   ) => {
     setOrder((order: Order) => {
+      console.log("handleOpenBackdrop();")
+      handleOpenBackdrop();
+
       const newOrderItems = [...order.orderItems];
       if (newOrderItems.length === 0) {
         const orderItem: OrderItem = {
@@ -270,10 +306,14 @@ const Home: NextPage = () => {
         totalPrice: order.totalPrice + productPrice,
       };
     });
+
+    setTimeout(() => handleCloseBackdrop(), 200);
   };
 
   const removeProductInOrderHandler = (productUuid: string) => {
     setOrder((order: Order) => {
+      console.log("handleOpenBackdrop();")
+      handleOpenBackdrop();
       let foundOrderItem = false;
       const newOrderItems = [...order.orderItems];
       let newTotalPrice = order.totalPrice;
@@ -304,9 +344,11 @@ const Home: NextPage = () => {
         totalPrice: newTotalPrice,
       };
     });
+    setTimeout(() => handleCloseBackdrop(), 200);
   };
 
   const addOrderHandler = () => {
+    handleOpenBackdrop();
     console.log("order", order);
     console.log("currentUserAppCtx", currentUserAppCtx);
     const orderToRequest: OrderToRequest = {
@@ -326,8 +368,25 @@ const Home: NextPage = () => {
     OrdersAPI.createOrder(
       orderToRequest.userUuid,
       orderToRequest.orderItems,
-      orderToRequest.totalPrice
+      orderToRequest.totalPrice,
+      (response: any) => {
+        console.log("response", response)
+        Router.push("/orders")
+        handleCloseBackdrop()
+      }
     );
+  }
+
+  const removeTemporaryOrderHandler = () => {
+    setOrder((order: any) => {
+      console.log("handleOpenBackdrop();")
+      handleOpenBackdrop();
+      return {
+        orderItems: [],
+        totalPrice: 0.0,
+      }
+    });
+    setTimeout(() => handleCloseBackdrop(), 200);
   }
 
   return isLoading ? (
@@ -344,7 +403,8 @@ const Home: NextPage = () => {
           <Container maxWidth="sm">
             <Typography
               component="h1"
-              variant="h2"
+              variant="overline"
+              sx={{fontStyle: 'oblique', fontWeight: 'regular', fontSize: "2.75rem", letterSpacing: 5 }}
               align="center"
               color="text.primary"
               gutterBottom
@@ -406,6 +466,7 @@ const Home: NextPage = () => {
                     <Button
                       size="small"
                       onClick={() => viewProductHandler(product.uuid)}
+                      color="info"
                     >
                       View
                     </Button>
@@ -421,8 +482,10 @@ const Home: NextPage = () => {
                             product.title,
                             product.image,
                             product.price
-                          );
+                          )
                         }}
+                        variant="outlined"
+                        color="success"
                       >
                         Add to your order
                       </Button>
@@ -441,19 +504,21 @@ const Home: NextPage = () => {
               right: "20px",
               maxWidth: 150,
               minWidth: "100px",
+              opacity: 0.9,
             }}
           >
             <Grid item xs={12} md={12}>
               <Typography
                 align="center"
                 sx={{
-                  bgcolor: "primary.main",
+                  bgcolor: "secondary.main",
                   border: "1px dashed black",
                   mt: 1,
-                  pb: 1,
+                  py: 1,
                 }}
                 variant="h6"
                 component="div"
+                color="secondary.contrastText"
               >
                 Your order
               </Typography>
@@ -496,6 +561,7 @@ const Home: NextPage = () => {
                                 orderItem.productUuid
                               );
                             }}
+                            color="secondary"
                           >
                             <DeleteIcon />
                           </IconButton>
@@ -553,18 +619,20 @@ const Home: NextPage = () => {
                         borderRadius: 0,
                       }}
                       variant="contained"
+                      color="success"
                       onClick={addOrderHandler}
                     >
                       Add
                     </Button>
                     <Button
-                      color="warning"
                       sx={{
                         minWidth: "30%",
                         fontSize: "10px",
                         borderRadius: 0,
                       }}
                       variant="contained"
+                      color="warning"
+                      onClick={removeTemporaryOrderHandler}
                     >
                       Cancel
                     </Button>
@@ -577,6 +645,12 @@ const Home: NextPage = () => {
           ""
         )}
       </main>
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={openBackdrop}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </Layout>
   ) : (
     <div>Loading...</div>

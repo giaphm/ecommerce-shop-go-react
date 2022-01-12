@@ -9,7 +9,7 @@ type CurrentUserHandler struct {
 }
 
 type CurrentUserReadModel interface {
-	GetUser(ctx context.Context, userUuid string) (*User, error)
+	GetCurrentUser(ctx context.Context, userUuid string) (*User, error)
 }
 
 func NewCurrentUserHandler(readModel CurrentUserReadModel) CurrentUserHandler {
@@ -18,5 +18,5 @@ func NewCurrentUserHandler(readModel CurrentUserReadModel) CurrentUserHandler {
 
 func (h CurrentUserHandler) Handle(ctx context.Context, userUuid string) (*User, error) {
 
-	return h.readModel.GetUser(ctx, userUuid)
+	return h.readModel.GetCurrentUser(ctx, userUuid)
 }

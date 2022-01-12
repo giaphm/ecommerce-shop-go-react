@@ -45,7 +45,9 @@ func (f FirestoreCheckoutRepository) AddCheckout(
 	userUuid string,
 	orderUuid string,
 	totalPrice float32,
+	notes string,
 	proposedTime time.Time,
+	TokenId string,
 ) error {
 
 	err := f.firestoreClient.RunTransaction(ctx, func(ctx context.Context, transaction *firestore.Transaction) error {
@@ -55,6 +57,9 @@ func (f FirestoreCheckoutRepository) AddCheckout(
 		params := &stripe.ChargeParams{
 			Amount:   stripe.Int64(int64(totalPrice * 100.0)),
 			Currency: stripe.String(string(stripe.CurrencyUSD)),
+			Source: &stripe.SourceParams{
+				Token: &TokenId,
+			},
 		}
 		params.SetSource("tok_visa")
 		params.AddMetadata("key", "value")
@@ -67,7 +72,7 @@ func (f FirestoreCheckoutRepository) AddCheckout(
 		}
 		log.Printf("%v\n", ch.ID)
 
-		newCheckout, err := f.checkoutFactory.NewCheckout(uuid, userUuid, orderUuid, proposedTime)
+		newCheckout, err := f.checkoutFactory.NewCheckout(uuid, userUuid, orderUuid, notes, proposedTime)
 		if err != nil {
 			return err
 		}
@@ -215,6 +220,7 @@ func (f FirestoreCheckoutRepository) checkoutDomainToCheckoutModel(c *checkout.C
 		Uuid:         c.GetUuid(),
 		UserUuid:     c.GetUserUuid(),
 		OrderUuid:    c.GetProductUuids(),
+		Notes:        c.GetNotes(),
 		ProposedTime: c.GetProposedTime(),
 	}
 }

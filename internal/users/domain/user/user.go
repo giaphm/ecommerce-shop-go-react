@@ -128,7 +128,7 @@ func (f Factory) UnmarshalUserFromDatabase(
 	balance float32,
 	role string,
 	lastIP string,
-) (IUser, error) {
+) (*User, error) {
 
 	return &User{
 		uuid:           uuid,

@@ -47,7 +47,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserSignIn'
+                $ref: '#/components/schemas/User'
         default:
           description: unexpected error
           content:
@@ -71,7 +71,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserSignUp'
+                $ref: '#/components/schemas/User'
         default:
           description: unexpected error
           content:
@@ -95,7 +95,47 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-                
+
+  /users/update-user-information:
+    put:
+      operationId: updateUserInformation
+      requestBody:
+        description: Need the new email, displayName.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatedUserInformation'
+      responses:
+        '204':
+          description: The user information is updated!
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/update-user-password:
+    put:
+      operationId: updateUserPassword
+      requestBody:
+        description: Need the new password.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatedUserPassword'
+      responses:
+        '204':
+          description: The user password is updated!
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 
 components:
   securitySchemes:
@@ -157,6 +197,33 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/User'
+
+    UpdatedUserInformation:
+      type: object
+      required:
+        - uuid
+        - displayName
+        - email
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        displayName:
+          type: string
+        email:
+          type: string
+
+    UpdatedUserPassword:
+      type: object
+      required:
+        - uuid
+        - newPassword
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        newPassword:
+          type: string
 
     Error:
       type: object

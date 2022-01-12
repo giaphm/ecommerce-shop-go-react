@@ -8,10 +8,23 @@ const theme = createTheme({
       main: '#556cd6',
     },
     secondary: {
-      main: '#19857b',
+      main: '#212121',
+      // contrastText: "#ffffff"
     },
-    error: {
-      main: red.A400,
+    // error: {
+    //   main: red.A400,
+    // },
+    // info: {}
+    // success: {}
+    // warning: {}
+  },
+});
+
+export const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: {
+      main: '#1976d2',
     },
   },
 });

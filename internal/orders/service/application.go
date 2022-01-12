@@ -29,6 +29,7 @@ func NewApplication(ctx context.Context) app.Application {
 		Commands: app.Commands{
 			AddOrder:      command.NewAddOrderHandler(orderRepository),
 			CompleteOrder: command.NewCompleteOrderHandler(orderRepository),
+			CancelOrder:   command.NewCancelOrderHandler(orderRepository),
 		},
 		Queries: app.Queries{
 			Order:           query.NewOrderHandler(orderRepository),

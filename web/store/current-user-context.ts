@@ -5,6 +5,7 @@ export interface CurrentUser {
   email: string | null;
   displayName: string | null;
   role: string | null;
+  balance: number | null;
 }
 
 export interface CurrentUserAppContextInterface {
@@ -12,6 +13,7 @@ export interface CurrentUserAppContextInterface {
   email: string | null;
   displayName: string | null;
   role: string | null;
+  balance: number | null;
   fetchCurrentUser: (currentUser: CurrentUser) => void;
   removeCurrentUser: () => void;
 }

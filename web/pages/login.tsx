@@ -1,6 +1,14 @@
 import * as React from "react";
 import { useRouter } from "next/router";
 
+import {
+  Backdrop,
+  CircularProgress,
+  IconButton,
+} from "@mui/material";
+
+import CloseIcon from '@mui/icons-material/Close';
+
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -14,7 +22,6 @@ import Grid from "@mui/material/Grid";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Snackbar from '@mui/material/Snackbar';
-import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 import * as UsersAPI from "../src/repositories/users";
 import { Auth } from "../src/repositories/auth";
@@ -43,33 +50,98 @@ function Copyright(props: any) {
 
 
 export default function SignIn() {
-  const [showLoader, setShowLoader] = React.useState(false);
+  const [showInvalidLoginNotification, setShowInvalidLoginNotification] = React.useState(false);
   const [showLoggedOutNotification, setShowLoggedOutNotification] = React.useState(false);
+  const [showSignedUpNotification, setShowSignedUpNotification] = React.useState(false);
+  const [openBackdrop, setOpenBackdrop] = React.useState(false);
+  
 
   const currentUserContext = React.useContext(CurrentUserAppCtx);
   console.log("currentUserContext", currentUserContext)
+
+  console.log("showInvalidLoginNotification", showInvalidLoginNotification)
+  
+  console.log("showLoggedOutNotification", showLoggedOutNotification);
+  
+  console.log("showSignedUpNotification", showSignedUpNotification)
 
   const router = useRouter()
   const { query } = router;
   console.log("query", query)
 
-  let loggedOut: boolean = false;
-
-  if (!isEmpty(query)) {
-    loggedOut = JSON.parse(query["loggedOut"] as string);
-  }
+  const { loggedOut, signedUp } = router.query;
 
   console.log("loggedOut", loggedOut)
+  
+  console.log("signedUp", signedUp)
 
   React.useEffect(() => {
     if (Auth.isLoggedIn()) {
       router.push("/");
     }
-    setShowLoggedOutNotification(loggedOut);
+    setShowLoggedOutNotification(loggedOut ? true : false);
+    setShowSignedUpNotification(signedUp ? true : false);
   }, []);
+
+  const handleOpenBackdrop = () => {
+    setOpenBackdrop(true);
+  }
+  
+  const handleCloseBackdrop = () => {
+    setOpenBackdrop(false);
+  }
+  
+  
+  const handleCloseSignedUpNotification = () => {
+    setShowSignedUpNotification(false);
+  }
+
+  const showSignedUpNotificationAction = (
+    <IconButton
+      size="small"
+      aria-label="close"
+      color="inherit"
+      onClick={handleCloseSignedUpNotification}
+    >
+      <CloseIcon fontSize="small" />
+    </IconButton>
+  )
+
+  const handleCloseLoggedOutNotification = () => {
+    setShowLoggedOutNotification(false);
+  }
+
+  const showLoggedOutNotificationAction = (
+      <IconButton
+        size="small"
+        aria-label="close"
+        color="inherit"
+        onClick={handleCloseLoggedOutNotification}
+      >
+        <CloseIcon fontSize="small" />
+      </IconButton>
+  )
+
+  const handleCloseInvalidLoginNotification = () => {
+    setShowInvalidLoginNotification(false);
+  }
+
+  const showInvalidLoginNotificationAction = (
+      <IconButton
+        size="small"
+        aria-label="close"
+        color="inherit"
+        onClick={handleCloseInvalidLoginNotification}
+      >
+        <CloseIcon fontSize="small" />
+      </IconButton>
+  )
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    console.log("handleOpenBackdrop();")
+    handleOpenBackdrop();
 
     const data = new FormData(event.currentTarget);
 
@@ -81,34 +153,68 @@ export default function SignIn() {
       email: data.get("email"),
       password: data.get("password"),
     });
-    setShowLoader(true);
 
-    UsersAPI.loginUser(email, password)
-      .then(function (currentUser: any) {
-        // toast.message("Hey buddy!")
-        currentUserContext!.fetchCurrentUser({
-          uuid: currentUser["uuid"],
-          email: currentUser["email"],
-          displayName: currentUser["displayName"],
-          role: currentUser["role"],
-        })
-        router.push("/");
+    // UsersAPI.loginUser(email, password)
+    //   .then(function (currentUser: any) {
+    //     // toast.message("Hey buddy!")
+    //     currentUserContext!.fetchCurrentUser({
+    //       uuid: currentUser["uuid"],
+    //       email: currentUser["email"],
+    //       displayName: currentUser["displayName"],
+    //       role: currentUser["role"],
+    //       balance: currentUser["balance"],
+    //     })
+    //     // router.push("/");
+    //   })
+    //   .catch((error: unknown) => {
+    //     // toast.error("Failed to log in")
+    //     setShowInvalidLoginNotification(true);
+    //     handleCloseBackdrop()
+    //     console.error(error);
+    //   });
+
+      UsersAPI.loginUser(email, password, (response: any) => {
+        console.log(response);
+        if(response.statusCode === 200){
+          router.push("/");
+        }
+        else {
+          // toast.error("Failed to log in")
+          setShowInvalidLoginNotification(true);
+          handleCloseBackdrop()
+        }
       })
-      .catch((error: unknown) => {
-        // toast.error("Failed to log in")
-        console.error(error);
-        setShowLoader(false);
-      });
   };
 
   return (
     <React.Fragment>
       <Snackbar
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
         open={showLoggedOutNotification}
-        // onClose={handleClose}
+        onClose={handleCloseLoggedOutNotification}
+        autoHideDuration={5000}
         message={showLoggedOutNotification ? "You have been logged out" : ""}
+        // key={"top" + "center"} 
+        action={showLoggedOutNotificationAction}
+      />
+      <Snackbar
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        open={showSignedUpNotification}
+        onClose={handleCloseSignedUpNotification}
+        autoHideDuration={5000}
+        message={showSignedUpNotification ? "You have been signed up successfully!" : ""}
+        // key={"top" + "center"} 
+        action={showSignedUpNotificationAction}
+      />
+
+      <Snackbar
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        open={showInvalidLoginNotification}
+        onClose={handleCloseInvalidLoginNotification}
+        autoHideDuration={5000}
+        message={showInvalidLoginNotification ? "Invalid email or password" : ""}
         key={"top" + "right"}
+        action={showInvalidLoginNotificationAction}
       />
 
       <Grid container component="main" sx={{ height: "100vh" }}>
@@ -179,19 +285,22 @@ export default function SignIn() {
                 type="submit"
                 fullWidth
                 variant="contained"
+                color="secondary"
                 sx={{ mt: 3, mb: 2 }}
               >
                 Sign In
               </Button>
               <Grid container>
-                <Grid item xs>
+                {/* <Grid item xs>
                   <Link href="#" variant="body2">
                     Forgot password?
                   </Link>
-                </Grid>
+                </Grid> */}
                 <Grid item>
-                  <Link href="#" variant="body2">
-                    {"Don't have an account? Sign Up"}
+                  <Link href="/signup">
+                    <Typography variant="body2" color="text.secondary">
+                      Don't have an account? Sign up!
+                    </Typography>
                   </Link>
                 </Grid>
               </Grid>
@@ -200,6 +309,12 @@ export default function SignIn() {
           </Box>
         </Grid>
       </Grid>
+        <Backdrop
+          sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+          open={openBackdrop}
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
     </React.Fragment>
   );
 }

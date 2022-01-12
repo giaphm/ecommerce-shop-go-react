@@ -64,7 +64,7 @@ if (typeof window == "object") {
     })
   }
   
-  createOrder = function(userUuid, orderItems, totalPrice) {
+  createOrder = function(userUuid, orderItems, totalPrice, callback) {
 
     const newOrderItems = [];
 
@@ -79,18 +79,20 @@ if (typeof window == "object") {
       if (!error) {
         console.log("data", data)
         console.log("response", response)
+        callback(response)
         return
       }
       console.error(error)
     })
   }
   
-  cancelOrder = function(orderUuid) {
+  cancelOrder = function(orderUuid, callback) {
   
     ordersAPI.cancelOrder(orderUuid, (error, data, response) => {
       if (!error) {
         console.log("data", data)
         console.log("response", response)
+        callback(response)
         return
       }
       console.error(error)

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { AppProps } from 'next/app'
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from "@mui/material/CssBaseline";  
-import theme from '../src/theme';
+import theme, { darkTheme } from '../src/theme';
 import "../styles/globals.css"
 
 import CurrentUserAppCtx, { CurrentUser } from '../store/current-user-context';
@@ -15,6 +15,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     email: null,
     displayName: null,
     role: null,
+    balance: 0,
   })
 
   
@@ -24,6 +25,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         email: currentUser["email"],
         displayName: currentUser["displayName"],
         role: currentUser["role"],
+        balance: currentUser["balance"],
       })
   }
 
@@ -33,6 +35,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       email: null,
       displayName: null,
       role: null,
+      balance: 0,
     })
   }
 

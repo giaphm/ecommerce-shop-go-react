@@ -27,17 +27,20 @@ func NewApplication(ctx context.Context) app.Application {
 
 	return app.Application{
 		Commands: app.Commands{
-			SignIn:          command.NewSignInHandler(userRepository),
-			SignUp:          command.NewSignUpHandler(userRepository),
-			DepositBalance:  command.NewDepositBalanceHandler(userRepository),
-			WithdrawBalance: command.NewWithdrawBalanceHandler(userRepository),
-			UpdateLastIP:    command.NewUpdateLastIPHandler(userRepository),
+			SignIn:                command.NewSignInHandler(userRepository),
+			SignUp:                command.NewSignUpHandler(userRepository),
+			DepositBalance:        command.NewDepositBalanceHandler(userRepository),
+			WithdrawBalance:       command.NewWithdrawBalanceHandler(userRepository),
+			UpdateLastIP:          command.NewUpdateLastIPHandler(userRepository),
+			UpdateUserInformation: command.NewUpdateUserInformationHandler(userRepository),
+			UpdateUserPassword:    command.NewUpdateUserPasswordHandler(userRepository),
 		},
 		Queries: app.Queries{
 			DisplayName: query.NewDisplayNameHandler(userRepository),
 			UserBalance: query.NewUserBalanceHandler(userRepository),
 			CurrentUser: query.NewCurrentUserHandler(userRepository),
 			Users:       query.NewUsersHandler(userRepository),
+			User:        query.NewUserHandler(userRepository),
 		},
 	}
 }

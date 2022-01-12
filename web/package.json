@@ -20,6 +20,7 @@
     "next": "12.0.7",
     "react": "17.0.2",
     "react-dom": "17.0.2",
+    "react-stripe-checkout": "^2.6.3",
     "smooth-scrollbar": "^8.7.2",
     "smooth-scrollbar-react": "^2.3.0",
     "superagent": "^6.1.0"

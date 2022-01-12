@@ -108,7 +108,7 @@ components:
 
     NewCheckout:
       type: object
-      required: [orderUuid, notes, proposedTime]
+      required: [orderUuid, notes, proposedTime, tokenId]
       properties:
         orderUuid:
           type: string
@@ -119,6 +119,8 @@ components:
         proposedTime:
           type: string
           format: date-time
+        tokenId:
+          type: string
 
     Error:
       type: object

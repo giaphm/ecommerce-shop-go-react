@@ -96,22 +96,6 @@ func (h HttpServer) GetUsers(w http.ResponseWriter, r *http.Request) {
 	render.Respond(w, r, users)
 }
 
-func userQueryModelsToResponse(models []*query.User) []*User {
-	var users []*User
-	for _, u := range models {
-
-		users = append(users, &User{
-			Balance:     u.Balance,
-			DisplayName: u.DisplayName,
-			Email:       u.Email,
-			Role:        u.Role,
-			Uuid:        u.Uuid,
-		})
-	}
-
-	return users
-}
-
 func (h HttpServer) SignIn(w http.ResponseWriter, r *http.Request) {
 
 	var user *UserSignIn = &UserSignIn{}
@@ -135,6 +119,15 @@ func (h HttpServer) SignIn(w http.ResponseWriter, r *http.Request) {
 		httperr.InternalError("cannot-sign-in-user", err, w, r)
 		return
 	}
+
+	userQueryModel, err := h.app.Queries.User.Handle(r.Context(), cmd.Email)
+	if err != nil {
+		httperr.InternalError("cannot-get-current-user-in-sign-in-user", err, w, r)
+		return
+	}
+
+	currentUser := userQueryModelToResponse(userQueryModel)
+	render.Respond(w, r, currentUser)
 	// return uuid to test
 }
 
@@ -174,4 +167,83 @@ func (h HttpServer) SignUp(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("content-location", "users/sign-up-user/"+cmd.Uuid)
 	w.WriteHeader(http.StatusCreated)
+}
+
+func (h HttpServer) UpdateUserInformation(w http.ResponseWriter, r *http.Request) {
+	authUser, err := auth.UserFromCtx(r.Context())
+	if err != nil {
+		httperr.RespondWithSlugError(err, w, r)
+		return
+	}
+
+	var updatedUserInformation *UpdatedUserInformation = &UpdatedUserInformation{}
+	if err := render.Decode(r, updatedUserInformation); err != nil {
+		httperr.RespondWithSlugError(err, w, r)
+		return
+	}
+
+	cmd := command.UpdateUserInformation{
+		Uuid:        authUser.UUID,
+		DisplayName: updatedUserInformation.DisplayName,
+		Email:       updatedUserInformation.Email,
+	}
+
+	if err := h.app.Commands.UpdateUserInformation.Handle(r.Context(), cmd); err != nil {
+		httperr.InternalError("cannot-update-user-information", err, w, r)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h HttpServer) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
+	authUser, err := auth.UserFromCtx(r.Context())
+	if err != nil {
+		httperr.RespondWithSlugError(err, w, r)
+		return
+	}
+
+	var updatedUserPassword *UpdatedUserPassword = &UpdatedUserPassword{}
+	if err := render.Decode(r, updatedUserPassword); err != nil {
+		httperr.RespondWithSlugError(err, w, r)
+		return
+	}
+
+	hashedNewPassword, err := bcrypt.GenerateFromPassword([]byte(updatedUserPassword.NewPassword), 12)
+	if err != nil {
+		httperr.RespondWithSlugError(err, w, r)
+		return
+	}
+
+	cmd := command.UpdateUserPassword{
+		Uuid:              authUser.UUID,
+		NewHashedPassword: hashedNewPassword,
+	}
+
+	if err := h.app.Commands.UpdateUserPassword.Handle(r.Context(), cmd); err != nil {
+		httperr.InternalError("cannot-update-user-password", err, w, r)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func userQueryModelToResponse(model *query.User) *User {
+	return &User{
+		Balance:     model.Balance,
+		DisplayName: model.DisplayName,
+		Email:       model.Email,
+		Role:        model.Role,
+		Uuid:        model.Uuid,
+	}
+}
+
+func userQueryModelsToResponse(models []*query.User) []*User {
+	var users []*User
+	for _, u := range models {
+
+		users = append(users, userQueryModelToResponse(u))
+	}
+
+	return users
 }

@@ -52,27 +52,30 @@ export default function EditProduct(props: any) {
     const isCurrentUserLoggedIn = Auth.isLoggedIn()
     console.log("isCurrentUserLoggedIn", isCurrentUserLoggedIn)
     if (isCurrentUserLoggedIn) {
-      // set token in header again
-      Auth.getJwtToken(false).then((token: any) => {
-        console.log("token", token)
-        setApiClientsAuth(token)
-      })
-
-      console.log("ProductsAPI.productsClient", ProductsAPI.productsClient);
-
-      console.log("UsersAPI.usersClient", UsersAPI.usersClient);
-
-      console.log("LoggedIn and set currentUserAppCtx again")
       // fetchCurrentUser is async => new useEffect to chase the updates
       const currentUser = Auth.currentUser();
       console.log("currentUser", currentUser);
+      console.log("LoggedIn and set currentUserAppCtx again")
       currentUserAppCtx!.fetchCurrentUser({
         uuid: currentUser["uuid"],
         email: currentUser["email"],
         displayName: currentUser["name"],
         role: currentUser["role"],
+        balance: currentUser["balance"],
       });
-      setIsLoading(true);
+      // set token in header again
+      Auth.waitForAuthReady()
+        .then(() => {
+          return Auth.getJwtToken(false)
+        })
+        .then((token: string) => setApiClientsAuth(token))
+        .then(() => {
+          console.log("ProductsAPI.productsClient", ProductsAPI.productsClient);
+    
+          console.log("UsersAPI.usersClient", UsersAPI.usersClient);
+    
+          setIsLoading(true);
+      })
     }
     else if (!currentUserAppCtx!["uuid"]) {
       router.push("/login");

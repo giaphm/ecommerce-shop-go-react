@@ -9,7 +9,7 @@ type UserBalanceHandler struct {
 }
 
 type UserBalanceReadModel interface {
-	GetUser(ctx context.Context, userUuid string) (*User, error)
+	GetCurrentUser(ctx context.Context, userUuid string) (*User, error)
 }
 
 func NewUserBalanceHandler(readModel UserBalanceReadModel) UserBalanceHandler {
@@ -18,7 +18,7 @@ func NewUserBalanceHandler(readModel UserBalanceReadModel) UserBalanceHandler {
 
 func (h UserBalanceHandler) Handle(ctx context.Context, userUuid string) (float32, error) {
 
-	user, err := h.readModel.GetUser(ctx, userUuid)
+	user, err := h.readModel.GetCurrentUser(ctx, userUuid)
 
 	return user.Balance, err
 }

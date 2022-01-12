@@ -25,6 +25,12 @@ type ServerInterface interface {
 
 	// (POST /users/signup)
 	SignUp(w http.ResponseWriter, r *http.Request)
+
+	// (PUT /users/update-user-information)
+	UpdateUserInformation(w http.ResponseWriter, r *http.Request)
+
+	// (PUT /users/update-user-password)
+	UpdateUserPassword(w http.ResponseWriter, r *http.Request)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -95,6 +101,40 @@ func (siw *ServerInterfaceWrapper) SignUp(w http.ResponseWriter, r *http.Request
 
 	var handler = func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.SignUp(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// UpdateUserInformation operation middleware
+func (siw *ServerInterfaceWrapper) UpdateUserInformation(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{""})
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateUserInformation(w, r)
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler(w, r.WithContext(ctx))
+}
+
+// UpdateUserPassword operation middleware
+func (siw *ServerInterfaceWrapper) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{""})
+
+	var handler = func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateUserPassword(w, r)
 	}
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -228,6 +268,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/users/signup", wrapper.SignUp)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/users/update-user-information", wrapper.UpdateUserInformation)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/users/update-user-password", wrapper.UpdateUserPassword)
 	})
 
 	return r

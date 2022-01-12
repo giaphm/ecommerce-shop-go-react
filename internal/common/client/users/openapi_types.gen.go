@@ -13,6 +13,19 @@ type Error struct {
 	Slug    string `json:"slug"`
 }
 
+// UpdatedUserInformation defines model for UpdatedUserInformation.
+type UpdatedUserInformation struct {
+	DisplayName string `json:"displayName"`
+	Email       string `json:"email"`
+	Uuid        string `json:"uuid"`
+}
+
+// UpdatedUserPassword defines model for UpdatedUserPassword.
+type UpdatedUserPassword struct {
+	NewPassword string `json:"newPassword"`
+	Uuid        string `json:"uuid"`
+}
+
 // User defines model for User.
 type User struct {
 	Balance     float32 `json:"balance"`
@@ -45,8 +58,20 @@ type SignInJSONBody UserSignIn
 // SignUpJSONBody defines parameters for SignUp.
 type SignUpJSONBody UserSignUp
 
+// UpdateUserInformationJSONBody defines parameters for UpdateUserInformation.
+type UpdateUserInformationJSONBody UpdatedUserInformation
+
+// UpdateUserPasswordJSONBody defines parameters for UpdateUserPassword.
+type UpdateUserPasswordJSONBody UpdatedUserPassword
+
 // SignInJSONRequestBody defines body for SignIn for application/json ContentType.
 type SignInJSONRequestBody SignInJSONBody
 
 // SignUpJSONRequestBody defines body for SignUp for application/json ContentType.
 type SignUpJSONRequestBody SignUpJSONBody
+
+// UpdateUserInformationJSONRequestBody defines body for UpdateUserInformation for application/json ContentType.
+type UpdateUserInformationJSONRequestBody UpdateUserInformationJSONBody
+
+// UpdateUserPasswordJSONRequestBody defines body for UpdateUserPassword for application/json ContentType.
+type UpdateUserPasswordJSONRequestBody UpdateUserPasswordJSONBody

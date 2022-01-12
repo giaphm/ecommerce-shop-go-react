@@ -1,4 +1,11 @@
-import { DefaultApi as UsersDefaultApi, ApiClient as UsersApiClient, UserSignIn, UserSignUp } from './clients/users/src'
+import {
+    DefaultApi as UsersDefaultApi,
+    ApiClient as UsersApiClient,
+    UserSignIn,
+    UserSignUp,
+    UpdatedUserInformation,
+    UpdatedUserPassword,
+} from './clients/users/src'
 
 import 'firebase/auth';
 
@@ -15,9 +22,15 @@ let getUsers;
 
 let getUserBalance;
 
+let getCurrentUser;
+
 let loginUser;
 
 let signupUser;
+
+let updateUserInformation;
+
+let updateUserPassword;
 
 let getTestUsers;
 
@@ -64,57 +77,84 @@ if (typeof window == "object") {
             console.error(error)
         })
     }
-    
-    loginUser = function(email, password) {
-    
-        const userSignIn = new UserSignIn(email, password)
-    
-        usersAPI.signIn(userSignIn, (error, data, response) => {
+
+    getCurrentUser = function(callback) {
+        return usersAPI.getCurrentUser((error, data, response) => {
             if (!error) {
-                console.log("Calling signin to users service successfully!")
+                callback(data)
                 console.log('data', data)
                 console.log('response', response)
                 return
             }
             console.error(error)
         })
-    
-        return Auth.login(email, password)
-            .then(function () {
-                return Auth.waitForAuthReady()
-            })
-            .then(function () {
-                return Auth.getJwtToken(false)
-            })
-            .then(token => {
-                setApiClientsAuth(token)
-            })
-            .then(function () {
-                return new Promise(((resolve, reject) => {
-                    usersAPI.getCurrentUser((error, data) => {
-                        if (!error) {
-                            resolve(data)
-                            return
-                        }
-                        reject(error)
-                    })
-                }))
-            })
-            .then(data => {
-                console.log(data)
-                localStorage.setItem('role', data.role)
-                return new Promise(((resolve, reject) => {
-                    if(data) {
-                        resolve(data)
-                    }
-                    else {
-                        reject(data)
-                    }
-                }))
-            })
     }
     
-    signupUser = function(displayName, email, password, role) {
+    loginUser = function(email, password, callback) {
+
+        console.log("email", email)
+        console.log("password", password)
+    
+        const userSignIn = new UserSignIn(email, password)
+    
+        usersAPI.signIn(userSignIn, (error, data, response) => {
+            console.log('error', error)
+            console.log('data', data)
+            console.log('response', response)
+            if (!error) {
+                console.log("Calling signin to users service successfully!")
+
+                const user = data;
+                Auth.login(user) // set to local storage
+                    .then(() => Auth.waitForAuthReady())
+                    .then(() => {
+                        return Auth.getJwtToken(false)
+                    })
+                    .then(token => setApiClientsAuth(token))
+                    .then(() => callback(response))
+                return
+            }
+            console.error(error)
+            callback(response)
+        })
+        
+    
+        // return Auth.login(email, password)
+        //     .then(function () {
+        //         return Auth.waitForAuthReady()
+        //     })
+        //     .then(function () {
+        //         return Auth.getJwtToken(false)
+        //     })
+        //     .then(token => {
+        //         setApiClientsAuth(token)
+        //     })
+        //     .then(function () {
+        //         return new Promise(((resolve, reject) => {
+        //             usersAPI.getCurrentUser((error, data) => {
+        //                 if (!error) {
+        //                     resolve(data)
+        //                     return
+        //                 }
+        //                 reject(error)
+        //             })
+        //         }))
+        //     })
+        //     .then(data => {
+        //         console.log(data)
+        //         localStorage.setItem('role', data.role)
+        //         return new Promise(((resolve, reject) => {
+        //             if(data) {
+        //                 resolve(data)
+        //             }
+        //             else {
+        //                 reject(data)
+        //             }
+        //         }))
+        //     })
+    }
+    
+    signupUser = function(displayName, email, password, role, callback) {
     
         const userSignUp = new UserSignUp(displayName, email, password, role)
     
@@ -123,47 +163,83 @@ if (typeof window == "object") {
                 console.log("Calling to signup user successfully!")
                 console.log('data', data)
                 console.log('response', response)
+                callback(response)
                 return
             }
             console.error(error)
+            callback(response)
         })
     
-        return Auth.signup(displayName, email, password, role)
+        Auth.signup(displayName, email, password, role)
             .then(() => Auth.waitForAuthReady())
             .then(() => console.log("Sign up successfully!"))
     }
-    
-    const testUsers = [
-        {
-            'uuid': '0',
-            'email': 'shopkeeper1@gmail.com',
-            'password': '123456',
-            'role': 'shopkeeper',
-            'name': 'Raheem Arnold',
-        },
-        {
-            'uuid': '1',
-            'email': 'user1@gmail.com',
-            'password': '123456',
-            'role': 'user',
-            'name': 'Mariusz Pudzianowski',
-        },
-        {
-            'uuid': '2',
-            'email': 'user2@gmail.com',
-            'password': '123456',
-            'role': 'user',
-            'name': 'Arnold Schwarzenegger',
-        },
-    ]
-    
-    getTestUsers = function() {
-        return testUsers
+
+    updateUserInformation = function(userUuid, newDisplayName, newEmail, callback) {
+        
+        const newUpdatedUserInformation = new UpdatedUserInformation(userUuid, newDisplayName, newEmail)
+
+        usersAPI.updateUserInformation(newUpdatedUserInformation, (error, data, response) => {
+            console.log('data', data)
+            console.log('response', response)
+            if (!error) {
+                console.log("Calling to update user information successfully!")
+                callback(response)
+                return
+            }
+            console.error(error)
+            callback(response)
+        })
     }
     
-    addTestUser = function(newTestUser) {
-        testUsers.push(newTestUser)
-    }    
+    updateUserPassword = function(userUuid, newPassword, callback) {
+        
+        const newUpdatedUserPassword = new UpdatedUserPassword(userUuid, newPassword)
+
+        usersAPI.updateUserPassword(newUpdatedUserPassword, (error, data, response) => {
+            console.log('data', data)
+            console.log('response', response)
+            if (!error) {
+                console.log("Calling to update user password successfully!")
+                callback(response)
+                return
+            }
+            console.error(error)
+            callback(response)
+        })
+    }
+    
+    // const testUsers = [
+    //     {
+    //         'uuid': '0',
+    //         'email': 'shopkeeper1@gmail.com',
+    //         'password': '123456',
+    //         'role': 'shopkeeper',
+    //         'name': 'Raheem Arnold',
+    //     },
+    //     {
+    //         'uuid': '1',
+    //         'email': 'user1@gmail.com',
+    //         'password': '123456',
+    //         'role': 'user',
+    //         'name': 'Mariusz Pudzianowski',
+    //     },
+    //     {
+    //         'uuid': '2',
+    //         'email': 'user2@gmail.com',
+    //         'password': '123456',
+    //         'role': 'user',
+    //         'name': 'Arnold Schwarzenegger',
+    //     },
+    // ]
+    
+    // getTestUsers = function() {
+    //     return testUsers
+    // }
+    
+    // addTestUser = function(newTestUser) {
+    //     testUsers.push(newTestUser)
+    // }    
 }
 
 export { usersClient };
@@ -174,9 +250,15 @@ export { getUsers };
 
 export { getUserBalance };
 
+export { getCurrentUser };
+
 export { loginUser };
 
 export { signupUser };
+
+export { updateUserInformation };
+
+export { updateUserPassword };
 
 export { getTestUsers };
 

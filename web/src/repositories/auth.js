@@ -1,14 +1,14 @@
 import firebase from "firebase/auth";
 import {sign} from "jsonwebtoken";
 
-import {getTestUsers, addTestUser, usersClient} from "./users";
+import {getTestUsers, addTestUser, usersClient, loginUser, getCurrentUser} from "./users";
 import {checkoutsClient} from "./checkouts";
 import {ordersClient} from "./orders";
 import {productsClient} from "./products";
 
 class FirebaseAuth {
-    login(email, password) {
-        return firebase.signInWithEmailAndPassword(firebase.getAuth(), email, password)
+    login(user) {
+        return firebase.signInWithEmailAndPassword(firebase.getAuth(), user.email, user.password)
     }
 
     waitForAuthReady() {
@@ -67,13 +67,35 @@ class FirebaseAuth {
 }
 
 class MockAuth {
-    login(email, password) {
+    // login(email, password) {
+    //     return new Promise((resolve, reject) => {
+    //         setTimeout(function () {
+    //             let found = getTestUsers().filter(u => u.email === email && u.password === password);
+
+    //             console.log("found", found)
+
+    //             if (found.length > 0) {
+    //                 localStorage.setItem('_mock_user', JSON.stringify(found[0]));
+    //                 resolve()
+    //             } else {
+    //                 reject('invalid email or password')
+    //             }
+    //         }, 500) // simulate http request
+    //     })
+    // }
+    
+    // auth login (mock) is to set local storage
+    login(user) {
         return new Promise((resolve, reject) => {
             setTimeout(function () {
-                let found = getTestUsers().filter(u => u.email === email && u.password === password);
+                // let found = getTestUsers().filter(u => u.email === email && u.password === password);
 
-                if (found) {
-                    localStorage.setItem('_mock_user', JSON.stringify(found[0]));
+                // console.log("found", found)
+
+                console.log("user", user)
+
+                if (user) {
+                    localStorage.setItem('_mock_user', JSON.stringify(user));
                     resolve()
                 } else {
                     reject('invalid email or password')
@@ -81,21 +103,22 @@ class MockAuth {
             }, 500) // simulate http request
         })
     }
-    
+
+    // simulate http request for similar to firebase signup
     signup(displayName, email, password, role) {
         return new Promise((resolve, reject) => {
             setTimeout(function () {
-                const numUsers = getTestUsers().length
+                // const numUsers = getTestUsers().length
 
-                const newTestUser = {
-                    'uuid': `${numUsers}`,
-                    'email': email,
-                    'password': password,
-                    'role': role,
-                    'name': displayName,
-                }
+                // const newTestUser = {
+                //     'uuid': `${numUsers}`,
+                //     'email': email,
+                //     'password': password,
+                //     'role': role,
+                //     'name': displayName,
+                // }
 
-                addTestUser(newTestUser);
+                // addTestUser(newTestUser);
 
                 resolve()
                 
@@ -118,8 +141,9 @@ class MockAuth {
                 'user_uuid': user.uuid,
                 'email': user.email,
                 'role': user.role,
-                'name': user.name,
+                'name': user.displayName,
             }
+            console.log("claims", claims)
             let token = sign(claims, 'mock_secret')
             resolve(token)
         })

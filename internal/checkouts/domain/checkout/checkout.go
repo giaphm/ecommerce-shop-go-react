@@ -15,6 +15,7 @@ type Checkout struct {
 	uuid         string
 	userUuid     string
 	orderUuid    string
+	notes        string
 	proposedTime time.Time
 }
 
@@ -26,6 +27,9 @@ func (c Checkout) GetUserUuid() string {
 }
 func (c Checkout) GetProductUuids() string {
 	return c.orderUuid
+}
+func (c Checkout) GetNotes() string {
+	return c.notes
 }
 func (c Checkout) GetProposedTime() time.Time {
 	return c.proposedTime
@@ -50,6 +54,7 @@ func (f Factory) NewCheckout(
 	uuid string,
 	userUuid string,
 	orderUuid string,
+	notes string,
 	proposedTime time.Time,
 ) (*Checkout, error) {
 
@@ -67,6 +72,7 @@ func (f Factory) NewCheckout(
 		uuid:         uuid,
 		userUuid:     userUuid,
 		orderUuid:    orderUuid,
+		notes:        notes,
 		proposedTime: proposedTime,
 	}, nil
 }
@@ -79,6 +85,7 @@ func (f Factory) UnmarshalCheckoutFromDatabase(
 	uuid string,
 	userUuid string,
 	orderUuid string,
+	notes string,
 	proposedTime time.Time,
 ) (*Checkout, error) {
 
@@ -86,6 +93,7 @@ func (f Factory) UnmarshalCheckoutFromDatabase(
 		uuid:         uuid,
 		userUuid:     userUuid,
 		orderUuid:    orderUuid,
+		notes:        notes,
 		proposedTime: proposedTime,
 	}, nil
 }

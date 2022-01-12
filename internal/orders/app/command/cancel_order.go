@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/errors"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/orders/domain/order"
@@ -30,6 +31,7 @@ func (h CancelOrderHandler) Handle(ctx context.Context, cmd CancelOrder) error {
 		cmd.Uuid,
 		func(o *order.Order) (*order.Order, error) {
 			if err := o.MakeCancelledOrder(); err != nil {
+				fmt.Println("err", err)
 				return nil, err
 			}
 

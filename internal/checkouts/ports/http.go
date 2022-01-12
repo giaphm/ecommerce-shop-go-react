@@ -53,6 +53,7 @@ func (h HttpServer) CreateCheckout(w http.ResponseWriter, r *http.Request) {
 		OrderUuid:    newCheckout.OrderUuid,
 		Notes:        newCheckout.Notes,
 		ProposedTime: newCheckout.ProposedTime,
+		TokenId:      newCheckout.TokenId,
 	}
 
 	err = h.app.Commands.AddCheckout.Handle(r.Context(), cmd)

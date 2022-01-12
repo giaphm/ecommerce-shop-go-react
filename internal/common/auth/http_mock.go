@@ -13,6 +13,17 @@ import (
 // HttpMockMiddleware is used in the local environment (which doesn't depend on Firebase)
 func HttpMockMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("w", w)
+		fmt.Println("r", r)
+		fmt.Println("r.URL", r.URL)
+		fmt.Println("r.URL.Path", r.URL.Path)
+		// if sign in or sign up then bypass validating token
+		if r.URL.Path == "/api/users/signin" || r.URL.Path == "/api/users/signup" {
+			next.ServeHTTP(w, r)
+			return
+		}
+		fmt.Println("Aloalo")
+
 		var claims jwt.MapClaims
 		token, err := request.ParseFromRequest(
 			r,

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -16,6 +17,16 @@ type FirebaseHttpMiddleware struct {
 
 func (a FirebaseHttpMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("w", w)
+		fmt.Println("r", r)
+		fmt.Println("r.URL", r.URL)
+		fmt.Println("r.URL.Path", r.URL.Path)
+		// if sign in or sign up then bypass validating token
+		if r.URL.Path == "/api/users/signin" || r.URL.Path == "/api/users/signup" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		ctx := r.Context()
 
 		bearerToken := a.tokenFromHeader(r)

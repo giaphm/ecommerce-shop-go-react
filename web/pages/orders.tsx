@@ -1,6 +1,8 @@
 import * as React from 'react';
 import Router from "next/router";
 
+import StripeCheckout from "react-stripe-checkout";
+
 import {
   Divider,
 } from "@mui/material";
@@ -38,7 +40,7 @@ import {
 import Layout from "../components/layout";
 import CurrentUserAppCtx from "../store/current-user-context";
 
-import { Auth } from "../src/repositories/auth";
+import { Auth, setApiClientsAuth } from "../src/repositories/auth";
 import * as CheckoutsAPI from "../src/repositories/checkouts";
 import * as OrdersAPI from "../src/repositories/orders";
 import * as ProductsAPI from "../src/repositories/products";
@@ -52,6 +54,7 @@ const Item = styled(Paper)(({ theme }) => ({
   textAlign: 'center',
   color: theme.palette.text.secondary,
   wordWrap: "break-word",
+  height: "100%",
 }));
 
 interface OrderItem {
@@ -74,8 +77,9 @@ const Orders = () => {
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [products, setProducts] = React.useState<any[]>([]);
   const [openDialog, setOpenDialog] = React.useState(false);
+  const [openBackdrop, setOpenBackdrop] = React.useState(false);
   const [note, setNote] = React.useState("");
-  const [orderUuidToRequest, setOrderUuidToRequest] = React.useState("");
+  const [orderToRequest, setOrderToRequest] = React.useState<Order>();
   
   const currentUserAppCtx = React.useContext(CurrentUserAppCtx);
 
@@ -85,7 +89,7 @@ const Orders = () => {
 
   console.log("note", note);
   
-  console.log("orderUuidToRequest", orderUuidToRequest);
+  console.log("orderToRequest", orderToRequest);
 
   console.log("currentUserAppCtx", currentUserAppCtx);
 
@@ -100,67 +104,30 @@ const Orders = () => {
     if (isCurrentUserLoggedIn) {
       const currentUser = Auth.currentUser();
       console.log("currentUser", currentUser);
-      UsersAPI.loginUser(currentUser["email"], currentUser["password"])
-        .then(function (currentUser: any) {
-          // toast.message("Hey buddy!")
-          // "go inside hooks update currentUserAppCtx"
-          currentUserAppCtx!.fetchCurrentUser({
-            uuid: currentUser["uuid"],
-            email: currentUser["email"],
-            displayName: currentUser["displayName"],
-            role: currentUser["role"],
-          });
-          console.log("currentUserAppCtx", currentUserAppCtx);
-          
-          OrdersAPI.getUserOrders(currentUser.uuid, (userOrders: any) => {
-            console.log("userOrders", userOrders); 
-            // setOrders(userOrders);
-            ProductsAPI.getProducts((products: any) => {
-              console.log("ProductsAPI.productsClient", ProductsAPI.productsClient);
-              console.log(
-                "ProductsAPI.productsClient.authentications",
-                ProductsAPI.productsClient.authentications
-              );
-              console.log("products", products);
-              const ordersWithTitle: any[] = [];
-              console.log("userOrders", userOrders);
-              userOrders.map((order: any) => {
-                // console.log("product", product);
-                const orderItemsWithTitle: any[] = [];
-                order.orderItems.forEach((orderItem: any) => {
-                  products.forEach((product: any) => {
-                    // console.log("user", user);
-                    if (orderItem.productUuid === product.uuid) {
-                      console.log("product", product);
-                      orderItemsWithTitle.push({
-                        productTitle: product.title,
-                        ...orderItem,
-                      });
-                    }
-                  });
-                });
-                console.log("orderItemsWithTitle", orderItemsWithTitle)
-                ordersWithTitle.push({
-                  ...order,
-                  orderItems: [...orderItemsWithTitle],
-                })
-              });
-              console.log("ordersWithTitle", ordersWithTitle);
-              console.log("setOrders(ordersWithTitle)");
-              setOrders(ordersWithTitle);
-            });
-
-          });
-          
+      Auth.waitForAuthReady()
+        .then(() => {
+          return Auth.getJwtToken(false)
         })
-        .catch((error: unknown) => {
-          // toast.error("Failed to log in")
-          console.error(error);
-        });
-
-      
-      // console.log("setIsLoading(true);");
-      // setIsLoading(true);
+        .then((token: string) => setApiClientsAuth(token))
+        .then(() => {
+          console.log("ProductsAPI.productsClient", ProductsAPI.productsClient);
+        
+          console.log("UsersAPI.usersClient", UsersAPI.usersClient);
+          console.log("OrdersAPI.ordersClient", OrdersAPI.ordersClient);
+          // toast.message("Hey buddy!")
+          UsersAPI.getCurrentUser((currentUser: any) => {
+            currentUserAppCtx!.fetchCurrentUser({
+              uuid: currentUser["uuid"],
+              email: currentUser["email"],
+              displayName: currentUser["displayName"],
+              role: currentUser["role"],
+              balance: currentUser["balance"],
+            });
+            console.log("currentUserAppCtx", currentUserAppCtx);
+            console.log("currentUser", currentUser);
+          });
+          setOrdersWithTitle(currentUser.uuid);
+      })
     } else if (!currentUserAppCtx!["uuid"]) {
       Router.push("/login");
     }
@@ -205,24 +172,85 @@ const Orders = () => {
     
   }, [currentUserAppCtx]);
 
+  const setOrdersWithTitle = (currentUserUuid: string) => {
+    
+    OrdersAPI.getUserOrders(currentUserUuid, (userOrders: any) => {
+      console.log("userOrders", userOrders); 
+      // setOrders(userOrders);
+      ProductsAPI.getProducts((products: any) => {
+        console.log("ProductsAPI.productsClient", ProductsAPI.productsClient);
+        console.log(
+          "ProductsAPI.productsClient.authentications",
+          ProductsAPI.productsClient.authentications
+        );
+        console.log("products", products);
+        const ordersWithTitle: any[] = [];
+        console.log("userOrders", userOrders);
+        userOrders.map((order: any) => {
+          // console.log("product", product);
+          const orderItemsWithTitle: any[] = [];
+          order.orderItems.forEach((orderItem: any) => {
+            products.forEach((product: any) => {
+              // console.log("user", user);
+              if (orderItem.productUuid === product.uuid) {
+                console.log("product", product);
+                orderItemsWithTitle.push({
+                  productTitle: product.title,
+                  ...orderItem,
+                });
+              }
+            });
+          });
+          console.log("orderItemsWithTitle", orderItemsWithTitle)
+          ordersWithTitle.push({
+            ...order,
+            orderItems: [...orderItemsWithTitle],
+          })
+        });
+        console.log("ordersWithTitle", ordersWithTitle);
+        console.log("setOrders(ordersWithTitle)");
+        setOrders(ordersWithTitle);
+      });
+    });
+  }
+
+  const handleOpenBackdrop = () => {
+    setOpenBackdrop(true);
+  }
+  
+  const handleCloseBackdrop = () => {
+    setOpenBackdrop(false);
+  }
+
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
 
-  const openNoteHandler = (orderUuid: string) => {
-    setOrderUuidToRequest(orderUuid);
+  const openNoteHandler = (order: Order) => {
+    setOrderToRequest(order);
     setOpenDialog(true);
     console.log("openDialog", openDialog);
   }
 
   const cancelOrderHandler = (orderUuid: string) => {
-
+    OrdersAPI.cancelOrder(orderUuid, (response: any) => {
+      setOrdersWithTitle(currentUserAppCtx!.uuid as string);
+    });
   }
 
-  const payOrderHandler = () => {
+  const payOrderHandler = (tokenId: string) => {
     const newDate = new Date();
     console.log("newDate", newDate)
-    CheckoutsAPI.createCheckout(orderUuidToRequest, note, newDate);
+    handleCloseDialog();
+    setTimeout(() => handleOpenBackdrop(), 1000);
+    CheckoutsAPI.createCheckout(orderToRequest?.uuid, note, newDate, tokenId, (response: any) => {
+      if(response.statusCode === 201) {
+        Router.push("/checkouts");
+      }
+      else {
+        handleCloseBackdrop();
+      }
+    });
   }
 
   return (
@@ -237,11 +265,11 @@ const Orders = () => {
           <Item>Order items</Item>
         </Grid>
         {/* totalPrice */}
-        <Grid item xs={1.5} md={1.5}>
+        <Grid item xs={1} md={1}>
           <Item>Total price</Item>
         </Grid>
         {/* status */}
-        <Grid item xs={1} md={1}>
+        <Grid item xs={1.5} md={1.5}>
           <Item>Status</Item>
         </Grid>
         {/* proposedTime */}
@@ -345,10 +373,10 @@ const Orders = () => {
                   </div>
                 ))}</ul> */}
               </Grid>
-              <Grid item xs={1.5} md={1.5}>
-                <Item>{order.totalPrice}</Item>
-              </Grid>
               <Grid item xs={1} md={1}>
+                <Item>${order.totalPrice}</Item>
+              </Grid>
+              <Grid item xs={1.5} md={1.5}>
                 <Item>{order.status}</Item>
               </Grid>
               <Grid item xs={2} md={2}>
@@ -366,7 +394,9 @@ const Orders = () => {
                       //   borderRadius: 0,
                       // }}
                       variant="contained"
-                      onClick={() => openNoteHandler(order.uuid)}
+                      color="success"
+                      disabled={order.status !== "created"}
+                      onClick={() => openNoteHandler(order)}
                     >
                       Pay
                     </Button>
@@ -381,6 +411,7 @@ const Orders = () => {
                       //   borderRadius: 0,
                       // }}
                       variant="contained"
+                      disabled={order.status !== "created"}
                       onClick={() => cancelOrderHandler(order.uuid)}
                     >
                       Cancel
@@ -408,10 +439,32 @@ const Orders = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={() => payOrderHandler()}>Finish</Button>
+          <Button color="warning" onClick={handleCloseDialog}>Cancel</Button>
+          {/* <Button onClick={() => payOrderHandler()}>Finish</Button> */}
+          {orderToRequest ? ( 
+            <StripeCheckout
+            token={(token: any) => {
+              console.log("token", token)
+              payOrderHandler(token.id)
+            }}
+            stripeKey={
+              "pk_test_51JyZ0sDfLgIVzReB6QjXOl8oKXIZK9enFlA206neSNKBzfy09xDPcNzqzXQqzQxch7anuT8XweOc4fQUHYqaP2MZ008P9i8qt1"
+            }
+            amount={orderToRequest!.totalPrice * 100}
+            email={currentUserAppCtx!.email as string}
+            >
+              <Button color="success">Finish</Button>
+            </StripeCheckout>
+          ) : ""}
+          
         </DialogActions>
       </Dialog>
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={openBackdrop}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </Layout>
   );
 };

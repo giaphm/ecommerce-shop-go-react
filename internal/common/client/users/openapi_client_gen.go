@@ -103,6 +103,16 @@ type ClientInterface interface {
 	SignUpWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	SignUp(ctx context.Context, body SignUpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateUserInformation request with any body
+	UpdateUserInformationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateUserInformation(ctx context.Context, body UpdateUserInformationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// UpdateUserPassword request with any body
+	UpdateUserPasswordWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdateUserPassword(ctx context.Context, body UpdateUserPasswordJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetUsers(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -167,6 +177,54 @@ func (c *Client) SignUpWithBody(ctx context.Context, contentType string, body io
 
 func (c *Client) SignUp(ctx context.Context, body SignUpJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewSignUpRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateUserInformationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateUserInformationRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateUserInformation(ctx context.Context, body UpdateUserInformationJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateUserInformationRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateUserPasswordWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateUserPasswordRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdateUserPassword(ctx context.Context, body UpdateUserPasswordJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateUserPasswordRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -311,6 +369,86 @@ func NewSignUpRequestWithBody(server string, contentType string, body io.Reader)
 	return req, nil
 }
 
+// NewUpdateUserInformationRequest calls the generic UpdateUserInformation builder with application/json body
+func NewUpdateUserInformationRequest(server string, body UpdateUserInformationJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateUserInformationRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewUpdateUserInformationRequestWithBody generates requests for UpdateUserInformation with any type of body
+func NewUpdateUserInformationRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/update-user-information")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewUpdateUserPasswordRequest calls the generic UpdateUserPassword builder with application/json body
+func NewUpdateUserPasswordRequest(server string, body UpdateUserPasswordJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateUserPasswordRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewUpdateUserPasswordRequestWithBody generates requests for UpdateUserPassword with any type of body
+func NewUpdateUserPasswordRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/users/update-user-password")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -369,6 +507,16 @@ type ClientWithResponsesInterface interface {
 	SignUpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*SignUpResponse, error)
 
 	SignUpWithResponse(ctx context.Context, body SignUpJSONRequestBody, reqEditors ...RequestEditorFn) (*SignUpResponse, error)
+
+	// UpdateUserInformation request with any body
+	UpdateUserInformationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateUserInformationResponse, error)
+
+	UpdateUserInformationWithResponse(ctx context.Context, body UpdateUserInformationJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateUserInformationResponse, error)
+
+	// UpdateUserPassword request with any body
+	UpdateUserPasswordWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateUserPasswordResponse, error)
+
+	UpdateUserPasswordWithResponse(ctx context.Context, body UpdateUserPasswordJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateUserPasswordResponse, error)
 }
 
 type GetUsersResponse struct {
@@ -420,7 +568,7 @@ func (r GetCurrentUserResponse) StatusCode() int {
 type SignInResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *UserSignIn
+	JSON200      *User
 	JSONDefault  *Error
 }
 
@@ -443,7 +591,7 @@ func (r SignInResponse) StatusCode() int {
 type SignUpResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *UserSignUp
+	JSON200      *User
 	JSONDefault  *Error
 }
 
@@ -457,6 +605,50 @@ func (r SignUpResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r SignUpResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateUserInformationResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSONDefault  *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateUserInformationResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateUserInformationResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type UpdateUserPasswordResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSONDefault  *Error
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdateUserPasswordResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdateUserPasswordResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -513,6 +705,40 @@ func (c *ClientWithResponses) SignUpWithResponse(ctx context.Context, body SignU
 		return nil, err
 	}
 	return ParseSignUpResponse(rsp)
+}
+
+// UpdateUserInformationWithBodyWithResponse request with arbitrary body returning *UpdateUserInformationResponse
+func (c *ClientWithResponses) UpdateUserInformationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateUserInformationResponse, error) {
+	rsp, err := c.UpdateUserInformationWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateUserInformationResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateUserInformationWithResponse(ctx context.Context, body UpdateUserInformationJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateUserInformationResponse, error) {
+	rsp, err := c.UpdateUserInformation(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateUserInformationResponse(rsp)
+}
+
+// UpdateUserPasswordWithBodyWithResponse request with arbitrary body returning *UpdateUserPasswordResponse
+func (c *ClientWithResponses) UpdateUserPasswordWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateUserPasswordResponse, error) {
+	rsp, err := c.UpdateUserPasswordWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateUserPasswordResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdateUserPasswordWithResponse(ctx context.Context, body UpdateUserPasswordJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateUserPasswordResponse, error) {
+	rsp, err := c.UpdateUserPassword(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateUserPasswordResponse(rsp)
 }
 
 // ParseGetUsersResponse parses an HTTP response from a GetUsersWithResponse call
@@ -596,7 +822,7 @@ func ParseSignInResponse(rsp *http.Response) (*SignInResponse, error) {
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest UserSignIn
+		var dest User
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -629,12 +855,64 @@ func ParseSignUpResponse(rsp *http.Response) (*SignUpResponse, error) {
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest UserSignUp
+		var dest User
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateUserInformationResponse parses an HTTP response from a UpdateUserInformationWithResponse call
+func ParseUpdateUserInformationResponse(rsp *http.Response) (*UpdateUserInformationResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateUserInformationResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateUserPasswordResponse parses an HTTP response from a UpdateUserPasswordWithResponse call
+func ParseUpdateUserPasswordResponse(rsp *http.Response) (*UpdateUserPasswordResponse, error) {
+	bodyBytes, err := ioutil.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateUserPasswordResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
 		var dest Error
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {

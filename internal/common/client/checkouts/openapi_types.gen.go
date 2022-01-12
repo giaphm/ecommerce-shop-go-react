@@ -34,6 +34,7 @@ type NewCheckout struct {
 	Notes        string    `json:"notes"`
 	OrderUuid    string    `json:"orderUuid"`
 	ProposedTime time.Time `json:"proposedTime"`
+	TokenId      string    `json:"tokenId"`
 }
 
 // CreateCheckoutJSONBody defines parameters for CreateCheckout.

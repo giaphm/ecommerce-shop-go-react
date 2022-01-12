@@ -3,6 +3,12 @@ import { Fragment } from "react";
 import Head from "next/head";
 import Router from "next/router";
 
+import {
+  Backdrop,
+  CircularProgress,
+  Divider,
+} from "@mui/material";
+
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -17,6 +23,7 @@ import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import Link from "@mui/material/Link";
 
+import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ProductionQuantityLimitsIcon from '@mui/icons-material/ProductionQuantityLimits';
 
@@ -29,9 +36,9 @@ function Copyright() {
     <Typography variant="body2" color="text.secondary" align="center">
       {'Copyright © '}
       <Link color="inherit" href="https://mui.com/">
-        Your Website
+        ecommerce-shop-go-react
       </Link>{' '}
-      {new Date().getFullYear()}
+      {new Date().getFullYear() - 1} - {new Date().getFullYear()}
       {'.'}
     </Typography>
   );
@@ -44,8 +51,23 @@ const settings = ['Profile', 'Logout'];
 const Layout = (props: any) => {
   const [anchorElNav, setAnchorElNav] = React.useState<(EventTarget & Element) | null>(null);
   const [anchorElUser, setAnchorElUser] = React.useState<(EventTarget & Element) | null>(null);
+  const [openBackdrop, setOpenBackdrop] = React.useState(false);
+  
+  const currentUserAppCtx = React.useContext(CurrentUserAppCtx);
+
+  console.log("openBackdrop", openBackdrop)
+
+  console.log("currentUserAppCtx", currentUserAppCtx)
 
   console.log("props", props)
+
+  const handleOpenBackdrop = () => {
+    setOpenBackdrop(true);
+  }
+  
+  const handleCloseBackdrop = () => {
+    setOpenBackdrop(false);
+  }
 
   const handleOpenNavMenu = (event: React.SyntheticEvent) => {
     setAnchorElNav(event.currentTarget);
@@ -63,6 +85,8 @@ const Layout = (props: any) => {
   };
 
   const logout = () => {
+    currentUserAppCtx!.removeCurrentUser()
+    
     Auth.logout().then(() => {
       console.log("Logout successfully")
       Router.push({
@@ -87,130 +111,170 @@ const Layout = (props: any) => {
       </Head>
       <div className="container-fluid">
         
-      <AppBar position="static">
-        <Container maxWidth="xl">
-          <Toolbar disableGutters>
-            <Typography
-              variant="h6"
-              noWrap
-              component="div"
-              sx={{ mr: 2, display: { xs: 'none', md: 'flex' } }}
-            >
-              {/* LOGO */}
-              <ProductionQuantityLimitsIcon />
-            </Typography>
-  
-            <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
-              <IconButton
-                size="large"
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={handleOpenNavMenu}
-                color="inherit"
-              >
-                <MenuIcon />
-              </IconButton>
-              <Menu
-                id="menu-appbar"
-                anchorEl={anchorElNav}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'left',
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'left',
-                }}
-                open={Boolean(anchorElNav)}
-                onClose={handleCloseNavMenu}
-                sx={{
-                  display: { xs: 'block', md: 'none' },
-                }}
-              >
-                {pages.map((page) => (
-                  <MenuItem key={page} onClick={() => Router.push(page === "Products" ? `/` : `/${page.toLowerCase()}`)}>
-                    <Typography textAlign="center">{page}</Typography>
-                  </MenuItem>
-                ))}
-                { props.role === "shopkeeper" ? 
-                  <MenuItem key={"Your products"} onClick={() => Router.push(`/product/your-products`)}>
-                    <Typography textAlign="center">{"Your Products"}</Typography>
-                  </MenuItem>
-                : ""}
-              </Menu>
-            </Box>
-            <Typography
-              variant="h6"
-              noWrap
-              component="div"
-              sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}
-            >
-              <ProductionQuantityLimitsIcon />
-            </Typography>
-            <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-              {pages.map((page) => (
-                <Button
-                  key={page}
-                  onClick={() => Router.push(page === "Products" ? `/` : `/${page.toLowerCase()}`)}
-                  sx={{ my: 2, color: 'white', display: 'block' }}
+        <AppBar color="secondary" position="static">
+          <Container maxWidth="xl">
+            <Toolbar disableGutters>
+              {/* <Typography
+                variant="h6"
+                noWrap
+                component="div"
+                sx={{ mr: 2, display: { xs: 'none', md: 'flex' } }}
+              > */}
+                {/* LOGO */}
+                {/* <ProductionQuantityLimitsIcon />
+              </Typography> */}
+    
+              <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'flex' } }}>
+                <IconButton
+                  size="large"
+                  aria-label="account of current user"
+                  aria-controls="menu-appbar"
+                  aria-haspopup="true"
+                  onClick={handleOpenNavMenu}
+                  color="inherit"
                 >
-                  {page}
-                </Button>
-              ))}
-            </Box>
-  
-            { props.role === "shopkeeper" ? 
-            <Box sx={{ flexGrow: 0 }}>
-              <Button
-              key={"Your products"}
-              onClick={() => Router.push(`/product/your-products`)}
-              sx={{ my: 2, color: 'white', display: { xs: 'none', md: 'flex' } }}
-              >
-                {"Your products"}
-              </Button>
-            </Box> : "" }
-            <Box sx={{ flexGrow: 0 }}>
-              <Tooltip title="Open settings">
-                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                  <AccountCircleIcon fontSize={"large"} />
+                  <MenuIcon />
                 </IconButton>
-              </Tooltip>
-              <Menu
-                sx={{ mt: '45px' }}
-                id="menu-appbar"
-                anchorEl={anchorElUser}
-                anchorOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                open={Boolean(anchorElUser)}
-                onClose={handleCloseUserMenu}
+                <Menu
+                  id="menu-appbar"
+                  anchorEl={anchorElNav}
+                  anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'left',
+                  }}
+                  keepMounted
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'left',
+                  }}
+                  open={Boolean(anchorElNav)}
+                  onClose={handleCloseNavMenu}
+                  sx={{
+                    display: { xs: 'block', md: 'block' },
+                  }}
+                >
+                  { props.role === "shopkeeper" ? (
+                    <div>
+                      <MenuItem key={"Your products"} onClick={() => {
+                        handleCloseNavMenu();
+                        console.log("handleOpenBackdrop();")
+                        handleOpenBackdrop();
+                        setTimeout(() => Router.push(`/product/your-products`), 500);
+                      }}>
+                        <Typography textAlign="center">{"Your Products"}</Typography>
+                      </MenuItem>
+                      <Divider />
+                    </div>)
+                  : ""}
+                  {pages.map((page) => (
+                    <MenuItem key={page} onClick={() => {
+                      handleCloseNavMenu();
+                      console.log("handleOpenBackdrop();")
+                      handleOpenBackdrop();
+                      setTimeout(() => Router.push(page === "Products" ? `/` : `/${page.toLowerCase()}`), 500)
+                    }}>
+                      <Typography textAlign="center">{page}</Typography>
+                    </MenuItem>
+                  ))}
+                </Menu>
+              </Box>
+              {/* <Typography
+                variant="h6"
+                noWrap
+                component="div"
+                sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}
               >
-                {settings.map((setting) => (
-                  <MenuItem key={setting} onClick={() => {
-                    setting === "Logout" ? logout() : Router.push(`/${setting.toLowerCase()}`)}
-                  }>
-                    <Typography textAlign="center">{setting}</Typography>
-                  </MenuItem>
+                <ProductionQuantityLimitsIcon />
+              </Typography> */}
+              {/* <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+                {pages.map((page) => (
+                  <Button
+                    key={page}
+                    onClick={() => {
+                      console.log("handleOpenBackdrop();")
+                      handleOpenBackdrop();
+                      setTimeout(() => Router.push(page === "Products" ? `/` : `/${page.toLowerCase()}`), 500)
+                      setTimeout(() => handleCloseBackdrop(), 3000);
+                    }}
+                    sx={{ my: 2, color: 'white', display: 'block' }}
+                  >
+                    {page}
+                  </Button>
                 ))}
-              </Menu>
-            </Box>
-          </Toolbar>
-        </Container>
-      </AppBar>
-
-      {props.children}
+              </Box> */}
+    
+              {/* { props.role === "shopkeeper" ? 
+              <Box sx={{ flexGrow: 0 }}>
+                <Button
+                key={"Your products"}
+                onClick={() => Router.push(`/product/your-products`)}
+                sx={{ my: 2, color: 'white', display: { xs: 'none', md: 'flex' } }}
+                >
+                  {"Your products"}
+                </Button>
+              </Box> : "" } */}
+              <Box sx={{ flexGrow: 0 }}>
+                <Typography sx={{mr: "8px"}}>
+                  {currentUserAppCtx!.displayName ? `Hello, ${currentUserAppCtx!.displayName} !` : ""}
+                </Typography>
+                {/* <Button
+                key={"Your products"}
+                onClick={() => Router.push(`/product/your-products`)}
+                sx={{ my: 2, color: 'white', display: { xs: 'none', md: 'flex' } }}
+                >
+                  {"Your products"}
+                </Button> */}
+              </Box>
+              <Box sx={{ flexGrow: 0 }}>
+                <Tooltip title="Open settings">
+                  <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                    <AccountCircleOutlinedIcon style={{fill: "white"}} fontSize={"large"} />
+                  </IconButton>
+                </Tooltip>
+                <Menu
+                  sx={{ mt: '45px' }}
+                  id="menu-appbar"
+                  anchorEl={anchorElUser}
+                  anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  keepMounted
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                  open={Boolean(anchorElUser)}
+                  onClose={handleCloseUserMenu}
+                >
+                {/* <MenuItem style={{cursor: "context-menu"}}>
+                  <Typography>{currentUserAppCtx!.email}</Typography>
+                </MenuItem> */}
+                  <MenuItem style={{cursor: "context-menu"}}>
+                    <Typography>Balance: ${currentUserAppCtx!.balance}</Typography>
+                  </MenuItem>
+                  {settings.map((setting) => (
+                    <MenuItem key={setting} onClick={() => {
+                      handleCloseUserMenu()
+                      console.log("handleOpenBackdrop();")
+                      handleOpenBackdrop();
+                      setTimeout(() => setting === "Logout" ? logout() : Router.push(`/${setting.toLowerCase()}`), 500)
+                      }
+                    }>
+                      <Typography textAlign="center">{setting}</Typography>
+                    </MenuItem>
+                  ))}
+                </Menu>
+              </Box>
+            </Toolbar>
+          </Container>
+        </AppBar>
+        {props.children}
       </div>
         {/* Footer */}
-        <Box sx={{ bgcolor: 'background.paper', p: 6 }} component="footer">
-          <Typography variant="h6" align="center" gutterBottom>
+        <Box sx={{ bgcolor: 'background.paper', py: 6 }} component="footer">
+          <Divider />
+          <Typography sx={{mt: 1}} variant="h6" align="center" gutterBottom>
             Footer
           </Typography>
           <Typography
@@ -224,6 +288,12 @@ const Layout = (props: any) => {
           <Copyright />
         </Box>
         {/* End footer */}
+        <Backdrop
+          sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+          open={openBackdrop}
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
     </Fragment>
   );
 };

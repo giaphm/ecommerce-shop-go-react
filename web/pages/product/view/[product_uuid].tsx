@@ -61,27 +61,30 @@ export default function ViewProduct(props: any) {
     const isCurrentUserLoggedIn = Auth.isLoggedIn()
     console.log("isCurrentUserLoggedIn", isCurrentUserLoggedIn)
     if (isCurrentUserLoggedIn) {
-      // set token in header again
-      Auth.getJwtToken(false).then((token: any) => {
-        console.log("token", token)
-        setApiClientsAuth(token)
-      })
-
-      console.log("ProductsAPI.productsClient", ProductsAPI.productsClient);
-
-      console.log("UsersAPI.usersClient", UsersAPI.usersClient);
-
-      console.log("LoggedIn and set currentUserAppCtx again")
-      // fetchCurrentUser is async => new useEffect to chase the updates
       const currentUser = Auth.currentUser();
       console.log("currentUser", currentUser);
+      // fetchCurrentUser is async => new useEffect to chase the updates
       currentUserAppCtx!.fetchCurrentUser({
         uuid: currentUser["uuid"],
         email: currentUser["email"],
         displayName: currentUser["name"],
         role: currentUser["role"],
+        balance: currentUser["balance"],
       });
-      setIsLoading(true);
+      // set token in header again
+      Auth.waitForAuthReady()
+        .then(() => {
+          return Auth.getJwtToken(false)
+        })
+        .then((token: string) => setApiClientsAuth(token))
+        .then(() => {
+          console.log("ProductsAPI.productsClient", ProductsAPI.productsClient);
+    
+          console.log("UsersAPI.usersClient", UsersAPI.usersClient);
+    
+          console.log("LoggedIn and set currentUserAppCtx again")
+          setIsLoading(true);
+        })
     }
     else if (!currentUserAppCtx!["uuid"]) {
       router.push("/login");
@@ -156,9 +159,18 @@ export default function ViewProduct(props: any) {
 
   return (
     <Layout>
-      <Box sx={{width: "70%"}} xs={12} sm={8} md={4}>
+      <Box
+        sx={{
+          mt: 10,
+          width: "100%",
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <Card
-          sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+          sx={{ height: '50%' }}
         >
           <CardMedia
             component="img"
@@ -190,7 +202,7 @@ export default function ViewProduct(props: any) {
             </Typography>
           </CardContent>
         </Card>
-    <Box
+    {/* <Box
       sx={{
         bgcolor: 'background.paper',
         pt: 5,
@@ -208,7 +220,7 @@ export default function ViewProduct(props: any) {
           Update your product
         </Typography>
       </Container>
-    </Box>
+    </Box> */}
       {/* <form onSubmit={submit}>
         <div className="mt-5 mb-3">
           <FormControl sx={{ minWidth: 120 }} error={!availableCategories.includes(category)}>

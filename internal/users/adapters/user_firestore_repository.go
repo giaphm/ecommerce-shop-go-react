@@ -2,12 +2,13 @@ package adapters
 
 import (
 	"context"
-	"errors"
+	// "errors"
 	"fmt"
 
 	"cloud.google.com/go/firestore"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/users/app/query"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/users/domain/user"
+	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/api/iterator"
 	"google.golang.org/grpc/codes"
@@ -40,7 +41,7 @@ func NewFirestoreUserRepository(firestoreClient *firestore.Client, userFactory u
 	return &FirestoreUserRepository{firestoreClient, userFactory}
 }
 
-func (f FirestoreUserRepository) GetUser(ctx context.Context, userUuid string) (*query.User, error) {
+func (f FirestoreUserRepository) GetCurrentUser(ctx context.Context, userUuid string) (*query.User, error) {
 	userDoc, err := f.UserDocumentRef(userUuid).Get(ctx)
 
 	if err != nil && status.Code(err) != codes.NotFound {
@@ -57,6 +58,25 @@ func (f FirestoreUserRepository) GetUser(ctx context.Context, userUuid string) (
 	}
 
 	return f.userModelToUserQuery(user), nil
+}
+func (f FirestoreUserRepository) GetUser(ctx context.Context, email string) (*query.User, error) {
+	query := f.usersCollection().Query.Where("Email", "==", email).Limit(1)
+	userDocIter := query.Documents(ctx)
+
+	// Only get the first document
+	doc, err := userDocIter.Next()
+	if err != nil {
+		return nil, err
+	}
+
+	var userModel *UserModel = &UserModel{}
+	if err := doc.DataTo(userModel); err != nil {
+		return nil, err
+	}
+
+	userQuery := f.userModelToUserQuery(userModel)
+
+	return userQuery, nil
 }
 
 func (f FirestoreUserRepository) GetUsers(ctx context.Context) ([]*query.User, error) {
@@ -214,7 +234,10 @@ func (f FirestoreUserRepository) SignUp(ctx context.Context, uuid string, displa
 		return err
 	}
 
-	newUserModel := f.userDomainToUserModel(newUserDomain)
+	newUserModel, err := f.userDomainToUserModel(newUserDomain)
+	if err != nil {
+		return err
+	}
 
 	newDoc := f.usersCollection().Doc(newUserDomain.GetUuid())
 	_, err = newDoc.Create(ctx, newUserModel)
@@ -223,6 +246,74 @@ func (f FirestoreUserRepository) SignUp(ctx context.Context, uuid string, displa
 	}
 
 	return nil
+}
+
+func (f FirestoreUserRepository) UpdateUser(
+	ctx context.Context,
+	userUuid string,
+	updateFn func(u *user.User) (*user.User, error),
+) error {
+
+	err := f.firestoreClient.RunTransaction(ctx, func(ctx context.Context, transaction *firestore.Transaction) error {
+		userDocRef := f.UserDocumentRef(userUuid)
+
+		// get all orders that have the order uuid
+		userModel, err := f.getUserDTO(
+			// getDateDTO should be used both for transactional and non transactional query,
+			// the best way for that is to use closure
+			func() (doc *firestore.DocumentSnapshot, err error) {
+				return transaction.Get(userDocRef)
+			},
+			userUuid,
+		)
+		if err != nil {
+			return err
+		}
+
+		// unmarshal user into domain
+		userDomain, err := f.userModelToUserDomain(userModel)
+		if err != nil {
+			return err
+		}
+		fmt.Println("userDomain", userDomain)
+
+		updatedUserDomain, err := updateFn(userDomain)
+		if err != nil {
+			return errors.Wrap(err, "unable to update user")
+		}
+
+		updatedUserModel, err := f.userDomainToUserModel(updatedUserDomain)
+		if err != nil {
+			return err
+		}
+		fmt.Println("updatedUserModel", updatedUserModel)
+
+		return transaction.Set(userDocRef, updatedUserModel)
+	})
+
+	return errors.Wrap(err, "firestore transaction failed")
+}
+
+func (f FirestoreUserRepository) getUserDTO(
+	getDocumentFn func() (doc *firestore.DocumentSnapshot, err error),
+	userUuid string,
+) (*UserModel, error) {
+
+	userSnapshot, err := getDocumentFn()
+	if status.Code(err) == codes.NotFound {
+		// in reality this date exists, even if it's not persisted
+		return nil, errors.New("User is not found")
+	}
+	if err != nil {
+		return &UserModel{}, err
+	}
+
+	var orderFirestore *UserModel = &UserModel{}
+	if err := userSnapshot.DataTo(orderFirestore); err != nil {
+		return &UserModel{}, errors.Wrap(err, "unable to unmarshal orderFirestore from Firestore")
+	}
+
+	return orderFirestore, nil
 }
 
 func (f FirestoreUserRepository) usersCollection() *firestore.CollectionRef {
@@ -262,7 +353,7 @@ func (f FirestoreUserRepository) userModelsToUserQueries(um []*UserModel) []*que
 	return users
 }
 
-func (f FirestoreUserRepository) userDomainToUserModel(user user.IUser) *UserModel {
+func (f FirestoreUserRepository) userDomainToUserModel(user user.IUser) (*UserModel, error) {
 	return &UserModel{
 		Uuid:           user.GetUuid(),
 		DisplayName:    user.GetDisplayName(),
@@ -271,5 +362,20 @@ func (f FirestoreUserRepository) userDomainToUserModel(user user.IUser) *UserMod
 		Balance:        user.GetBalance(),
 		Role:           user.GetRole(),
 		LastIP:         user.GetLastIP(),
-	}
+	}, nil
+}
+
+func (f FirestoreUserRepository) userModelToUserDomain(
+	userModel *UserModel,
+) (*user.User, error) {
+
+	return f.userFactory.UnmarshalUserFromDatabase(
+		userModel.Uuid,
+		userModel.DisplayName,
+		userModel.Email,
+		[]byte(userModel.HashedPassword),
+		userModel.Balance,
+		userModel.Role,
+		userModel.LastIP,
+	)
 }

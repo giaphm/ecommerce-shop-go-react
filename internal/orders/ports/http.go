@@ -133,9 +133,11 @@ func (h HttpServer) CancelOrder(w http.ResponseWriter, r *http.Request, orderUUI
 		Uuid:     orderUUID,
 		UserUuid: user.UUID,
 	}
+	fmt.Println("cmd", cmd)
 
 	err = h.app.Commands.CancelOrder.Handle(r.Context(), cmd)
 	if err != nil {
+		fmt.Println("err", err)
 		httperr.RespondWithSlugError(err, w, r)
 		return
 	}
