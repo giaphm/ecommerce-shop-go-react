@@ -47,7 +47,7 @@ func (f FirestoreCheckoutRepository) AddCheckout(
 	totalPrice float32,
 	notes string,
 	proposedTime time.Time,
-	TokenId string,
+	tokenId string,
 ) error {
 
 	err := f.firestoreClient.RunTransaction(ctx, func(ctx context.Context, transaction *firestore.Transaction) error {
@@ -58,7 +58,7 @@ func (f FirestoreCheckoutRepository) AddCheckout(
 			Amount:   stripe.Int64(int64(totalPrice * 100.0)),
 			Currency: stripe.String(string(stripe.CurrencyUSD)),
 			Source: &stripe.SourceParams{
-				Token: &TokenId,
+				Token: &tokenId,
 			},
 		}
 		params.SetSource("tok_visa")

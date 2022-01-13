@@ -85,6 +85,11 @@ func (h AddCheckoutHandler) Handle(ctx context.Context, cmd AddCheckout) error {
 		}
 	}
 
+	// call WithdrawBalanceUser for user buying
+	if err := h.usersService.WithdrawUserBalance(ctx, cmd.UserUuid, totalPrice); err != nil {
+		return err
+	}
+
 	// call sellProduct
 	for _, orderItem := range order.OrderItems {
 		if err = h.productsService.SellProduct(ctx, orderItem.ProductUuid); err != nil {
@@ -94,11 +99,6 @@ func (h AddCheckoutHandler) Handle(ctx context.Context, cmd AddCheckout) error {
 
 	// call completeOrder
 	if err := h.ordersService.CompleteOrder(ctx, cmd.OrderUuid, cmd.UserUuid); err != nil {
-		return err
-	}
-
-	// call WithdrawBalanceUser for user buying
-	if err := h.usersService.WithdrawUserBalance(ctx, cmd.UserUuid, totalPrice); err != nil {
 		return err
 	}
 

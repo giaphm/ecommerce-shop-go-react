@@ -297,7 +297,7 @@ export default function SignIn() {
                   </Link>
                 </Grid> */}
                 <Grid item>
-                  <Link href="/signup">
+                  <Link color="secondary" href="/signup">
                     <Typography variant="body2" color="text.secondary">
                       Don't have an account? Sign up!
                     </Typography>

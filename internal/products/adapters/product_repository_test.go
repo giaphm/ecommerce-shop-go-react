@@ -63,19 +63,19 @@ func TestRepository(t *testing.T) {
 			// update
 			t.Run("testUpdateProducts", func(t *testing.T) {
 				t.Parallel()
-				testUpdateProducts(t, r.Repository)
+				testUpdateProduct(t, r.Repository)
 			})
 			t.Run("testUpdateProducts_parallel", func(t *testing.T) {
 				t.Parallel()
-				testUpdateProducts_parallel(t, r.Repository)
+				testUpdateProduct_parallel(t, r.Repository)
 			})
 			t.Run("testProductRepository_update_existing", func(t *testing.T) {
 				t.Parallel()
-				testUpdateProducts_not_existing(t, r.Repository)
+				testProductRepository_update_existing(t, r.Repository)
 			})
 			t.Run("testUpdateProduct_rollback", func(t *testing.T) {
 				t.Parallel()
-				testUpdateProducts_rollback(t, r.Repository)
+				testUpdateProduct_rollback(t, r.Repository)
 			})
 
 			// delete
@@ -87,12 +87,34 @@ func TestRepository(t *testing.T) {
 	}
 }
 
-func testGetProductNotExists(t *testing.T, repo product.Repository) {
+type Repository struct {
+	Name       string
+	Repository product.Repository
+}
+
+func createRepositories(t *testing.T) []Repository {
+	return []Repository{
+		{
+			Name:       "Firebase",
+			Repository: newFirebaseRepository(t, context.Background()),
+		},
+		// {
+		// 	Name:       "MySQL",
+		// 	Repository: newMySQLRepository(t),
+		// },
+		// {
+		// 	Name:       "memory",
+		// 	Repository: adapters.NewMemoryHourRepository(testHourFactory),
+		// },
+	}
+}
+
+func testGetProductNotExists(t *testing.T, repository product.Repository) {
 
 	err := repository.RemoveAllProducts(context.Background())
 	productUUID := uuid.New().String()
 
-	p, err := repo.GetProduct(
+	p, err := repository.GetProduct(
 		context.Background(),
 		productUUID,
 	)
@@ -100,7 +122,7 @@ func testGetProductNotExists(t *testing.T, repo product.Repository) {
 	require.Error(t, err)
 }
 
-func testGetProduct(t *testing.T, repo product.Repository) {
+func testGetProduct(t *testing.T, repository product.Repository) {
 
 	err := repository.RemoveAllProducts(context.Background())
 	require.NoError(t, err)
@@ -109,7 +131,7 @@ func testGetProduct(t *testing.T, repo product.Repository) {
 
 	tsh := newValidTShirtProduct(t)
 
-	err = repo.AddProduct(ctx,
+	err = repository.AddProduct(ctx,
 		tsh.uuid,
 		tsh.userUuid,
 		tsh.category,
@@ -121,9 +143,9 @@ func testGetProduct(t *testing.T, repo product.Repository) {
 	)
 	require.NoError(t, err)
 
-	assertPersistedProductEquals(t, repo, tsh)
+	assertPersistedProductEquals(t, repository, tsh)
 
-	_, err = repo.GetProduct(
+	_, err = repository.GetProduct(
 		context.Background(),
 		tsh.GetUuid(),
 	)
@@ -308,7 +330,7 @@ func testGetShopkeeperProducts(t *testing.T, repository product.Repository) {
 	assertQueryTrainingsEquals(t, expectedTrainings, filteredTrainings)
 }
 
-func testAddProduct(t *testing.T, repo product.Repository) {
+func testAddProduct(t *testing.T, repository product.Repository) {
 
 	testCases := []struct {
 		Name               string
@@ -330,7 +352,7 @@ func testAddProduct(t *testing.T, repo product.Repository) {
 
 			expectedProduct := c.ProductConstructor(t)
 
-			err := repo.AddProduct(ctx,
+			err := repository.AddProduct(ctx,
 				expectedProduct.uuid,
 				expectedProduct.userUuid,
 				expectedProduct.category,
@@ -342,7 +364,7 @@ func testAddProduct(t *testing.T, repo product.Repository) {
 			)
 			require.NoError(t, err)
 
-			assertPersistedProductEquals(t, repo, expectedProduct)
+			assertPersistedProductEquals(t, repository, expectedProduct)
 		})
 	}
 }
@@ -690,12 +712,12 @@ func newFirebaseRepository(t *testing.T, ctx context.Context) *adapters.Firestor
 	return adapters.NewFirestoreProductRepository(firestoreClient, testProductFactory)
 }
 
-func newMySQLRepository(t *testing.T) *adapters.MySQLHourRepository {
-	db, err := adapters.NewMySQLConnection()
-	require.NoError(t, err)
+// func newMySQLRepository(t *testing.T) *adapters.MySQLHourRepository {
+// 	db, err := adapters.NewMySQLConnection()
+// 	require.NoError(t, err)
 
-	return adapters.NewMySQLHourRepository(db, testHourFactory)
-}
+// 	return adapters.NewMySQLHourRepository(db, testHourFactory)
+// }
 
 func newValidTShirtProductOfShopkeeper(t *testing.T, userUuid string) *product.TShirt {
 	p := newValidProduct()
@@ -743,18 +765,18 @@ func assertProductsEquals(t *testing.T, p1, p2 *product.Product) {
 	)
 }
 
-func assertProductInRepository(ctx context.Context, t *testing.T, repo product.Repository, product *product.Product) {
+func assertProductInRepository(ctx context.Context, t *testing.T, repository product.Repository, product *product.Product) {
 	require.NotNil(t, productUuid)
 
-	productFromRepo, err := repo.GetProduct(ctx, product.productUuid)
+	productFromRepo, err := repository.GetProduct(ctx, product.productUuid)
 	require.NoError(t, err)
 
 	assert.Equal(t, product, productFromRepo)
 }
 
-func assertPersistedProductEquals(t *testing.T, repo adapters.FirestoreProductRepository, p *product.Product) {
+func assertPersistedProductEquals(t *testing.T, repository adapters.FirestoreProductRepository, p *product.Product) {
 	t.Helper()
-	persistedProduct, err := repo.GetProduct(
+	persistedProduct, err := repository.GetProduct(
 		context.Background(),
 		p.UUID(),
 		p.MustNewFactory(p.category.String()),

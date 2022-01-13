@@ -244,10 +244,13 @@ const Orders = () => {
     handleCloseDialog();
     setTimeout(() => handleOpenBackdrop(), 1000);
     CheckoutsAPI.createCheckout(orderToRequest?.uuid, note, newDate, tokenId, (response: any) => {
+      console.log("response", response)
       if(response.statusCode === 201) {
         Router.push("/checkouts");
+        handleCloseBackdrop()
       }
       else {
+        console.log("failed")
         handleCloseBackdrop();
       }
     });

@@ -9,9 +9,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/giaphm/ecommerce-shop-go-react/internal/common/client/trainer"
-	"github.com/giaphm/ecommerce-shop-go-react/internal/common/client/trainings"
+	"github.com/giaphm/ecommerce-shop-go-react/internal/common/client/checkouts"
+	"github.com/giaphm/ecommerce-shop-go-react/internal/common/client/orders"
+	"github.com/giaphm/ecommerce-shop-go-react/internal/common/client/products"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/client/users"
+
+	"github.com/giaphm/ecommerce-shop-go-react/internal/common/client/trainer"
+
+	// "github.com/giaphm/ecommerce-shop-go-react/internal/common/client/users"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,40 +27,30 @@ func authorizationBearer(token string) func(context.Context, *http.Request) erro
 	}
 }
 
-type ProductHTTPClient struct {
-	client *trainer.ClientWithResponses
+// Checkouts http client
+type CheckoutsHTTPClient struct {
+	client *checkouts.ClientWithResponses
 }
 
-func NewProductHTTPClient(t *testing.T, token string) ProductHTTPClient {
-	addr := os.Getenv("TRAINER_HTTP_ADDR")
+func NewCheckoutsHTTPClient(t *testing.T, token string) CheckoutsHTTPClient {
+	addr := os.Getenv("CHECKOUTS_HTTP_ADDR")
 	ok := WaitForPort(addr)
-	require.True(t, ok, "Trainer HTTP timed out")
+	require.True(t, ok, "Checkouts HTTP timed out")
 
 	url := fmt.Sprintf("http://%v/api", addr)
 
-	client, err := product.NewClientWithResponses(
+	client, err := checkouts.NewClientWithResponses(
 		url,
-		product.WithRequestEditorFn(authorizationBearer(token)),
+		checkouts.WithRequestEditorFn(authorizationBearer(token)),
 	)
 	require.NoError(t, err)
 
-	return ProductHTTPClient{
+	return CheckoutsHTTPClient{
 		client: client,
 	}
 }
 
-func (c ProductHTTPClient) GetProduct(t *testing.T, productUuid string) product.Product {
-	response, err := c.client.GetProductWithResponse(context.Background(), &product.GetProductsParams{
-		ProductUuid: productUuid,
-	})
-
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, response.StatusCode())
-
-	return *response.JSON200
-}
-
-func (c ProductHTTPClient) GetProducts(t *testing.T) []product.Product {
+func (c CheckoutsHTTPClient) GetCheckouts(t *testing.T) []checkouts.Checkout {
 	response, err := c.client.GetProductsWithResponse(context.Background())
 
 	require.NoError(t, err)
@@ -64,14 +59,177 @@ func (c ProductHTTPClient) GetProducts(t *testing.T) []product.Product {
 	return *response.JSON200
 }
 
-func (c ProductHTTPClient) GetShopkeeperProducts(t *testing.T) []product.Product {
+func (c CheckoutsHTTPClient) GetUserCheckouts(t *testing.T, userUuid string) checkouts.Checkouts {
+	response, err := c.client.GetUserCheckoutsWithResponse(context.Background(), userUuid)
+
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, response.StatusCode())
+
+	return *response.JSON200
+}
+
+func (c CheckoutsHTTPClient) CreateCheckout(
+	t *testing.T,
+	uuid string,
+	userUuid string,
+	orderUuid string,
+	totalPrice float32,
+	notes string,
+	proposedTime time.Time,
+	tokenId string,
+) string {
+
+	response, err := c.client.CreateCheckoutWithResponse(context.Background(), checkouts.CreateCheckoutJSONRequestBody{
+		OrderUuid:    orderUuid,
+		Notes:        notes,
+		ProposedTime: proposedTime,
+		TokenId:      tokenId,
+	})
+
+	require.NoError(t, err)
+
+	require.Equal(t, http.StatusNoContent, response.StatusCode())
+
+	contentLocation := response.HTTPResponse.Header.Get("content-location")
+
+	return lastPathElement(contentLocation)
+}
+
+// Orders http client
+type OrdersHTTPClient struct {
+	client *trainer.ClientWithResponses
+}
+
+func NewOrdersHTTPClient(t *testing.T, token string) OrdersHTTPClient {
+	addr := os.Getenv("ORDERS_HTTP_ADDR")
+	ok := WaitForPort(addr)
+	require.True(t, ok, "Orders HTTP timed out")
+
+	url := fmt.Sprintf("http://%v/api", addr)
+
+	client, err := orders.NewClientWithResponses(
+		url,
+		orders.WithRequestEditorFn(authorizationBearer(token)),
+	)
+	require.NoError(t, err)
+
+	return OrdersHTTPClient{
+		client: client,
+	}
+}
+
+func (c OrdersHTTPClient) GetOrder(t *testing.T, orderUuid string) orders.Order {
+	response, err := c.client.GetOrderWithResponse(context.Background(), &orders.GetOrderParams{
+		OrderUuid: orderUuid,
+	})
+
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, response.StatusCode())
+
+	return *response.JSON200
+}
+
+func (c OrdersHTTPClient) GetOrders(t *testing.T) []orders.Order {
+	response, err := c.client.GetOrdersWithResponse(context.Background())
+
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, response.StatusCode())
+
+	return *response.JSON200
+}
+
+func (c OrdersHTTPClient) GetUserOrders(t *testing.T, userUuid string) []orders.Order {
+	response, err := c.client.GetUserOrdersWithResponse(context.Background(), &orders.GetUserOrdersParams{
+		UserUuid: userUuid,
+	})
+
+	require.NoError(t, err)
+	return response.StatusCode
+}
+
+func (c OrdersHTTPClient) CreateOrder(
+	t *testing.T,
+	userUuid string,
+	orderItems []orders.NewOrderItem,
+	totalPrice float32,
+) string {
+
+	response, err := c.client.CreateOrderWithResponse(context.Background(), orders.CreateOrderJSONRequestBody{
+		UserUuid:   userUuid,
+		OrderItems: orderItems,
+		TotalPrice: totalPrice,
+	})
+
+	require.NoError(t, err)
+
+	require.Equal(t, http.StatusNoContent, response.StatusCode())
+
+	contentLocation := response.HTTPResponse.Header.Get("content-location")
+
+	return lastPathElement(contentLocation)
+}
+
+func (c OrdersHTTPClient) CancelOrder(
+	t *testing.T,
+	orderUuid string,
+) int {
+
+	response, err := c.client.CancelOrder(context.Background(), orderUuid)
+
+	require.NoError(t, err)
+	return response.StatusCode
+}
+
+// Products http client
+
+type ProductsHTTPClient struct {
+	client *products.ClientWithResponses
+}
+
+func NewProductHTTPClient(t *testing.T, token string) ProductsHTTPClient {
+	addr := os.Getenv("TRAINER_HTTP_ADDR")
+	ok := WaitForPort(addr)
+	require.True(t, ok, "Trainer HTTP timed out")
+
+	url := fmt.Sprintf("http://%v/api", addr)
+
+	client, err := products.NewClientWithResponses(
+		url,
+		products.WithRequestEditorFn(authorizationBearer(token)),
+	)
+	require.NoError(t, err)
+
+	return ProductsHTTPClient{
+		client: client,
+	}
+}
+
+func (c ProductsHTTPClient) GetProduct(t *testing.T, productUuid string) products.Product {
+	response, err := c.client.GetProductWithResponse(context.Background(), productUuid)
+
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, response.StatusCode())
+
+	return *response.JSON200
+}
+
+func (c ProductsHTTPClient) GetProducts(t *testing.T) []products.Product {
+	response, err := c.client.GetProductsWithResponse(context.Background())
+
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, response.StatusCode())
+
+	return *response.JSON200
+}
+
+func (c ProductsHTTPClient) GetShopkeeperProducts(t *testing.T) []products.Product {
 	response, err := c.client.GetShopkeeperProductsWithResponse(context.Background())
 
 	require.NoError(t, err)
 	return response.StatusCode
 }
 
-func (c ProductHTTPClient) AddProduct(
+func (c ProductsHTTPClient) AddProduct(
 	t *testing.T,
 	category string,
 	title string,
@@ -81,11 +239,11 @@ func (c ProductHTTPClient) AddProduct(
 	quantity int,
 ) string {
 
-	response, err := c.client.AddProductWithResponse(context.Background(), product.AddProductJSONRequestBody{
+	response, err := c.client.AddProductWithResponse(context.Background(), products.AddProductJSONRequestBody{
 		Category:    category,
 		Title:       title,
-		Image:       image,
 		Description: description,
+		Image:       image,
 		Price:       price,
 		Quantity:    quantity,
 	})
@@ -99,9 +257,10 @@ func (c ProductHTTPClient) AddProduct(
 	return lastPathElement(contentLocation)
 }
 
-func (c ProductHTTPClient) UpdateProduct(
+func (c ProductsHTTPClient) UpdateProduct(
 	t *testing.T,
 	productUuid string,
+	userUuid string,
 	category string,
 	title string,
 	description string,
@@ -110,12 +269,13 @@ func (c ProductHTTPClient) UpdateProduct(
 	quantity int,
 ) int {
 
-	response, err := c.client.UpdateProduct(context.Background(), product.UpdateProductJSONRequestBody{
-		ProductUuid: productUuid,
+	response, err := c.client.UpdateProduct(context.Background(), productUuid, products.UpdateProductJSONRequestBody{
+		Uuid:        productUuid,
+		UserUuid:    userUuid,
 		Category:    category,
 		Title:       title,
-		Image:       image,
 		Description: description,
+		Image:       image,
 		Price:       price,
 		Quantity:    quantity,
 	})
@@ -124,122 +284,14 @@ func (c ProductHTTPClient) UpdateProduct(
 	return response.StatusCode
 }
 
-func (c ProductHTTPClient) DeleteProduct(t *testing.T, productUuid string) int {
-	response, err := c.client.DeleteProduct(context.Background(), product.DeleteProductJSONRequestBody{
-		ProductUuid: productUuid,
-	})
+func (c ProductsHTTPClient) DeleteProduct(t *testing.T, productUuid string) int {
+	response, err := c.client.DeleteProduct(context.Background(), productUuid)
 
 	require.NoError(t, err)
 	return response.StatusCode
 }
 
-type TrainerHTTPClient struct {
-	client *trainer.ClientWithResponses
-}
-
-func NewTrainerHTTPClient(t *testing.T, token string) TrainerHTTPClient {
-	addr := os.Getenv("TRAINER_HTTP_ADDR")
-	ok := WaitForPort(addr)
-	require.True(t, ok, "Trainer HTTP timed out")
-
-	url := fmt.Sprintf("http://%v/api", addr)
-
-	client, err := trainer.NewClientWithResponses(
-		url,
-		trainer.WithRequestEditorFn(authorizationBearer(token)),
-	)
-	require.NoError(t, err)
-
-	return TrainerHTTPClient{
-		client: client,
-	}
-}
-
-func (c TrainerHTTPClient) MakeHourAvailable(t *testing.T, hour time.Time) int {
-	response, err := c.client.MakeHourAvailable(context.Background(), trainer.MakeHourAvailableJSONRequestBody{
-		Hours: []time.Time{hour},
-	})
-	require.NoError(t, err)
-	return response.StatusCode
-}
-
-func (c TrainerHTTPClient) MakeHourUnavailable(t *testing.T, hour time.Time) {
-	response, err := c.client.MakeHourUnavailable(context.Background(), trainer.MakeHourUnavailableJSONRequestBody{
-		Hours: []time.Time{hour},
-	})
-	require.NoError(t, err)
-	require.Equal(t, http.StatusNoContent, response.StatusCode)
-}
-
-func (c TrainerHTTPClient) GetTrainerAvailableHours(t *testing.T, from time.Time, to time.Time) []trainer.Date {
-	response, err := c.client.GetTrainerAvailableHoursWithResponse(context.Background(), &trainer.GetTrainerAvailableHoursParams{
-		DateFrom: from,
-		DateTo:   to,
-	})
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, response.StatusCode())
-
-	return *response.JSON200
-}
-
-type TrainingsHTTPClient struct {
-	client *trainings.ClientWithResponses
-}
-
-func NewTrainingsHTTPClient(t *testing.T, token string) TrainingsHTTPClient {
-	addr := os.Getenv("TRAININGS_HTTP_ADDR")
-	fmt.Println("Trying trainings http:", addr)
-	ok := WaitForPort(addr)
-	require.True(t, ok, "Trainings HTTP timed out")
-
-	url := fmt.Sprintf("http://%v/api", addr)
-
-	client, err := trainings.NewClientWithResponses(
-		url,
-		trainings.WithRequestEditorFn(authorizationBearer(token)),
-	)
-	require.NoError(t, err)
-
-	return TrainingsHTTPClient{
-		client: client,
-	}
-}
-
-func (c TrainingsHTTPClient) CreateTraining(t *testing.T, note string, hour time.Time) string {
-	response, err := c.client.CreateTrainingWithResponse(context.Background(), trainings.CreateTrainingJSONRequestBody{
-		Notes: note,
-		Time:  hour,
-	})
-	require.NoError(t, err)
-	require.Equal(t, http.StatusNoContent, response.StatusCode())
-
-	contentLocation := response.HTTPResponse.Header.Get("content-location")
-
-	return lastPathElement(contentLocation)
-}
-
-func (c TrainingsHTTPClient) CreateTrainingShouldFail(t *testing.T, note string, hour time.Time) {
-	response, err := c.client.CreateTraining(context.Background(), trainings.CreateTrainingJSONRequestBody{
-		Notes: note,
-		Time:  hour,
-	})
-	require.NoError(t, err)
-	require.Equal(t, http.StatusInternalServerError, response.StatusCode)
-}
-
-func (c TrainingsHTTPClient) GetTrainings(t *testing.T) trainings.Trainings {
-	response, err := c.client.GetTrainingsWithResponse(context.Background())
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, response.StatusCode())
-
-	return *response.JSON200
-}
-
-func (c TrainingsHTTPClient) CancelTraining(t *testing.T, trainingUUID string, expectedStatusCode int) {
-	response, err := c.client.CancelTraining(context.Background(), trainingUUID)
-	require.NoError(t, err)
-	require.Equal(t, expectedStatusCode, response.StatusCode)
-}
+// Users http client
 
 type UsersHTTPClient struct {
 	client *users.ClientWithResponses
@@ -269,6 +321,76 @@ func (c UsersHTTPClient) GetCurrentUser(t *testing.T) users.User {
 	require.Equal(t, http.StatusOK, response.StatusCode())
 
 	return *response.JSON200
+}
+
+func (c UsersHTTPClient) GetUsers(t *testing.T) []users.User {
+	response, err := c.client.GetUsersWithResponse(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, response.StatusCode())
+
+	return *response.JSON200
+}
+
+func (c UsersHTTPClient) SignIn(t *testing.T, email string, password string) int {
+	response, err := c.client.SignInWithResponse(context.Background(), users.SignInJSONRequestBody{
+		Email:    email,
+		Password: password,
+	})
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, response.StatusCode())
+
+	return response.StatusCode
+}
+
+func (c UsersHTTPClient) SignUp(
+	t *testing.T,
+	displayName string,
+	email string,
+	password string,
+	role string,
+) int {
+	response, err := c.client.SignUpWithResponse(context.Background(), users.SignUpJSONRequestBody{
+		DisplayName: displayName,
+		Email:       email,
+		Password:    password,
+		Role:        role,
+	})
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, response.StatusCode())
+
+	return response.StatusCode
+}
+
+func (c UsersHTTPClient) UpdateUserInformation(
+	t *testing.T,
+	uuid string,
+	displayName string,
+	email string,
+) int {
+	response, err := c.client.UpdateUserInformationWithResponse(context.Background(), users.UpdateUserInformationJSONRequestBody{
+		Uuid:        uuid,
+		DisplayName: displayName,
+		Email:       email,
+	})
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, response.StatusCode())
+
+	return response.StatusCode
+}
+
+func (c UsersHTTPClient) UpdateUserPassword(
+	t *testing.T,
+	uuid string,
+	newPassword string,
+) int {
+	response, err := c.client.UpdateUserPasswordWithResponse(context.Background(), users.UpdateUserPasswordJSONRequestBody{
+		Uuid:        uuid,
+		NewPassword: newPassword,
+	})
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, response.StatusCode())
+
+	return response.StatusCode
 }
 
 func lastPathElement(path string) string {

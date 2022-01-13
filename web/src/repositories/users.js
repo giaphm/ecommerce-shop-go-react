@@ -117,41 +117,6 @@ if (typeof window == "object") {
             console.error(error)
             callback(response)
         })
-        
-    
-        // return Auth.login(email, password)
-        //     .then(function () {
-        //         return Auth.waitForAuthReady()
-        //     })
-        //     .then(function () {
-        //         return Auth.getJwtToken(false)
-        //     })
-        //     .then(token => {
-        //         setApiClientsAuth(token)
-        //     })
-        //     .then(function () {
-        //         return new Promise(((resolve, reject) => {
-        //             usersAPI.getCurrentUser((error, data) => {
-        //                 if (!error) {
-        //                     resolve(data)
-        //                     return
-        //                 }
-        //                 reject(error)
-        //             })
-        //         }))
-        //     })
-        //     .then(data => {
-        //         console.log(data)
-        //         localStorage.setItem('role', data.role)
-        //         return new Promise(((resolve, reject) => {
-        //             if(data) {
-        //                 resolve(data)
-        //             }
-        //             else {
-        //                 reject(data)
-        //             }
-        //         }))
-        //     })
     }
     
     signupUser = function(displayName, email, password, role, callback) {
@@ -169,10 +134,6 @@ if (typeof window == "object") {
             console.error(error)
             callback(response)
         })
-    
-        Auth.signup(displayName, email, password, role)
-            .then(() => Auth.waitForAuthReady())
-            .then(() => console.log("Sign up successfully!"))
     }
 
     updateUserInformation = function(userUuid, newDisplayName, newEmail, callback) {
@@ -209,37 +170,6 @@ if (typeof window == "object") {
         })
     }
     
-    // const testUsers = [
-    //     {
-    //         'uuid': '0',
-    //         'email': 'shopkeeper1@gmail.com',
-    //         'password': '123456',
-    //         'role': 'shopkeeper',
-    //         'name': 'Raheem Arnold',
-    //     },
-    //     {
-    //         'uuid': '1',
-    //         'email': 'user1@gmail.com',
-    //         'password': '123456',
-    //         'role': 'user',
-    //         'name': 'Mariusz Pudzianowski',
-    //     },
-    //     {
-    //         'uuid': '2',
-    //         'email': 'user2@gmail.com',
-    //         'password': '123456',
-    //         'role': 'user',
-    //         'name': 'Arnold Schwarzenegger',
-    //     },
-    // ]
-    
-    // getTestUsers = function() {
-    //     return testUsers
-    // }
-    
-    // addTestUser = function(newTestUser) {
-    //     testUsers.push(newTestUser)
-    // }    
 }
 
 export { usersClient };

@@ -34,6 +34,7 @@ if (typeof window == "object") {
         return
       }
       console.error(error)
+      callback(error)
     })
   }
   

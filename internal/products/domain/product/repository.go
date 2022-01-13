@@ -24,4 +24,6 @@ type Repository interface {
 		updateFn func(p *Product) (*Product, error),
 	) error
 	RemoveProduct(ctx context.Context, productUuid string) error
+	// for unit testing
+	RemoveAllProducts(ctx context.Context) error
 }
