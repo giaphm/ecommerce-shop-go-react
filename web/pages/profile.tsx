@@ -127,7 +127,7 @@ function Profile() {
     console.log("e", e)
     handleOpenBackdrop()
 
-    UsersAPI.loginUser(email, passwordUpdateInformation, (response: any) => {
+    UsersAPI.loginUser(currentUserAppCtx!.email, passwordUpdateInformation, (response: any) => {
       console.log(response);
       if(response.statusCode === 200){
         UsersAPI.updateUserInformation(currentUserAppCtx!.uuid, displayName, email, (response: any) => {

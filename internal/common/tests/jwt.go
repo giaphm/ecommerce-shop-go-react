@@ -2,6 +2,7 @@ package tests
 
 import (
 	"testing"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/require"
@@ -27,18 +28,20 @@ func FakeTrainerJWT(t *testing.T, userID string) string {
 func FakeUserJWT(t *testing.T, userUUID string) string {
 	return fakeJWT(t, jwt.MapClaims{
 		"user_uuid": userUUID,
-		"email":     "user1@gmail.com",
+		"name":      "usertest",
+		"email":     "usertest@gmail.com",
 		"role":      "user",
-		"name":      "user1",
+		"iat":       time.Now().Unix(),
 	})
 }
 
 func FakeShopkeeperJWT(t *testing.T, userUUID string) string {
 	return fakeJWT(t, jwt.MapClaims{
 		"user_uuid": userUUID,
+		"name":      "Raheem Arnold",
 		"email":     "shopkeeper1@gmail.com",
 		"role":      "shopkeeper",
-		"name":      "shopkeeper1",
+		"iat":       time.Now().Unix(),
 	})
 }
 

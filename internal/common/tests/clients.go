@@ -13,10 +13,6 @@ import (
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/client/orders"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/client/products"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/client/users"
-
-	"github.com/giaphm/ecommerce-shop-go-react/internal/common/client/trainer"
-
-	// "github.com/giaphm/ecommerce-shop-go-react/internal/common/client/users"
 	"github.com/stretchr/testify/require"
 )
 
@@ -34,6 +30,7 @@ type CheckoutsHTTPClient struct {
 
 func NewCheckoutsHTTPClient(t *testing.T, token string) CheckoutsHTTPClient {
 	addr := os.Getenv("CHECKOUTS_HTTP_ADDR")
+	fmt.Println("CHECKOUTS_HTTP_ADDR", addr)
 	ok := WaitForPort(addr)
 	require.True(t, ok, "Checkouts HTTP timed out")
 
@@ -51,7 +48,7 @@ func NewCheckoutsHTTPClient(t *testing.T, token string) CheckoutsHTTPClient {
 }
 
 func (c CheckoutsHTTPClient) GetCheckouts(t *testing.T) []checkouts.Checkout {
-	response, err := c.client.GetProductsWithResponse(context.Background())
+	response, err := c.client.GetCheckoutsWithResponse(context.Background())
 
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, response.StatusCode())
@@ -70,10 +67,7 @@ func (c CheckoutsHTTPClient) GetUserCheckouts(t *testing.T, userUuid string) che
 
 func (c CheckoutsHTTPClient) CreateCheckout(
 	t *testing.T,
-	uuid string,
-	userUuid string,
 	orderUuid string,
-	totalPrice float32,
 	notes string,
 	proposedTime time.Time,
 	tokenId string,
@@ -88,7 +82,7 @@ func (c CheckoutsHTTPClient) CreateCheckout(
 
 	require.NoError(t, err)
 
-	require.Equal(t, http.StatusNoContent, response.StatusCode())
+	require.Equal(t, http.StatusCreated, response.StatusCode())
 
 	contentLocation := response.HTTPResponse.Header.Get("content-location")
 
@@ -97,11 +91,12 @@ func (c CheckoutsHTTPClient) CreateCheckout(
 
 // Orders http client
 type OrdersHTTPClient struct {
-	client *trainer.ClientWithResponses
+	client *orders.ClientWithResponses
 }
 
 func NewOrdersHTTPClient(t *testing.T, token string) OrdersHTTPClient {
 	addr := os.Getenv("ORDERS_HTTP_ADDR")
+	fmt.Println("ORDERS_HTTP_ADDR", addr)
 	ok := WaitForPort(addr)
 	require.True(t, ok, "Orders HTTP timed out")
 
@@ -144,7 +139,7 @@ func (c OrdersHTTPClient) GetUserOrders(t *testing.T, userUuid string) []orders.
 	})
 
 	require.NoError(t, err)
-	return response.StatusCode
+	return *response.JSON200
 }
 
 func (c OrdersHTTPClient) CreateOrder(
@@ -162,7 +157,7 @@ func (c OrdersHTTPClient) CreateOrder(
 
 	require.NoError(t, err)
 
-	require.Equal(t, http.StatusNoContent, response.StatusCode())
+	require.Equal(t, http.StatusCreated, response.StatusCode())
 
 	contentLocation := response.HTTPResponse.Header.Get("content-location")
 
@@ -186,10 +181,11 @@ type ProductsHTTPClient struct {
 	client *products.ClientWithResponses
 }
 
-func NewProductHTTPClient(t *testing.T, token string) ProductsHTTPClient {
-	addr := os.Getenv("TRAINER_HTTP_ADDR")
+func NewProductsHTTPClient(t *testing.T, token string) ProductsHTTPClient {
+	addr := os.Getenv("PRODUCTS_HTTP_ADDR")
+	fmt.Println("PRODUCTS_HTTP_ADDR", addr)
 	ok := WaitForPort(addr)
-	require.True(t, ok, "Trainer HTTP timed out")
+	require.True(t, ok, "Products HTTP timed out")
 
 	url := fmt.Sprintf("http://%v/api", addr)
 
@@ -226,7 +222,7 @@ func (c ProductsHTTPClient) GetShopkeeperProducts(t *testing.T) []products.Produ
 	response, err := c.client.GetShopkeeperProductsWithResponse(context.Background())
 
 	require.NoError(t, err)
-	return response.StatusCode
+	return *response.JSON200
 }
 
 func (c ProductsHTTPClient) AddProduct(
@@ -250,7 +246,7 @@ func (c ProductsHTTPClient) AddProduct(
 
 	require.NoError(t, err)
 
-	require.Equal(t, http.StatusNoContent, response.StatusCode())
+	require.Equal(t, http.StatusCreated, response.StatusCode())
 
 	contentLocation := response.HTTPResponse.Header.Get("content-location")
 
@@ -299,6 +295,7 @@ type UsersHTTPClient struct {
 
 func NewUsersHTTPClient(t *testing.T, token string) UsersHTTPClient {
 	addr := os.Getenv("USERS_HTTP_ADDR")
+	fmt.Println("USERS_HTTP_ADDR", addr)
 	ok := WaitForPort(addr)
 	require.True(t, ok, "Users HTTP timed out")
 
@@ -331,7 +328,7 @@ func (c UsersHTTPClient) GetUsers(t *testing.T) []users.User {
 	return *response.JSON200
 }
 
-func (c UsersHTTPClient) SignIn(t *testing.T, email string, password string) int {
+func (c UsersHTTPClient) SignIn(t *testing.T, email string, password string) users.User {
 	response, err := c.client.SignInWithResponse(context.Background(), users.SignInJSONRequestBody{
 		Email:    email,
 		Password: password,
@@ -339,7 +336,7 @@ func (c UsersHTTPClient) SignIn(t *testing.T, email string, password string) int
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, response.StatusCode())
 
-	return response.StatusCode
+	return *response.JSON200
 }
 
 func (c UsersHTTPClient) SignUp(
@@ -348,7 +345,7 @@ func (c UsersHTTPClient) SignUp(
 	email string,
 	password string,
 	role string,
-) int {
+) string {
 	response, err := c.client.SignUpWithResponse(context.Background(), users.SignUpJSONRequestBody{
 		DisplayName: displayName,
 		Email:       email,
@@ -356,9 +353,12 @@ func (c UsersHTTPClient) SignUp(
 		Role:        role,
 	})
 	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, response.StatusCode())
+	fmt.Println("response", response)
+	require.Equal(t, http.StatusCreated, response.StatusCode())
 
-	return response.StatusCode
+	contentLocation := response.HTTPResponse.Header.Get("content-location")
+
+	return lastPathElement(contentLocation)
 }
 
 func (c UsersHTTPClient) UpdateUserInformation(
@@ -373,9 +373,9 @@ func (c UsersHTTPClient) UpdateUserInformation(
 		Email:       email,
 	})
 	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, response.StatusCode())
+	require.Equal(t, http.StatusNoContent, response.StatusCode())
 
-	return response.StatusCode
+	return response.StatusCode()
 }
 
 func (c UsersHTTPClient) UpdateUserPassword(
@@ -388,9 +388,9 @@ func (c UsersHTTPClient) UpdateUserPassword(
 		NewPassword: newPassword,
 	})
 	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, response.StatusCode())
+	require.Equal(t, http.StatusNoContent, response.StatusCode())
 
-	return response.StatusCode
+	return response.StatusCode()
 }
 
 func lastPathElement(path string) string {
