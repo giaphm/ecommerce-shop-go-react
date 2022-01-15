@@ -25,12 +25,12 @@ type ProductModel struct {
 	Quantity    int     `firestore:"Quantity"`
 }
 
-type FirestoreProductRepository struct {
+type FirestoreProductsRepository struct {
 	firestoreClient *firestore.Client
 	productFactory  product.Factory
 }
 
-func NewFirestoreProductRepository(firestoreClient *firestore.Client, productFactory product.Factory) *FirestoreProductRepository {
+func NewFirestoreProductsRepository(firestoreClient *firestore.Client, productFactory product.Factory) *FirestoreProductsRepository {
 	if firestoreClient == nil {
 		panic("missing firestoreClient")
 	}
@@ -38,10 +38,10 @@ func NewFirestoreProductRepository(firestoreClient *firestore.Client, productFac
 	// 	panic("missing productFactory")
 	// }
 
-	return &FirestoreProductRepository{firestoreClient, productFactory}
+	return &FirestoreProductsRepository{firestoreClient, productFactory}
 }
 
-func (f FirestoreProductRepository) GetProduct(ctx context.Context, productUuid string) (*query.Product, error) {
+func (f FirestoreProductsRepository) GetProduct(ctx context.Context, productUuid string) (*query.Product, error) {
 	productModel, err := f.getProductDTO(
 		// getProductDTO has a callback function,
 		// that should be used both for transactional and non transactional query,
@@ -59,7 +59,7 @@ func (f FirestoreProductRepository) GetProduct(ctx context.Context, productUuid 
 	return f.productModelToProductQuery(productModel), nil
 }
 
-func (f FirestoreProductRepository) GetProducts(ctx context.Context) ([]*query.Product, error) {
+func (f FirestoreProductsRepository) GetProducts(ctx context.Context) ([]*query.Product, error) {
 	productIters, err := f.productDocuments(ctx)
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (f FirestoreProductRepository) GetProducts(ctx context.Context) ([]*query.P
 	return f.productModelsToProductQueries(products), nil
 }
 
-func (f FirestoreProductRepository) GetShopkeeperProducts(ctx context.Context, userUuid string) ([]*query.Product, error) {
+func (f FirestoreProductsRepository) GetShopkeeperProducts(ctx context.Context, userUuid string) ([]*query.Product, error) {
 	productSnapshots, err := f.productShopkeeperDocuments(ctx, userUuid)
 	if err != nil {
 		return nil, err
@@ -118,7 +118,7 @@ func (f FirestoreProductRepository) GetShopkeeperProducts(ctx context.Context, u
 	return f.productModelsToProductQueries(products), nil
 }
 
-func (f FirestoreProductRepository) AddProduct(
+func (f FirestoreProductsRepository) AddProduct(
 	ctx context.Context,
 	uuid string,
 	userUuid string,
@@ -173,7 +173,7 @@ func (f FirestoreProductRepository) AddProduct(
 	return nil
 }
 
-func (f FirestoreProductRepository) UpdateProduct(
+func (f FirestoreProductsRepository) UpdateProduct(
 	ctx context.Context,
 	productUuid string,
 	updateFn func(p *product.Product) (*product.Product, error),
@@ -230,7 +230,7 @@ func (f FirestoreProductRepository) UpdateProduct(
 	return errors.Wrap(err, "firestore transaction failed")
 }
 
-func (f FirestoreProductRepository) RemoveProduct(ctx context.Context, productUuid string) error {
+func (f FirestoreProductsRepository) RemoveProduct(ctx context.Context, productUuid string) error {
 	fmt.Println("productUuid", productUuid)
 	productDocRef := f.documentRef(productUuid)
 	fmt.Println("productDocRef", productDocRef)
@@ -254,23 +254,23 @@ func (f FirestoreProductRepository) RemoveProduct(ctx context.Context, productUu
 	return nil
 }
 
-func (f FirestoreProductRepository) productsCollection() *firestore.CollectionRef {
+func (f FirestoreProductsRepository) productsCollection() *firestore.CollectionRef {
 	return f.firestoreClient.Collection("products")
 }
 
-func (f FirestoreProductRepository) documentRef(productUuid string) *firestore.DocumentRef {
+func (f FirestoreProductsRepository) documentRef(productUuid string) *firestore.DocumentRef {
 	return f.productsCollection().Doc(productUuid)
 }
 
-func (f FirestoreProductRepository) productDocuments(ctx context.Context) (*firestore.DocumentIterator, error) {
+func (f FirestoreProductsRepository) productDocuments(ctx context.Context) (*firestore.DocumentIterator, error) {
 	return f.productsCollection().Documents(ctx), nil //.GetAll()
 }
 
-func (f FirestoreProductRepository) productShopkeeperDocuments(ctx context.Context, userUuid string) ([]*firestore.DocumentSnapshot, error) {
+func (f FirestoreProductsRepository) productShopkeeperDocuments(ctx context.Context, userUuid string) ([]*firestore.DocumentSnapshot, error) {
 	return f.productsCollection().Where("UserUuid", "==", userUuid).Documents(ctx).GetAll()
 }
 
-func (f FirestoreProductRepository) getProductDTO(
+func (f FirestoreProductsRepository) getProductDTO(
 	getDocumentFn func() (doc *firestore.DocumentSnapshot, err error),
 	productUuid string,
 ) (*ProductModel, error) {
@@ -299,7 +299,7 @@ func (f FirestoreProductRepository) getProductDTO(
 // }
 
 // warning: RemoveAllProducts was designed for tests for doing data cleanups
-func (f FirestoreProductRepository) RemoveAllProducts(ctx context.Context) error {
+func (f FirestoreProductsRepository) RemoveAllProducts(ctx context.Context) error {
 	for {
 		iter := f.productsCollection().Limit(100).Documents(ctx)
 		numDeleted := 0
@@ -329,7 +329,7 @@ func (f FirestoreProductRepository) RemoveAllProducts(ctx context.Context) error
 	}
 }
 
-func (f FirestoreProductRepository) productModelToProductQuery(pm *ProductModel) *query.Product {
+func (f FirestoreProductsRepository) productModelToProductQuery(pm *ProductModel) *query.Product {
 
 	return &query.Product{
 		Uuid:        pm.Uuid,
@@ -343,7 +343,7 @@ func (f FirestoreProductRepository) productModelToProductQuery(pm *ProductModel)
 	}
 }
 
-func (f FirestoreProductRepository) productModelsToProductQueries(pm []*ProductModel) []*query.Product {
+func (f FirestoreProductsRepository) productModelsToProductQueries(pm []*ProductModel) []*query.Product {
 
 	var products []*query.Product
 	var product *query.Product
@@ -356,7 +356,7 @@ func (f FirestoreProductRepository) productModelsToProductQueries(pm []*ProductM
 	return products
 }
 
-func (f FirestoreProductRepository) productDomainToProductModel(p *product.Product) *ProductModel {
+func (f FirestoreProductsRepository) productDomainToProductModel(p *product.Product) *ProductModel {
 
 	return &ProductModel{
 		Uuid:        p.GetUuid(),
@@ -370,7 +370,7 @@ func (f FirestoreProductRepository) productDomainToProductModel(p *product.Produ
 	}
 }
 
-func (f FirestoreProductRepository) tshirtProductModelToTShirtProductDomain(pm *ProductModel) (product.IProductsFactory, error) {
+func (f FirestoreProductsRepository) tshirtProductModelToTShirtProductDomain(pm *ProductModel) (product.IProductsFactory, error) {
 
 	return f.productFactory.UnmarshalTShirtProductFromDatabase(
 		pm.Uuid,

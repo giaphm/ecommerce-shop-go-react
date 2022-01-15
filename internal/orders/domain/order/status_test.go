@@ -2,8 +2,10 @@ package order_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/giaphm/ecommerce-shop-go-react/internal/orders/domain/order"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -11,23 +13,60 @@ import (
 var testOrderFactory = order.MustNewFactory()
 
 func TestMakeCompletedOrder_valid(t *testing.T) {
-	valid_productUuid := uuid.New().String()
-	o, err := testOrderFactory.NewCreatedOrder(valid_productUuid)
+	valid_productUuid := "0"
+	valid_quantity := 1
+	var newOrderItems []*order.OrderItem
+	newOrderItem, err := order.NewOrderItem(
+		uuid.New().String(),
+		valid_productUuid,
+		valid_quantity,
+	)
+	require.NoError(t, err)
+	newOrderItems = append(newOrderItems, newOrderItem)
+	valid_userUuid := "1"
+	var valid_price float32 = 20.0
+	valid_totalPrice := valid_price * float32(valid_quantity)
+
+	o, err := testOrderFactory.NewCreatedOrder(
+		uuid.New().String(),
+		valid_userUuid,
+		newOrderItems,
+		valid_totalPrice,
+		time.Now(),
+		time.Now().Add(1*time.Hour),
+	)
 	require.NoError(t, err)
 
 	err = o.MakeCompletedOrder()
 	require.NoError(t, err)
 
-	assert.Equal(t, o.Status(), order.Completed)
+	assert.Equal(t, o.GetStatus(), order.StatusCompleted)
 }
 
 func TestMakeCompletedOrder_invalid(t *testing.T) {
-	valid_productUuid := uuid.New().String()
-	o = &Order{
-		productUuid: valid_productUuid,
-		expiresAt:   time.Now().Add(-1 * time.Hour),
-		status:      order.Created,
-	}
+	valid_productUuid := "0"
+	valid_quantity := 1
+	var newOrderItems []*order.OrderItem
+	newOrderItem, err := order.NewOrderItem(
+		uuid.New().String(),
+		valid_productUuid,
+		valid_quantity,
+	)
+	require.NoError(t, err)
+	newOrderItems = append(newOrderItems, newOrderItem)
+	valid_userUuid := "1"
+	var valid_price float32 = 20.0
+	valid_totalPrice := valid_price * float32(valid_quantity)
+
+	o, err := testOrderFactory.NewCreatedOrder(
+		uuid.New().String(),
+		valid_userUuid,
+		newOrderItems,
+		valid_totalPrice,
+		time.Now(),
+		time.Now().Add(-1*time.Hour),
+	)
+	require.NoError(t, err)
 
 	err = o.MakeCompletedOrder()
 	require.Error(t, err)
@@ -36,21 +75,41 @@ func TestMakeCompletedOrder_invalid(t *testing.T) {
 }
 
 func TestMakeCancelledOrder_valid(t *testing.T) {
-	valid_productUuid := uuid.New().String()
-	o, err := testOrderFactory.NewCreatedOrder(valid_productUuid)
+	valid_productUuid := "0"
+	valid_quantity := 1
+	var newOrderItems []*order.OrderItem
+	newOrderItem, err := order.NewOrderItem(
+		uuid.New().String(),
+		valid_productUuid,
+		valid_quantity,
+	)
+	require.NoError(t, err)
+	newOrderItems = append(newOrderItems, newOrderItem)
+	valid_userUuid := "1"
+	var valid_price float32 = 20.0
+	valid_totalPrice := valid_price * float32(valid_quantity)
+
+	o, err := testOrderFactory.NewCreatedOrder(
+		uuid.New().String(),
+		valid_userUuid,
+		newOrderItems,
+		valid_totalPrice,
+		time.Now(),
+		time.Now().Add(1*time.Hour),
+	)
 	require.NoError(t, err)
 
 	err = o.MakeCancelledOrder()
 	require.NoError(t, err)
 
-	assert.Equal(t, o.Status(), order.Cancelled)
+	assert.Equal(t, o.GetStatus(), order.StatusCancelled)
 }
 
 func TestNewStatusFromString_valid(t *testing.T) {
 	testCases := []order.Status{
-		order.Created,
-		order.Completed,
-		order.Cancelled,
+		order.StatusCreated,
+		order.StatusCompleted,
+		order.StatusCancelled,
 	}
 
 	for _, expectedStatus := range testCases {

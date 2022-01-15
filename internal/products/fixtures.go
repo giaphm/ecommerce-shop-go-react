@@ -48,7 +48,7 @@ func loadProductsFixtures(ctx context.Context, application app.Application) erro
 
 	productsFixtures := []command.AddProduct{
 		{
-			Uuid:        uuid.New().String(),
+			Uuid:        "0",
 			UserUuid:    "0", // shopkeeper1's mock uuid
 			Category:    product.TShirtCategory.String(),
 			Title:       "Stripe t-shirt",

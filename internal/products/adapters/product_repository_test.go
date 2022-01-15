@@ -12,7 +12,10 @@ import (
 	"github.com/giaphm/ecommerce-shop-go-react/internal/products/adapters"
 
 	"cloud.google.com/go/firestore"
+	"github.com/giaphm/ecommerce-shop-go-react/internal/products/app/query"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/products/domain/product"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -89,7 +92,7 @@ func TestRepository(t *testing.T) {
 
 type Repository struct {
 	Name       string
-	Repository product.Repository
+	Repository *adapters.FirestoreProductsRepository
 }
 
 func createRepositories(t *testing.T) []Repository {
@@ -109,9 +112,11 @@ func createRepositories(t *testing.T) []Repository {
 	}
 }
 
-func testGetProductNotExists(t *testing.T, repository product.Repository) {
+func testGetProductNotExists(t *testing.T, repository *adapters.FirestoreProductsRepository) {
 
 	err := repository.RemoveAllProducts(context.Background())
+	require.NoError(t, err)
+
 	productUUID := uuid.New().String()
 
 	p, err := repository.GetProduct(
@@ -122,7 +127,7 @@ func testGetProductNotExists(t *testing.T, repository product.Repository) {
 	require.Error(t, err)
 }
 
-func testGetProduct(t *testing.T, repository product.Repository) {
+func testGetProduct(t *testing.T, repository *adapters.FirestoreProductsRepository) {
 
 	err := repository.RemoveAllProducts(context.Background())
 	require.NoError(t, err)
@@ -131,30 +136,31 @@ func testGetProduct(t *testing.T, repository product.Repository) {
 
 	tsh := newValidTShirtProduct(t)
 
-	err = repository.AddProduct(ctx,
-		tsh.uuid,
-		tsh.userUuid,
-		tsh.category,
-		tsh.title,
-		tsh.description,
-		tsh.image,
-		tsh.price,
-		tsh.quantity,
+	err = repository.AddProduct(
+		ctx,
+		tsh.GetProduct().GetUuid(),
+		tsh.GetProduct().GetUserUuid(),
+		tsh.GetProduct().GetCategory().String(),
+		tsh.GetProduct().GetTitle(),
+		tsh.GetProduct().GetDescription(),
+		tsh.GetProduct().GetImage(),
+		tsh.GetProduct().GetPrice(),
+		tsh.GetProduct().GetQuantity(),
 	)
 	require.NoError(t, err)
 
-	assertPersistedProductEquals(t, repository, tsh)
+	assertPersistedProductEquals(t, repository, tsh.GetProduct())
 
 	_, err = repository.GetProduct(
 		context.Background(),
-		tsh.GetUuid(),
+		tsh.GetProduct().GetUuid(),
 	)
 
 	require.NoError(t, err)
 
 }
 
-func testGetProducts(t *testing.T, repository product.Repository) {
+func testGetProducts(t *testing.T, repository *adapters.FirestoreProductsRepository) {
 
 	// AllTrainings returns all documents, because of that we need to do exception and do DB cleanup
 	// In general, I recommend to do it before test. In that way you are sure that cleanup is done.
@@ -172,76 +178,76 @@ func testGetProducts(t *testing.T, repository product.Repository) {
 	// examplePants := newValidPants(t)
 	// exampleCosmetic := newValidCosmetic(t)
 
-	productsToAdd := []*training.Training{
+	tshirtsToAdd := []*product.TShirt{
 		exampleTShirt1,
 		exampleTShirt2,
 		exampleTShirt3,
 	}
 
-	for _, p := range productsToAdd {
+	for _, tsh := range tshirtsToAdd {
 		err = repository.AddProduct(
 			ctx,
-			p.uuid,
-			p.userUuid,
-			p.category,
-			p.title,
-			p.description,
-			p.image,
-			p.price,
-			p.quantity,
+			tsh.GetProduct().GetUuid(),
+			tsh.GetProduct().GetUserUuid(),
+			tsh.GetProduct().GetCategory().String(),
+			tsh.GetProduct().GetTitle(),
+			tsh.GetProduct().GetDescription(),
+			tsh.GetProduct().GetImage(),
+			tsh.GetProduct().GetPrice(),
+			tsh.GetProduct().GetQuantity(),
 		)
 		require.NoError(t, err)
 	}
 
-	trainings, err := repository.GetProducts(context.Background())
+	products, err := repository.GetProducts(context.Background())
 	require.NoError(t, err)
 
 	expectedProducts := []query.Product{
 		{
-			uuid:        exampleTShirt1.product.uuid,
-			userUuid:    exampleTShirt1.product.userUuid,
-			category:    exampleTShirt1.product.category,
-			title:       exampleTShirt1.product.title,
-			description: exampleTShirt1.product.description,
-			image:       exampleTShirt1.product.image,
-			price:       exampleTShirt1.product.price,
-			quantity:    exampleTShirt1.product.quantity,
+			Uuid:        exampleTShirt1.GetProduct().GetUuid(),
+			UserUuid:    exampleTShirt1.GetProduct().GetUserUuid(),
+			Category:    exampleTShirt1.GetProduct().GetCategory().String(),
+			Title:       exampleTShirt1.GetProduct().GetTitle(),
+			Description: exampleTShirt1.GetProduct().GetDescription(),
+			Image:       exampleTShirt1.GetProduct().GetImage(),
+			Price:       exampleTShirt1.GetProduct().GetPrice(),
+			Quantity:    exampleTShirt1.GetProduct().GetQuantity(),
 		},
 		{
-			uuid:        exampleTShirt2.product.uuid,
-			userUuid:    exampleTShirt2.product.userUuid,
-			category:    exampleTShirt2.product.category,
-			title:       exampleTShirt2.product.title,
-			description: exampleTShirt2.product.description,
-			image:       exampleTShirt2.product.image,
-			price:       exampleTShirt2.product.price,
-			quantity:    exampleTShirt2.product.quantity,
+			Uuid:        exampleTShirt2.GetProduct().GetUuid(),
+			UserUuid:    exampleTShirt2.GetProduct().GetUserUuid(),
+			Category:    exampleTShirt2.GetProduct().GetCategory().String(),
+			Title:       exampleTShirt2.GetProduct().GetTitle(),
+			Description: exampleTShirt2.GetProduct().GetDescription(),
+			Image:       exampleTShirt2.GetProduct().GetImage(),
+			Price:       exampleTShirt2.GetProduct().GetPrice(),
+			Quantity:    exampleTShirt2.GetProduct().GetQuantity(),
 		},
 		{
-			uuid:        exampleTShirt3.product.uuid,
-			userUuid:    exampleTShirt3.product.userUuid,
-			category:    exampleTShirt3.product.category,
-			title:       exampleTShirt3.product.title,
-			description: exampleTShirt3.product.description,
-			image:       exampleTShirt3.product.image,
-			price:       exampleTShirt3.product.price,
-			quantity:    exampleTShirt3.product.quantity,
+			Uuid:        exampleTShirt3.GetProduct().GetUuid(),
+			UserUuid:    exampleTShirt3.GetProduct().GetUserUuid(),
+			Category:    exampleTShirt3.GetProduct().GetCategory().String(),
+			Title:       exampleTShirt3.GetProduct().GetTitle(),
+			Description: exampleTShirt3.GetProduct().GetDescription(),
+			Image:       exampleTShirt3.GetProduct().GetImage(),
+			Price:       exampleTShirt3.GetProduct().GetPrice(),
+			Quantity:    exampleTShirt3.GetProduct().GetQuantity(),
 		},
 	}
 
-	var filteredTrainings []query.Training
-	for _, tr := range trainings {
-		for _, ex := range expectedTrainings {
-			if tr.UUID == ex.UUID {
-				filteredTrainings = append(filteredTrainings, tr)
+	var filteredProducts []query.Product
+	for _, p := range products {
+		for _, ep := range expectedProducts {
+			if p.Uuid == ep.Uuid {
+				filteredProducts = append(filteredProducts, *p)
 			}
 		}
 	}
 
-	assertQueryTrainingsEquals(t, expectedTrainings, filteredTrainings)
+	assertQueryProductsEquals(t, expectedProducts, filteredProducts)
 }
 
-func testGetShopkeeperProducts(t *testing.T, repository product.Repository) {
+func testGetShopkeeperProducts(t *testing.T, repository *adapters.FirestoreProductsRepository) {
 
 	// AllTrainings returns all documents, because of that we need to do exception and do DB cleanup
 	// In general, I recommend to do it before test. In that way you are sure that cleanup is done.
@@ -261,76 +267,76 @@ func testGetShopkeeperProducts(t *testing.T, repository product.Repository) {
 	// examplePants := newValidTShirtProductOfShopkeeper(t, shopkeeperUuid)
 	// exampleCosmetic := newValidTShirtProductOfShopkeeper(t, shopkeeperUuid)
 
-	productsToAdd := []*product.Product{
+	tshirtsToAdd := []*product.TShirt{
 		exampleTShirt1,
 		exampleTShirt2,
 		exampleTShirt3,
 	}
 
-	for _, p := range productsToAdd {
+	for _, tsh := range tshirtsToAdd {
 		err = repository.AddProduct(
 			ctx,
-			p.uuid,
-			p.userUuid,
-			p.category,
-			p.title,
-			p.description,
-			p.image,
-			p.price,
-			p.quantity,
+			tsh.GetProduct().GetUuid(),
+			tsh.GetProduct().GetUserUuid(),
+			tsh.GetProduct().GetCategory().String(),
+			tsh.GetProduct().GetTitle(),
+			tsh.GetProduct().GetDescription(),
+			tsh.GetProduct().GetImage(),
+			tsh.GetProduct().GetPrice(),
+			tsh.GetProduct().GetQuantity(),
 		)
 		require.NoError(t, err)
 	}
 
-	trainings, err := repository.GetShopkeeperProducts(context.Background())
+	shopkeeperProducts, err := repository.GetShopkeeperProducts(context.Background(), shopkeeperUuid)
 	require.NoError(t, err)
 
-	expectedProducts := []query.Product{
+	expectedShopkeeperProducts := []query.Product{
 		{
-			uuid:        exampleTShirt1.product.uuid,
-			userUuid:    exampleTShirt1.product.userUuid,
-			category:    exampleTShirt1.product.category,
-			title:       exampleTShirt1.product.title,
-			description: exampleTShirt1.product.description,
-			image:       exampleTShirt1.product.image,
-			price:       exampleTShirt1.product.price,
-			quantity:    exampleTShirt1.product.quantity,
+			Uuid:        exampleTShirt1.GetProduct().GetUuid(),
+			UserUuid:    exampleTShirt1.GetProduct().GetUserUuid(),
+			Category:    exampleTShirt1.GetProduct().GetCategory().String(),
+			Title:       exampleTShirt1.GetProduct().GetTitle(),
+			Description: exampleTShirt1.GetProduct().GetDescription(),
+			Image:       exampleTShirt1.GetProduct().GetImage(),
+			Price:       exampleTShirt1.GetProduct().GetPrice(),
+			Quantity:    exampleTShirt1.GetProduct().GetQuantity(),
 		},
 		{
-			uuid:        exampleTShirt2.product.uuid,
-			userUuid:    exampleTShirt2.product.userUuid,
-			category:    exampleTShirt2.product.category,
-			title:       exampleTShirt2.product.title,
-			description: exampleTShirt2.product.description,
-			image:       exampleTShirt2.product.image,
-			price:       exampleTShirt2.product.price,
-			quantity:    exampleTShirt2.product.quantity,
+			Uuid:        exampleTShirt2.GetProduct().GetUuid(),
+			UserUuid:    exampleTShirt2.GetProduct().GetUserUuid(),
+			Category:    exampleTShirt2.GetProduct().GetCategory().String(),
+			Title:       exampleTShirt2.GetProduct().GetTitle(),
+			Description: exampleTShirt2.GetProduct().GetDescription(),
+			Image:       exampleTShirt2.GetProduct().GetImage(),
+			Price:       exampleTShirt2.GetProduct().GetPrice(),
+			Quantity:    exampleTShirt2.GetProduct().GetQuantity(),
 		},
 		{
-			uuid:        exampleTShirt3.product.uuid,
-			userUuid:    exampleTShirt3.product.userUuid,
-			category:    exampleTShirt3.product.category,
-			title:       exampleTShirt3.product.title,
-			description: exampleTShirt3.product.description,
-			image:       exampleTShirt3.product.image,
-			price:       exampleTShirt3.product.price,
-			quantity:    exampleTShirt3.product.quantity,
+			Uuid:        exampleTShirt3.GetProduct().GetUuid(),
+			UserUuid:    exampleTShirt3.GetProduct().GetUserUuid(),
+			Category:    exampleTShirt3.GetProduct().GetCategory().String(),
+			Title:       exampleTShirt3.GetProduct().GetTitle(),
+			Description: exampleTShirt3.GetProduct().GetDescription(),
+			Image:       exampleTShirt3.GetProduct().GetImage(),
+			Price:       exampleTShirt3.GetProduct().GetPrice(),
+			Quantity:    exampleTShirt3.GetProduct().GetQuantity(),
 		},
 	}
 
-	var filteredTrainings []query.Training
-	for _, tr := range trainings {
-		for _, ex := range expectedTrainings {
-			if tr.UUID == ex.UUID {
-				filteredTrainings = append(filteredTrainings, tr)
+	var filteredShopkeeperProducts []query.Product
+	for _, shp := range shopkeeperProducts {
+		for _, eshp := range expectedShopkeeperProducts {
+			if shp.Uuid == eshp.Uuid {
+				filteredShopkeeperProducts = append(filteredShopkeeperProducts, *shp)
 			}
 		}
 	}
 
-	assertQueryTrainingsEquals(t, expectedTrainings, filteredTrainings)
+	assertQueryProductsEquals(t, expectedShopkeeperProducts, filteredShopkeeperProducts)
 }
 
-func testAddProduct(t *testing.T, repository product.Repository) {
+func testAddProduct(t *testing.T, repository *adapters.FirestoreProductsRepository) {
 
 	testCases := []struct {
 		Name               string
@@ -338,11 +344,11 @@ func testAddProduct(t *testing.T, repository product.Repository) {
 	}{
 		{
 			Name:               "tshirt_product",
-			ProductConstructor: newValidTShirtProduct,
+			ProductConstructor: newValidTShirtProductToProduct,
 		},
 		// {
 		// 	Name:                "assessories_product",
-		// 	ProductConstructor: newValidAssessoriesProduct,
+		// 	ProductConstructor: newValidAssessoriesProductToProduct,
 		// },
 	}
 
@@ -353,14 +359,14 @@ func testAddProduct(t *testing.T, repository product.Repository) {
 			expectedProduct := c.ProductConstructor(t)
 
 			err := repository.AddProduct(ctx,
-				expectedProduct.uuid,
-				expectedProduct.userUuid,
-				expectedProduct.category,
-				expectedProduct.title,
-				expectedProduct.description,
-				expectedProduct.image,
-				expectedProduct.price,
-				expectedProduct.quantity,
+				expectedProduct.GetUuid(),
+				expectedProduct.GetUserUuid(),
+				expectedProduct.GetCategory().String(),
+				expectedProduct.GetTitle(),
+				expectedProduct.GetDescription(),
+				expectedProduct.GetImage(),
+				expectedProduct.GetPrice(),
+				expectedProduct.GetQuantity(),
 			)
 			require.NoError(t, err)
 
@@ -374,13 +380,17 @@ func testUpdateProduct(t *testing.T, repository product.Repository) {
 	ctx := context.Background()
 
 	testCases := []struct {
-		Name               string
-		ProductConstructor func(*testing.T) *hour.Hour
+		Name                      string
+		ProductConstructor        func(*testing.T) *product.Product
+		UpdatedProductConstructor func(t *testing.T, uuid string, userUuid string, title string) *product.Product
 	}{
 		{
 			Name: "tshirt_product",
 			ProductConstructor: func(t *testing.T) *product.Product {
-				return newValidTShirtProduct(t)
+				return newValidTShirtProductToProduct(t)
+			},
+			UpdatedProductConstructor: func(t *testing.T, uuid, userUuid, title string) *product.Product {
+				return newUpdatedValidTShirtProductToProduct(t, uuid, userUuid, title)
 			},
 		},
 		// {
@@ -400,46 +410,36 @@ func testUpdateProduct(t *testing.T, repository product.Repository) {
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			// add a product into db to update
-			tsh := tc.ProductConstructor(t)
+			p := tc.ProductConstructor(t)
 
-			err = repository.AddProduct(
+			err := repository.AddProduct(
 				ctx,
-				tsh.uuid,
-				tsh.userUuid,
-				tsh.category,
-				tsh.title,
-				tsh.description,
-				tsh.image,
-				tsh.price,
-				tsh.quantity,
+				p.GetUuid(),
+				p.GetUserUuid(),
+				p.GetCategory().String(),
+				p.GetTitle(),
+				p.GetDescription(),
+				p.GetImage(),
+				p.GetPrice(),
+				p.GetQuantity(),
 			)
 			require.NoError(t, err)
 
-			updatedTSh := tc.ProductConstructor(t)
-			updatedTSh.uuid = tsh.uuid
-			// userUuid is generated again
-			// category is the same
-			updatedTSh.title = "updated product"
-			updatedTSh.description = "updated description"
-			updatedTSh.image = "updated image"
-			updatedTSh.price += 10
-			updatedTSh.quantity += 5
+			updatedTShirtProduct := tc.UpdatedProductConstructor(t, p.GetUuid(), p.GetUserUuid(), p.GetTitle())
 
-			err := repository.UpdateProduct(ctx, tsh.uuid, func(_ *product.Product) (*product.Product, error) {
-				// UpdateHour provides us existing/new *hour.Hour,
-				// but we are ignoring this hour and persisting result of `CreateHour`
-				// we can assert this hour later in assertHourInRepository
-				return updatedTSh, nil
+			err = repository.UpdateProduct(ctx, p.GetUuid(), func(_ *product.Product) (*product.Product, error) {
+				// not need the found product
+				return updatedTShirtProduct, nil
 			})
 			require.NoError(t, err)
 
-			assertProductInRepository(ctx, t, repository, updatedTSh)
+			assertProductInRepository(ctx, t, repository, updatedTShirtProduct)
 		})
 	}
 }
 
-func testUpdateProduct_parallel(t *testing.T, repository hour.Repository) {
-	if _, ok := repository.(*adapters.FirestoreHourRepository); ok {
+func testUpdateProduct_parallel(t *testing.T, repository product.Repository) {
+	if _, ok := repository.(*adapters.FirestoreProductsRepository); ok {
 		// todo - enable after fix of https://github.com/googleapis/google-cloud-go/issues/2604
 		t.Skip("because of emulator bug, it's not working in Firebase")
 	}
@@ -448,34 +448,31 @@ func testUpdateProduct_parallel(t *testing.T, repository hour.Repository) {
 	ctx := context.Background()
 
 	// add a product into db to update
-	tsh := newValidTShirtProduct(t)
+	tshirtProduct := newValidTShirtProduct(t)
 
-	err = repository.AddProduct(
+	err := repository.AddProduct(
 		ctx,
-		tsh.uuid,
-		tsh.userUuid,
-		tsh.category,
-		tsh.title,
-		tsh.description,
-		tsh.image,
-		tsh.price,
-		tsh.quantity,
+		tshirtProduct.GetProduct().GetUuid(),
+		tshirtProduct.GetProduct().GetUserUuid(),
+		tshirtProduct.GetProduct().GetCategory().String(),
+		tshirtProduct.GetProduct().GetTitle(),
+		tshirtProduct.GetProduct().GetDescription(),
+		tshirtProduct.GetProduct().GetImage(),
+		tshirtProduct.GetProduct().GetPrice(),
+		tshirtProduct.GetProduct().GetQuantity(),
 	)
 	require.NoError(t, err)
 
-	// find updated TShirt and update title
-	err := repository.UpdateProduct(ctx, tsh.uuid, func(foundTSh *product.Product) (*product.Product, error) {
-		// UpdateHour provides us existing/new *hour.Hour,
-		// but we are ignoring this hour and persisting result of `CreateHour`
-		// we can assert this hour later in assertHourInRepository
+	updatedTShirtProduct := newUpdatedValidTShirtProductToProduct(
+		t,
+		tshirtProduct.GetProduct().GetUuid(),
+		tshirtProduct.GetProduct().GetUserUuid(),
+		tshirtProduct.GetProduct().GetTitle(),
+	)
 
-		// category is the same
-		foundTSh.title = "updated product"
-		foundTSh.description = "updated description"
-		foundTSh.image = "updated image"
-		foundTSh.price += 10
-		foundTSh.quantity += 5
-		return foundTSh, nil
+	// find updated TShirt and update title
+	err = repository.UpdateProduct(ctx, tshirtProduct.GetProduct().GetUuid(), func(_ *product.Product) (*product.Product, error) {
+		return updatedTShirtProduct, nil
 	})
 	require.NoError(t, err)
 
@@ -499,14 +496,9 @@ func testUpdateProduct_parallel(t *testing.T, repository hour.Repository) {
 
 			updatingProductTitle := false
 
-			err := repository.UpdateProduct(ctx, updatedTSh.uuid, func(updatedTSh *product.Product) (*product.Product, error) {
-				if err := updatedTSh.MakeProductNewTitle("updated again product"); err != nil {
-					return nil, err
-				}
+			err := repository.UpdateProduct(ctx, tshirtProduct.GetProduct().GetUuid(), func(_ *product.Product) (*product.Product, error) {
 
-				updatingProductTitle = true
-
-				return updatedTSh, nil
+				return updatedTShirtProduct, nil
 			})
 
 			if updatingProductTitle == true && err == nil {
@@ -531,64 +523,61 @@ func testUpdateProduct_parallel(t *testing.T, repository hour.Repository) {
 	assert.Len(t, workersUpdating, 1, "only one worker should update product title")
 }
 
-func testUpdateProduct_rollback(t *testing.T, repository hour.Repository) {
+func testUpdateProduct_rollback(t *testing.T, repository product.Repository) {
 	t.Helper()
 	ctx := context.Background()
 
 	// add a product into db to update
-	tsh := newValidTShirtProduct(t)
+	tshirtProduct := newValidTShirtProduct(t)
 
-	err = repository.AddProduct(
+	err := repository.AddProduct(
 		ctx,
-		tsh.uuid,
-		tsh.userUuid,
-		tsh.category,
-		tsh.title,
-		tsh.description,
-		tsh.image,
-		tsh.price,
-		tsh.quantity,
+		tshirtProduct.GetProduct().GetUuid(),
+		tshirtProduct.GetProduct().GetUserUuid(),
+		tshirtProduct.GetProduct().GetCategory().String(),
+		tshirtProduct.GetProduct().GetTitle(),
+		tshirtProduct.GetProduct().GetDescription(),
+		tshirtProduct.GetProduct().GetImage(),
+		tshirtProduct.GetProduct().GetPrice(),
+		tshirtProduct.GetProduct().GetQuantity(),
 	)
 	require.NoError(t, err)
 
-	// find updated TShirt and update title
-	err := repository.UpdateProduct(ctx, tsh.uuid, func(foundTSh *product.Product) (*product.Product, error) {
-		// UpdateHour provides us existing/new *hour.Hour,
-		// but we are ignoring this hour and persisting result of `CreateHour`
-		// we can assert this hour later in assertHourInRepository
+	updateValidTShirtProduct := newUpdatedValidTShirtProductToProduct(
+		t,
+		tshirtProduct.GetProduct().GetUuid(),
+		tshirtProduct.GetProduct().GetUserUuid(),
+		tshirtProduct.GetProduct().GetTitle(),
+	)
 
-		// category is the same
-		require.NoError(t, foundTSh.MakeNewProductTitle("updated product"))
-		require.NoError(t, foundTSh.MakeNewProductDescription("updated description"))
-		require.NoError(t, foundTSh.MakeNewProductImage("updated image"))
-		require.NoError(t, foundTSh.MakeNewProductPrice(20))
-		require.NoError(t, foundTSh.MakeNewProductQuantity(10))
-		return foundTSh, nil
+	// find added TShirt and update title
+	err = repository.UpdateProduct(ctx, tshirtProduct.GetProduct().GetUuid(), func(_ *product.Product) (*product.Product, error) {
+		return updateValidTShirtProduct, nil
 	})
+	require.NoError(t, err)
 
-	// find updated TShirt and update title
-	err := repository.UpdateProduct(ctx, tsh.uuid, func(foundTSh *product.Product) (*product.Product, error) {
-		// UpdateHour provides us existing/new *hour.Hour,
-		// but we are ignoring this hour and persisting result of `CreateHour`
-		// we can assert this hour later in assertHourInRepository
+	updatedInvalidTShirtProduct := newUpdatedInvalidTShirtProductToProduct(
+		t,
+		tshirtProduct.GetProduct().GetUuid(),
+		tshirtProduct.GetProduct().GetUserUuid(),
+		tshirtProduct.GetProduct().GetTitle(),
+	)
+	// find added TShirt and update title
+	err = repository.UpdateProduct(ctx, tshirtProduct.GetProduct().GetUuid(), func(_ *product.Product) (*product.Product, error) {
 
-		// category is the same
-		// updating product again to happen rollback
-		require.NoError(t, foundTSh.MakeNewProductTitle("updated again product"))
-		require.NoError(t, foundTSh.MakeNewProductDescription("updated description"))
-		require.NoError(t, foundTSh.MakeNewProductImage("updated image"))
-		require.NoError(t, foundTSh.MakeNewProductPrice(20))
-		require.NoError(t, foundTSh.MakeNewProductQuantity(10))
 		// forcing error to cancel update transaction
-		return foundTSh, errors.New("something went wrong")
+		return updatedInvalidTShirtProduct, errors.New("something went wrong")
 	})
 
 	require.Error(t, err)
 
-	persistedProduct, err := repository.GetProduct(ctx, tsh.GetUuid())
+	persistedProduct, err := repository.(*adapters.FirestoreProductsRepository).GetProduct(
+		ctx,
+		updatedInvalidTShirtProduct.GetUuid(),
+	)
 	require.NoError(t, err)
 
-	assert.Equal(t, persistedProduct.GetTitle(), "updated product", "product title change was persisted, not rolled back")
+	assert.Equal(t, persistedProduct.Title, "test product title updated", "product title change was persisted, not rolled back")
 }
 
 // testProductRepository_update_existing is testing path of creating a new product and updating this product.
@@ -597,42 +586,50 @@ func testProductRepository_update_existing(t *testing.T, repository product.Repo
 	ctx := context.Background()
 
 	// add a product into db to update
-	tsh := newValidTShirtProduct(t)
+	tshirtProduct := newValidTShirtProduct(t)
 
-	err = repository.AddProduct(
+	err := repository.AddProduct(
 		ctx,
-		tsh.uuid,
-		tsh.userUuid,
-		tsh.category,
-		tsh.title,
-		tsh.description,
-		tsh.image,
-		tsh.price,
-		tsh.quantity,
+		tshirtProduct.GetProduct().GetUuid(),
+		tshirtProduct.GetProduct().GetUserUuid(),
+		tshirtProduct.GetProduct().GetCategory().String(),
+		tshirtProduct.GetProduct().GetTitle(),
+		tshirtProduct.GetProduct().GetDescription(),
+		tshirtProduct.GetProduct().GetImage(),
+		tshirtProduct.GetProduct().GetPrice(),
+		tshirtProduct.GetProduct().GetQuantity(),
 	)
 	require.NoError(t, err)
 
+	updateValidTShirtProduct := newUpdatedValidTShirtProductToProduct(
+		t,
+		tshirtProduct.GetProduct().GetUuid(),
+		tshirtProduct.GetProduct().GetUserUuid(),
+		tshirtProduct.GetProduct().GetTitle(),
+	)
+
 	// find updated TShirt and update title
-	err := repository.UpdateProduct(ctx, tsh.uuid, func(_ *product.Product) (*product.Product, error) {
-		// UpdateHour provides us existing/new *hour.Hour,
-		// but we are ignoring this hour and persisting result of `CreateHour`
-		// we can assert this hour later in assertHourInRepository
-		return tsh, nil
+	err = repository.UpdateProduct(ctx, tshirtProduct.GetProduct().GetUuid(), func(_ *product.Product) (*product.Product, error) {
+
+		return updateValidTShirtProduct, nil
 	})
 	require.NoError(t, err)
-	assertProductInRepository(ctx, t, repository, tsh)
+	assertProductInRepository(ctx, t, repository, updateValidTShirtProduct)
+
+	updatedInvalidTShirtProduct := newUpdatedValidTShirtProductToProduct(
+		t,
+		tshirtProduct.GetProduct().GetUuid(),
+		tshirtProduct.GetProduct().GetUserUuid(),
+		"",
+	)
 
 	var expectedProduct *product.Product
 	// find updated TShirt and update title
-	err := repository.UpdateProduct(ctx, tsh.uuid, func(product *product.Product) (*product.Product, error) {
-		// UpdateHour provides us existing/new *hour.Hour,
-		// but we are ignoring this hour and persisting result of `CreateHour`
-		// we can assert this hour later in assertHourInRepository
-		product.MakeNewProductTitlte("updated again title")
+	err = repository.UpdateProduct(ctx, tshirtProduct.GetProduct().GetUuid(), func(_ *product.Product) (*product.Product, error) {
 
-		expectedProduct = product
+		expectedProduct = updatedInvalidTShirtProduct
 
-		return product, nil
+		return updatedInvalidTShirtProduct, nil
 	})
 	require.NoError(t, err)
 	assertProductInRepository(ctx, t, repository, expectedProduct)
@@ -644,12 +641,12 @@ func testRemoveProduct(t *testing.T, repository product.Repository) {
 
 	testCases := []struct {
 		Name               string
-		ProductConstructor func(*testing.T) *hour.Hour
+		ProductConstructor func(*testing.T) *product.Product
 	}{
 		{
 			Name: "tshirt_product",
 			ProductConstructor: func(t *testing.T) *product.Product {
-				return newValidTShirtProduct(t)
+				return newValidTShirtProductToProduct(t)
 			},
 		},
 		// {
@@ -669,32 +666,22 @@ func testRemoveProduct(t *testing.T, repository product.Repository) {
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			// add a product into db to update
-			tsh := tc.ProductConstructor(t)
+			tshirtProduct := newValidTShirtProduct(t)
 
-			err = repository.AddProduct(
+			err := repository.AddProduct(
 				ctx,
-				tsh.uuid,
-				tsh.userUuid,
-				tsh.category,
-				tsh.title,
-				tsh.description,
-				tsh.image,
-				tsh.price,
-				tsh.quantity,
+				tshirtProduct.GetProduct().GetUuid(),
+				tshirtProduct.GetProduct().GetUserUuid(),
+				tshirtProduct.GetProduct().GetCategory().String(),
+				tshirtProduct.GetProduct().GetTitle(),
+				tshirtProduct.GetProduct().GetDescription(),
+				tshirtProduct.GetProduct().GetImage(),
+				tshirtProduct.GetProduct().GetPrice(),
+				tshirtProduct.GetProduct().GetQuantity(),
 			)
 			require.NoError(t, err)
 
-			updatedTSh := tc.ProductConstructor(t)
-			updatedTSh.uuid = tsh.uuid
-			// userUuid is generated again
-			// category is the same
-			updatedTSh.title = "updated product"
-			updatedTSh.description = "updated description"
-			updatedTSh.image = "updated image"
-			updatedTSh.price += 10
-			updatedTSh.quantity += 5
-
-			err := repository.RemoveProduct(ctx, tsh.uuid)
+			err = repository.RemoveProduct(ctx, tshirtProduct.GetProduct().GetUuid())
 			require.NoError(t, err)
 
 		})
@@ -705,11 +692,12 @@ func testRemoveProduct(t *testing.T, repository product.Repository) {
 // in tests it's just simpler to re-use one instance of the factory
 var testProductFactory = product.MustNewFactory()
 
-func newFirebaseRepository(t *testing.T, ctx context.Context) *adapters.FirestoreHourRepository {
+func newFirebaseRepository(t *testing.T, ctx context.Context) *adapters.FirestoreProductsRepository {
+	t.Helper()
 	firestoreClient, err := firestore.NewClient(ctx, os.Getenv("GCP_PROJECT"))
 	require.NoError(t, err)
 
-	return adapters.NewFirestoreProductRepository(firestoreClient, testProductFactory)
+	return adapters.NewFirestoreProductsRepository(firestoreClient, testProductFactory)
 }
 
 // func newMySQLRepository(t *testing.T) *adapters.MySQLHourRepository {
@@ -720,37 +708,91 @@ func newFirebaseRepository(t *testing.T, ctx context.Context) *adapters.Firestor
 // }
 
 func newValidTShirtProductOfShopkeeper(t *testing.T, userUuid string) *product.TShirt {
-	p := newValidProduct()
 
-	tsh, err := testProductFactory.NewTShirtProduct(p.uuid, userUuid, p.title, p.description, p.image, p.price, p.quantity)
+	tshirtProduct, err := testProductFactory.NewTShirtProduct(
+		uuid.New().String(),
+		uuid.New().String(),
+		//category: "tshirt",
+		"test product",
+		"test description",
+		"test image",
+		10,
+		5,
+	)
 	require.NoError(t, err)
 
-	return tsh
+	return tshirtProduct.(*product.TShirt)
 }
 
 func newValidTShirtProduct(t *testing.T) *product.TShirt {
-	p := newValidProduct()
 
-	tsh, err := testProductFactory.NewTShirtProduct(p.uuid, p.userUuid, p.title, p.description, p.image, p.price, p.quantity)
+	tshirtProduct, err := testProductFactory.NewTShirtProduct(
+		uuid.New().String(),
+		uuid.New().String(),
+		//category: "tshirt",
+		"test product",
+		"test description",
+		"test image",
+		10,
+		5,
+	)
 	require.NoError(t, err)
 
-	return tsh
+	return tshirtProduct.(*product.TShirt)
 }
 
-func newValidProduct() product.Product {
-	return product.Product{
-		uuid:     uuid.New().String(),
-		userUuid: uuid.New().String(),
-		// category
-		title:       "test product",
-		description: "test description",
-		image:       "test image",
-		price:       10,
-		quantity:    5,
-	}
+func newValidTShirtProductToProduct(t *testing.T) *product.Product {
+
+	tshirtProduct, err := testProductFactory.NewTShirtProduct(
+		uuid.New().String(),
+		uuid.New().String(),
+		//category: "tshirt",
+		"test product",
+		"test description",
+		"test image",
+		10,
+		5,
+	)
+	require.NoError(t, err)
+
+	return tshirtProduct.(*product.TShirt).GetProduct()
 }
 
-func assertProductsEquals(t *testing.T, p1, p2 *product.Product) {
+func newUpdatedValidTShirtProductToProduct(t *testing.T, uuid, userUuid, title string) *product.Product {
+
+	tshirtProduct, err := testProductFactory.NewTShirtProduct(
+		uuid,
+		userUuid,
+		//category: "tshirt",
+		title,
+		"test description",
+		"test image",
+		10,
+		5,
+	)
+	require.NoError(t, err)
+
+	return tshirtProduct.(*product.TShirt).GetProduct()
+}
+
+func newUpdatedInvalidTShirtProductToProduct(t *testing.T, uuid, userUuid, title string) *product.Product {
+
+	tsh, err := testProductFactory.NewTShirtProduct(
+		uuid,
+		userUuid,
+		//category: "tshirt",
+		title,
+		"test description",
+		"test image",
+		10,
+		5,
+	)
+	require.NoError(t, err)
+
+	return tsh.GetProduct()
+}
+
+func assertProductEquals(t *testing.T, p1, p2 *query.Product) {
 	t.Helper()
 	cmpOpts := []cmp.Option{
 		cmp.AllowUnexported(
@@ -766,22 +808,49 @@ func assertProductsEquals(t *testing.T, p1, p2 *product.Product) {
 }
 
 func assertProductInRepository(ctx context.Context, t *testing.T, repository product.Repository, product *product.Product) {
-	require.NotNil(t, productUuid)
+	require.NotNil(t, product.GetUuid())
 
-	productFromRepo, err := repository.GetProduct(ctx, product.productUuid)
+	productFromRepo, err := repository.(*adapters.FirestoreProductsRepository).GetProduct(ctx, product.GetUuid())
 	require.NoError(t, err)
 
 	assert.Equal(t, product, productFromRepo)
 }
 
-func assertPersistedProductEquals(t *testing.T, repository adapters.FirestoreProductRepository, p *product.Product) {
+func productDomainToProductQuery(p *product.Product) *query.Product {
+
+	return &query.Product{
+		Uuid:        p.GetUuid(),
+		UserUuid:    p.GetUserUuid(),
+		Category:    p.GetCategory().String(),
+		Title:       p.GetTitle(),
+		Description: p.GetDescription(),
+		Image:       p.GetImage(),
+		Price:       p.GetPrice(),
+		Quantity:    p.GetQuantity(),
+	}
+}
+
+func assertPersistedProductEquals(t *testing.T, repository *adapters.FirestoreProductsRepository, p *product.Product) {
 	t.Helper()
 	persistedProduct, err := repository.GetProduct(
 		context.Background(),
-		p.UUID(),
-		p.MustNewFactory(p.category.String()),
+		p.GetUuid(),
 	)
 	require.NoError(t, err)
 
-	assertTrainingsEquals(t, tr, persistedTraining)
+	assertProductEquals(
+		t,
+		productDomainToProductQuery(p),
+		persistedProduct,
+	)
+}
+
+func assertQueryProductsEquals(t *testing.T, expectedProducts, products []query.Product) bool {
+	t.Helper()
+
+	return assert.True(
+		t,
+		cmp.Equal(expectedProducts, products),
+		cmp.Diff(expectedProducts, products),
+	)
 }

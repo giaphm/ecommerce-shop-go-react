@@ -23,7 +23,7 @@ func NewApplication(ctx context.Context) app.Application {
 		panic(err)
 	}
 
-	productRepository := adapters.NewFirestoreProductRepository(firestoreClient, productFactory)
+	productRepository := adapters.NewFirestoreProductsRepository(firestoreClient, productFactory)
 
 	return app.Application{
 		Commands: app.Commands{
