@@ -307,6 +307,8 @@ func (f FirestoreProductsRepository) RemoveAllProducts(ctx context.Context) erro
 		batch := f.firestoreClient.Batch()
 		for {
 			doc, err := iter.Next()
+			// fmt.Println("doc", doc)
+			// fmt.Println("err", err)
 			if err == iterator.Done {
 				break
 			}

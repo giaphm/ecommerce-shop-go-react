@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"cloud.google.com/go/firestore"
@@ -14,6 +15,8 @@ import (
 
 func NewApplication(ctx context.Context) app.Application {
 	firestoreClient, err := firestore.NewClient(ctx, os.Getenv("GCP_PROJECT"))
+	fmt.Println("firestoreClient", firestoreClient)
+	fmt.Println("firestoreClient.Collection(\"products\")", firestoreClient.Collection("products"))
 	if err != nil {
 		panic(err)
 	}

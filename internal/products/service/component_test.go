@@ -2,19 +2,18 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"testing"
-	"time"
 
-	productsHTTP "github.com/giaphm/ecommerce-shop-go-react/internal/common/client/products"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/genproto/products"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/server"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/common/tests"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/products/domain/product"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/products/ports"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
@@ -23,111 +22,81 @@ import (
 func TestTShirtProducts(t *testing.T) {
 	t.Parallel()
 
-	token := tests.FakeTrainerJWT(t, uuid.New().String())
-	client := tests.NewProductHTTPClient(t, token)
-
-	tsh := product.TShirt{
-		product: Product{
-			uuid:        uuid.New().String(),
-			userUuid:    uuid.New().String(),
-			category:    product.TShirtCategory,
-			title:       "title",
-			description: "description",
-			image:       "image",
-			price:       10.5,
-			quantity:    5,
-		},
-	}
+	token := tests.FakeShopkeeperJWT(t, "0")
+	client := tests.NewProductsHTTPClient(t, token)
 
 	// test addProduct
 	productUuid := client.AddProduct(
 		t,
-		tsh.category.String(),
-		tsh.title,
-		tsh.description,
-		tsh.image,
-		tsh.price,
-		tsh.quantity,
+		product.TShirtCategory.String(),
+		"title tshirt-1",
+		"description tshirt-1",
+		"image tshirt-1",
+		float32(10.5),
+		5,
 	)
 
 	// test getProduct
 	productResponse := client.GetProduct(t, productUuid)
-	require.Equal(t, productResponse.Product.Uuid, productUuid)
+	fmt.Println("productResponse", productResponse)
+	require.Equal(t, productResponse.Uuid, productUuid)
 
 	// test getProducts
 	productsResponse := client.GetProducts(t)
+	fmt.Println("productsResponse", productsResponse)
 
 	var productUuids []string
 
-	for _, t := range productResponse.Products {
-		productUuids = append(productsUuids, t.Uuid)
+	for _, p := range productsResponse {
+		productUuids = append(productUuids, p.Uuid)
 	}
 	require.Contains(t, productUuids, productUuid)
 
 	// test getShopkeeperProducts
-	shopkeeperProductsResponse := client.GetShopkeeperProduct(t)
-	expectedShopkeeperProductUuid := productResponse.Product.UserUuid
+	shopkeeperProductsResponse := client.GetShopkeeperProducts(t)
+	fmt.Println("shopkeeperProductsResponse", shopkeeperProductsResponse)
+	expectedShopkeeperProductUuid := productResponse.UserUuid
 
-	var shopkeeperProductUuids []string
-
-	for _, t := range shopkeeperProductsResponse.Products {
-		require.Equal(t, t.UserUuid, expectedShopkeeperProductUuid)
-	}
-
-	updatedTShirtProduct := product.Product{
-		uuid:        productUuid,
-		category:    product.TShirtCategory,
-		title:       "updated title",
-		description: "updated description",
-		image:       "updated image",
-		price:       15.5,
-		quantity:    10,
+	for _, shp := range shopkeeperProductsResponse {
+		require.Equal(t, shp.UserUuid, expectedShopkeeperProductUuid)
 	}
 
 	// test updateProduct
-	code := client.UpdateProduct(
+	statusCode := client.UpdateProduct(
 		t,
-		updatedTShirtProduct.uuid,
-		updatedTShirtProduct.category.String(),
-		updatedTShirtProduct.title,
-		updatedTShirtProduct.description,
-		updatedTShirtProduct.image,
-		updatedTShirtProduct.price,
-		updatedTShirtProduct.quantity,
+		productResponse.Uuid,
+		productResponse.UserUuid,
+		productResponse.Category,
+		"updated title",
+		productResponse.Description,
+		productResponse.Image,
+		productResponse.Price,
+		productResponse.Quantity,
 	)
-	require.Equal(t, http.StatusNoContent, code)
+	require.Equal(t, http.StatusNoContent, statusCode)
 
 	// test deleteProduct
-	code := client.DeleteProduct(t, productUuid)
-	require.Equal(t, http.StatusNoContent, code)
+	statusCode = client.DeleteProduct(t, productUuid)
+	require.Equal(t, http.StatusNoContent, statusCode)
 }
 
 func TestUnauthorizedForUser(t *testing.T) {
 	t.Parallel()
 
 	token := tests.FakeUserJWT(t, uuid.New().String())
-	client := tests.NewTrainerHTTPClient(t, token)
-
-	updatedTShirtProduct := product.Product{
-		uuid:        uuid.New().String(),
-		category:    product.TShirtCategory,
-		title:       "updated title",
-		description: "updated description",
-		image:       "updated image",
-		price:       15.5,
-		quantity:    10,
-	}
+	client := tests.NewProductsHTTPClient(t, token)
 
 	// test updateProduct
 	code := client.UpdateProduct(
 		t,
-		updatedTShirtProduct.uuid,
-		updatedTShirtProduct.category.String(),
-		updatedTShirtProduct.title,
-		updatedTShirtProduct.description,
-		updatedTShirtProduct.image,
-		updatedTShirtProduct.price,
-		updatedTShirtProduct.quantity,
+		uuid.New().String(),
+		uuid.New().String(),
+		product.TShirtCategory.String(),
+		"updated title",
+		"updated description",
+		"updated image",
+		15.5,
+		10,
 	)
 
 	require.Equal(t, http.StatusUnauthorized, code)
@@ -135,27 +104,30 @@ func TestUnauthorizedForUser(t *testing.T) {
 
 func startService() bool {
 	app := NewApplication(context.Background())
+	fmt.Println("os.Getenv(\"FIRESTORE_EMULATOR_HOST\")", os.Getenv("FIRESTORE_EMULATOR_HOST"))
 
-	trainerHTTPAddr := os.Getenv("TRAINER_HTTP_ADDR")
-	go server.RunHTTPServerOnAddr(trainerHTTPAddr, func(router chi.Router) http.Handler {
+	productsHTTPAddr := os.Getenv("PRODUCTS_HTTP_ADDR")
+	fmt.Println("productsHTTPAddr", productsHTTPAddr)
+	go server.RunHTTPServerOnAddr(productsHTTPAddr, func(router chi.Router) http.Handler {
 		return ports.HandlerFromMux(ports.NewHttpServer(app), router)
 	})
 
-	trainerGrpcAddr := os.Getenv("TRAINER_GRPC_ADDR")
-	go server.RunGRPCServerOnAddr(trainerGrpcAddr, func(server *grpc.Server) {
+	productsGrpcAddr := os.Getenv("PRODUCTS_GRPC_ADDR")
+	fmt.Println("productsGrpcAddr", productsGrpcAddr)
+	go server.RunGRPCServerOnAddr(productsGrpcAddr, func(server *grpc.Server) {
 		svc := ports.NewGrpcServer(app)
-		trainer.RegisterTrainerServiceServer(server, svc)
+		products.RegisterProductsServiceServer(server, svc)
 	})
 
-	ok := tests.WaitForPort(trainerHTTPAddr)
+	ok := tests.WaitForPort(productsHTTPAddr)
 	if !ok {
-		log.Println("Timed out waiting for trainer HTTP to come up")
+		log.Println("Timed out waiting for products HTTP to come up")
 		return false
 	}
 
-	ok = tests.WaitForPort(trainerGrpcAddr)
+	ok = tests.WaitForPort(productsGrpcAddr)
 	if !ok {
-		log.Println("Timed out waiting for trainer gRPC to come up")
+		log.Println("Timed out waiting for products gRPC to come up")
 	}
 
 	return ok
@@ -163,7 +135,7 @@ func startService() bool {
 
 func TestMain(m *testing.M) {
 	if !startService() {
-		log.Println("Timed out waiting for trainings HTTP to come up")
+		log.Println("Timed out waiting for products HTTP to come up")
 		os.Exit(1)
 	}
 

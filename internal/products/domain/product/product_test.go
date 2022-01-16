@@ -28,7 +28,7 @@ func TestNewTShirtProduct(t *testing.T) {
 	assert.Equal(t, description, tsh.GetProduct().GetDescription())
 	assert.Equal(t, image, tsh.GetProduct().GetImage())
 	assert.Equal(t, price, tsh.GetProduct().GetPrice())
-	assert.Equal(t, quantity, tsh.GetProduct().GetQuantity())
+	assert.Equal(t, quantity, int64(tsh.GetProduct().GetQuantity()))
 }
 
 func TestNewTShirtProduct_empty_name(t *testing.T) {
@@ -112,14 +112,23 @@ func TestNewTShirtProduct_invalid_quantity_negative(t *testing.T) {
 func TestUnmarshalTShirtProductFromDatabase(t *testing.T) {
 	productUuid := uuid.New().String()
 	userUuid := uuid.New().String()
-	title := "tshirt-1"
 	category := "tshirt"
+	title := "tshirt-1"
 	description := "This is a new item of our shop."
 	image := ""
 	var price float32 = 10.1
 	var quantity int64 = -5
 
-	tsh, err := testProductFactory.UnmarshalTShirtProductFromDatabase(productUuid, userUuid, title, category, description, image, price, int(quantity))
+	tsh, err := testProductFactory.UnmarshalTShirtProductFromDatabase(
+		productUuid,
+		userUuid,
+		category,
+		title,
+		description,
+		image,
+		price,
+		int(quantity),
+	)
 	require.NoError(t, err)
 
 	assert.Equal(t, product.TShirtCategory, tsh.GetProduct().GetCategory())
@@ -127,5 +136,5 @@ func TestUnmarshalTShirtProductFromDatabase(t *testing.T) {
 	assert.Equal(t, description, tsh.GetProduct().GetDescription())
 	assert.Equal(t, image, tsh.GetProduct().GetImage())
 	assert.Equal(t, price, tsh.GetProduct().GetPrice())
-	assert.Equal(t, quantity, tsh.GetProduct().GetQuantity())
+	assert.Equal(t, quantity, int64(tsh.GetProduct().GetQuantity()))
 }

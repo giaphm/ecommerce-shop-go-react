@@ -22,6 +22,7 @@ func RunGRPCServer(registerServer func(server *grpc.Server)) {
 }
 
 func RunGRPCServerOnAddr(addr string, registerServer func(server *grpc.Server)) {
+	fmt.Println("addr on RunGRPCServerOnAddr", addr)
 	logrusEntry := logrus.NewEntry(logrus.StandardLogger())
 	grpc_logrus.ReplaceGrpcLogger(logrusEntry)
 

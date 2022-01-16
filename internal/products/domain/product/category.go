@@ -26,7 +26,7 @@ func NewCategoryFromString(categoryString string) (Category, error) {
 			return category, nil
 		}
 	}
-	return Category{}, errors.Errorf("Category %s is not defined, please define this category before using", categoryString)
+	return Category{}, errors.Errorf("category %s is not defined, please define this category before using", categoryString)
 }
 
 func (c Category) IsZero() bool {

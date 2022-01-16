@@ -188,6 +188,7 @@ func NewProductsHTTPClient(t *testing.T, token string) ProductsHTTPClient {
 	require.True(t, ok, "Products HTTP timed out")
 
 	url := fmt.Sprintf("http://%v/api", addr)
+	fmt.Println("url", url)
 
 	client, err := products.NewClientWithResponses(
 		url,
@@ -235,6 +236,13 @@ func (c ProductsHTTPClient) AddProduct(
 	quantity int,
 ) string {
 
+	fmt.Println("category", category)
+	fmt.Println("title", title)
+	fmt.Println("description", description)
+	fmt.Println("image", image)
+	fmt.Println("price", price)
+	fmt.Println("quantity", quantity)
+
 	response, err := c.client.AddProductWithResponse(context.Background(), products.AddProductJSONRequestBody{
 		Category:    category,
 		Title:       title,
@@ -243,6 +251,9 @@ func (c ProductsHTTPClient) AddProduct(
 		Price:       price,
 		Quantity:    quantity,
 	})
+	fmt.Println("response.JSON201 AddProduct", response.JSON201)
+	fmt.Println("response.StatusCode() AddProduct", response.StatusCode())
+	fmt.Println("err", err)
 
 	require.NoError(t, err)
 
