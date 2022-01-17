@@ -182,16 +182,17 @@ func (f FirestoreProductsRepository) UpdateProduct(
 		productDocRef := f.documentRef(productUuid)
 
 		// get all orders that have the product uuid
-		productModel, err := f.getProductDTO(
-			// getDateDTO should be used both for transactional and non transactional query,
-			// the best way for that is to use closure
-			func() (doc *firestore.DocumentSnapshot, err error) {
-				return transaction.Get(productDocRef)
-			},
-			productUuid,
-		)
+		productSnapshot, err := transaction.Get(productDocRef)
 		if err != nil {
+			fmt.Println("err in UpdateProduct", err)
 			return err
+		}
+
+		fmt.Println("productSnapshot in UpdateProduct", productSnapshot)
+
+		var productModel *ProductModel = &ProductModel{}
+		if err := productSnapshot.DataTo(productModel); err != nil {
+			return nil, errors.Wrap(err, "unable to unmarshal product.Product from Firestore")
 		}
 
 		productQuery := f.productModelToProductQuery(productModel)
