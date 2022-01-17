@@ -178,23 +178,20 @@ func (f FirestoreProductsRepository) UpdateProduct(
 	productUuid string,
 	updateFn func(p *product.Product) (*product.Product, error),
 ) error {
-
-	productDocRef := f.documentRef(productUuid)
-
 	err := f.firestoreClient.RunTransaction(ctx, func(ctx context.Context, transaction *firestore.Transaction) error {
+		productDocRef := f.documentRef(productUuid)
 
 		// get all orders that have the product uuid
-		productSnapshot, err := transaction.Get(productDocRef)
+		productModel, err := f.getProductDTO(
+			// getDateDTO should be used both for transactional and non transactional query,
+			// the best way for that is to use closure
+			func() (doc *firestore.DocumentSnapshot, err error) {
+				return transaction.Get(productDocRef)
+			},
+			productUuid,
+		)
 		if err != nil {
-			fmt.Println("err in UpdateProduct", err)
 			return err
-		}
-
-		fmt.Println("productSnapshot in UpdateProduct", productSnapshot)
-
-		var productModel *ProductModel = &ProductModel{}
-		if err := productSnapshot.DataTo(productModel); err != nil {
-			return errors.Wrap(err, "unable to unmarshal product.Product from Firestore")
 		}
 
 		productQuery := f.productModelToProductQuery(productModel)
@@ -282,7 +279,7 @@ func (f FirestoreProductsRepository) getProductDTO(
 	fmt.Println("productSnapshot", productSnapshot)
 	fmt.Println("err", err)
 	if status.Code(err) == codes.NotFound {
-		return nil, errors.New("Product is not found")
+		return NewEmptyProductDTO(productUuid), nil
 	}
 	if err != nil {
 		return nil, err
@@ -296,11 +293,11 @@ func (f FirestoreProductsRepository) getProductDTO(
 	return productModel, nil
 }
 
-// func NewEmptyProductDTO(productUuid string) product.Product {
-// 	return product.Product{
-// 		productUuid: productUuid,
-// 	}
-// }
+func NewEmptyProductDTO(productUuid string) *ProductModel {
+	return &ProductModel{
+		Uuid: productUuid,
+	}
+}
 
 // warning: RemoveAllProducts was designed for tests for doing data cleanups
 func (f FirestoreProductsRepository) RemoveAllProducts(ctx context.Context) error {
