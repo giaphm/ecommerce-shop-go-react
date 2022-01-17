@@ -157,7 +157,7 @@ steps:
   waitFor: [e2e-tests]
 
 - id: web-deps
-  name: node:12.16.2
+  name: node:12.22.0
   entrypoint: yarn
   args: [install]
   dir: web
@@ -167,7 +167,7 @@ steps:
   entrypoint: "./scripts/openapi-js.sh"
   waitFor: ['-']
 - id: web-build
-  name: node:12.16.2
+  name: node:12.22.0
   entrypoint: yarn
   args: [build]
   dir: web
@@ -183,8 +183,6 @@ options:
   machineType: 'N1_HIGHCPU_8'
 
 images:
-# - 'gcr.io/$PROJECT_ID/trainer'
-# - 'gcr.io/$PROJECT_ID/trainings'
 - 'gcr.io/$PROJECT_ID/checkouts'
 - 'gcr.io/$PROJECT_ID/orders'
 - 'gcr.io/$PROJECT_ID/products'
