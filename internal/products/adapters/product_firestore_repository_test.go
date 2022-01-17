@@ -48,6 +48,7 @@ func TestGetProductNotExists(t *testing.T) {
 		context.Background(),
 		productUuid,
 	)
+	require.NoError(t, err)
 
 	emptyProductModel := adapters.NewEmptyProductDTO(productUuid)
 

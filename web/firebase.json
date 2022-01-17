@@ -1,11 +1,12 @@
 {
   "hosting": {
-    "public": "dist",
-    "ignore": [
-      "__/**",
-      "**/.*"
-    ],
+    "public": "public",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
+      {
+        "source": "**",
+        "function": "nextjsFunc"
+      },
       {
         "source": "/api/checkouts{,/**}",
         "run": {
@@ -33,11 +34,15 @@
           "serviceId": "users-http",
           "region": "asia-southeast1"
         }
-      },
-      {
-        "source": "**",
-        "destination": "/index.html"
       }
     ]
+  },
+  "functions": {
+    "source": ".",
+    "predeploy": [
+      "npm --prefix \"$PROJECT_DIR\" install",
+      "npm --prefix \"$PROJECT_DIR\" run build"
+    ],
+    "runtime": "nodejs14"
   }
 }
