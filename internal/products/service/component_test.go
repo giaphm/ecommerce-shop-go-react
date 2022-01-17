@@ -64,7 +64,7 @@ func TestTShirtProducts(t *testing.T) {
 	// test updateProduct
 	statusCode := client.UpdateProduct(
 		t,
-		productResponse.Uuid,
+		productUuid,
 		productResponse.UserUuid,
 		productResponse.Category,
 		"updated title",
