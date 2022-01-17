@@ -414,7 +414,6 @@ func (f FirestoreProductsRepository) tshirtProductModelToTShirtProductDomain(pm 
 	return f.productFactory.UnmarshalTShirtProductFromDatabase(
 		pm.Uuid,
 		pm.UserUuid,
-		pm.Category,
 		pm.Title,
 		pm.Description,
 		pm.Image,
