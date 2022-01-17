@@ -42,18 +42,18 @@ func TestGetProductNotExists(t *testing.T) {
 	fmt.Println("err", err)
 	require.NoError(t, err)
 
-	productUUID := uuid.New().String()
+	productUuid := uuid.New().String()
 
 	p, err := repository.GetProduct(
 		context.Background(),
-		productUUID,
+		productUuid,
 	)
 
 	emptyProductModel := adapters.NewEmptyProductDTO(productUuid)
 
 	emptyProductQueryModel := productModelToProductQuery(emptyProductModel)
 
-	assertQueryProductEquals(p, emptyProductQueryModel)
+	assertQueryProductEquals(t, p, emptyProductQueryModel)
 	fmt.Println("-----------------Done this fucking testGetProductNotExists unit tests")
 }
 
