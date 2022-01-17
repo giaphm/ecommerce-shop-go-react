@@ -1,4 +1,8 @@
-import firebase from "firebase/auth";
+import { 
+    getAuth,
+    signInWithEmailAndPassword,
+    onAuthStateChanged,
+} from "firebase/auth";
 import {sign} from "jsonwebtoken";
 
 import { usersClient } from "./users";
@@ -8,13 +12,12 @@ import {productsClient} from "./products";
 
 class FirebaseAuth {
     login(user) {
-        return firebase.signInWithEmailAndPassword(firebase.getAuth(), user.email, user.password)
+        return signInWithEmailAndPassword(getAuth(), user.email, user.password)
     }
 
     waitForAuthReady() {
         return new Promise((resolve) => {
-            firebase
-                .onAuthStateChanged(firebase.getAuth(), function () {
+            onAuthStateChanged(getAuth(), function () {
                     resolve()
                 });
         })
@@ -22,7 +25,7 @@ class FirebaseAuth {
 
     getJwtToken(required) {
         return new Promise((resolve, reject) => {
-            if (!firebase.getAuth().currentUser) {
+            if (!getAuth().currentUser) {
                 if (required) {
                     reject('no user found')
                 } else {
@@ -31,7 +34,7 @@ class FirebaseAuth {
                 return
             }
 
-            firebase.getAuth().currentUser.getIdToken(false)
+            getAuth().currentUser.getIdToken(false)
                 .then(function (idToken) {
                     resolve(idToken)
                 })
@@ -42,27 +45,27 @@ class FirebaseAuth {
     }
 
     currentUser() {
-        if (!firebase.getAuth().currentUser) {
+        if (!getAuth().currentUser) {
             return null
         }
 
-        return firebase.getAuth().currentUser
+        return getAuth().currentUser
     }
 
     logout() {
         return new Promise(resolve => {
-            if (!firebase.getAuth().currentUser) {
+            if (!getAuth().currentUser) {
                 resolve()
                 return
             }
 
-            return firebase.getAuth().signOut()
+            return getAuth().signOut()
         })
     }
 
 
     isLoggedIn() {
-        return firebase.getAuth().currentUser != null
+        return getAuth().currentUser != null
     }
 }
 
