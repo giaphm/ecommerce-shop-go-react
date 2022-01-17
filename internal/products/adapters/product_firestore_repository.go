@@ -183,20 +183,21 @@ func (f FirestoreProductsRepository) UpdateProduct(
 		productDocRef := f.documentRef(productUuid)
 
 		// get all orders that have the product uuid
-		productModel, err := f.getProductDTO(
+		productModel, err := f.getProductWithCategoryDTO(
 			// getDateDTO should be used both for transactional and non transactional query,
 			// the best way for that is to use closure
 			func() (doc *firestore.DocumentSnapshot, err error) {
 				return transaction.Get(productDocRef)
 			},
 			productUuid,
+			categoryString,
 		)
 		if err != nil {
 			return err
 		}
 
 		productQuery := f.productModelToProductQuery(productModel)
-		fmt.Println("productQuery", productQuery)
+		fmt.Println("*productQuery", *productQuery)
 
 		// get new product factory (for tshirt)
 		f.productFactory, err = f.productFactory.GetProductsFactory(categoryString)
@@ -299,6 +300,38 @@ func (f FirestoreProductsRepository) getProductDTO(
 func NewEmptyProductDTO(productUuid string) *ProductModel {
 	return &ProductModel{
 		Uuid: productUuid,
+	}
+}
+
+func (f FirestoreProductsRepository) getProductWithCategoryDTO(
+	getDocumentFn func() (doc *firestore.DocumentSnapshot, err error),
+	productUuid string,
+	categoryString string,
+) (*ProductModel, error) {
+
+	productSnapshot, err := getDocumentFn()
+	fmt.Println("productSnapshot", productSnapshot)
+	fmt.Println("err", err)
+	if status.Code(err) == codes.NotFound {
+		// in reality this date exists, even if it's not persisted, somehow ??
+		return NewEmptyProductWithCategoryDTO(productUuid, categoryString), nil
+	}
+	if err != nil {
+		return &ProductModel{}, err
+	}
+
+	var productModel *ProductModel = &ProductModel{}
+	if err := productSnapshot.DataTo(productModel); err != nil {
+		return nil, errors.Wrap(err, "unable to unmarshal product.Product from Firestore")
+	}
+
+	return productModel, nil
+}
+
+func NewEmptyProductWithCategoryDTO(productUuid string, categoryString string) *ProductModel {
+	return &ProductModel{
+		Uuid:     productUuid,
+		Category: categoryString,
 	}
 }
 
