@@ -276,6 +276,8 @@ func (f FirestoreProductsRepository) getProductDTO(
 ) (*ProductModel, error) {
 
 	productSnapshot, err := getDocumentFn()
+	fmt.Println("productSnapshot", productSnapshot)
+	fmt.Println("err", err)
 	if status.Code(err) == codes.NotFound {
 		return nil, errors.New("Product is not found")
 	}
