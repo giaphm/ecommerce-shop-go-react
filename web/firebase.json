@@ -1,0 +1,43 @@
+{
+  "hosting": {
+    "public": "dist",
+    "ignore": [
+      "__/**",
+      "**/.*"
+    ],
+    "rewrites": [
+      {
+        "source": "/api/checkouts{,/**}",
+        "run": {
+          "serviceId": "checkouts-http",
+          "region": "asia-southeast1"
+        }
+      },
+      {
+        "source": "/api/orders{,/**}",
+        "run": {
+          "serviceId": "orders-http",
+          "region": "asia-southeast1"
+        }
+      },
+      {
+        "source": "/api/products{,/**}",
+        "run": {
+          "serviceId": "products-http",
+          "region": "asia-southeast1"
+        }
+      },
+      {
+        "source": "/api/users{,/**}",
+        "run": {
+          "serviceId": "users-http",
+          "region": "asia-southeast1"
+        }
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
