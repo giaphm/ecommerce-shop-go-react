@@ -171,7 +171,7 @@ func testUpdateProduct(t *testing.T, repository product.Repository) {
 			t.Log("updatedTShirtProduct", updatedTShirtProduct)
 			t.Log("updatedTShirtProduct.GetUuid()", updatedTShirtProduct.GetUuid())
 
-			err = repository.UpdateProduct(ctx, p.GetUuid(), func(_ *product.Product) (*product.Product, error) {
+			err = repository.UpdateProduct(ctx, p.GetUuid(), p.GetCategory().String(), func(_ *product.Product) (*product.Product, error) {
 				// not need the found product
 				return updatedTShirtProduct, nil
 			})
@@ -225,9 +225,13 @@ func testUpdateProduct_parallel(t *testing.T, repository product.Repository) {
 	)
 
 	// find updated TShirt and update title
-	err = repository.UpdateProduct(ctx, tshirtProduct.GetProduct().GetUuid(), func(_ *product.Product) (*product.Product, error) {
-		return updatedTShirtProduct, nil
-	})
+	err = repository.UpdateProduct(
+		ctx,
+		tshirtProduct.GetProduct().GetUuid(),
+		tshirtProduct.GetProduct().GetCategory().String(),
+		func(_ *product.Product) (*product.Product, error) {
+			return updatedTShirtProduct, nil
+		})
 	require.NoError(t, err)
 
 	workersCount := 20
@@ -250,10 +254,14 @@ func testUpdateProduct_parallel(t *testing.T, repository product.Repository) {
 
 			updatingProductTitle := false
 
-			err := repository.UpdateProduct(ctx, tshirtProduct.GetProduct().GetUuid(), func(_ *product.Product) (*product.Product, error) {
+			err := repository.UpdateProduct(
+				ctx,
+				tshirtProduct.GetProduct().GetUuid(),
+				tshirtProduct.GetProduct().GetCategory().String(),
+				func(_ *product.Product) (*product.Product, error) {
 
-				return updatedTShirtProduct, nil
-			})
+					return updatedTShirtProduct, nil
+				})
 
 			if updatingProductTitle == true && err == nil {
 				// training is only scheduled if UpdateHour didn't return an error
@@ -312,6 +320,7 @@ func testUpdateProduct_rollback(t *testing.T, repository product.Repository) {
 	err = repository.UpdateProduct(
 		ctx,
 		tshirtProduct.GetProduct().GetUuid(),
+		tshirtProduct.GetProduct().GetCategory().String(),
 		func(_ *product.Product) (*product.Product, error) {
 			return updateValidTShirtProduct, nil
 		},
@@ -328,6 +337,7 @@ func testUpdateProduct_rollback(t *testing.T, repository product.Repository) {
 	err = repository.UpdateProduct(
 		ctx,
 		tshirtProduct.GetProduct().GetUuid(),
+		tshirtProduct.GetProduct().GetCategory().String(),
 		func(_ *product.Product) (*product.Product, error) {
 			// forcing error to cancel update transaction
 			return updatedInvalidTShirtProduct, errors.New("something went wrong")
@@ -374,10 +384,14 @@ func testProductRepository_update_existing(t *testing.T, repository product.Repo
 	)
 
 	// find updated TShirt and update title
-	err = repository.UpdateProduct(ctx, tshirtProduct.GetProduct().GetUuid(), func(_ *product.Product) (*product.Product, error) {
+	err = repository.UpdateProduct(
+		ctx,
+		tshirtProduct.GetProduct().GetUuid(),
+		tshirtProduct.GetProduct().GetCategory().String(),
+		func(_ *product.Product) (*product.Product, error) {
 
-		return updateValidTShirtProduct, nil
-	})
+			return updateValidTShirtProduct, nil
+		})
 	require.NoError(t, err)
 
 	updateValidTShirtProductQueryModel := &query.Product{
@@ -401,12 +415,16 @@ func testProductRepository_update_existing(t *testing.T, repository product.Repo
 
 	var expectedProduct *product.Product
 	// find updated TShirt and update title
-	err = repository.UpdateProduct(ctx, tshirtProduct.GetProduct().GetUuid(), func(_ *product.Product) (*product.Product, error) {
+	err = repository.UpdateProduct(
+		ctx,
+		tshirtProduct.GetProduct().GetUuid(),
+		tshirtProduct.GetProduct().GetCategory().String(),
+		func(_ *product.Product) (*product.Product, error) {
 
-		expectedProduct = updatedInvalidTShirtProduct
+			expectedProduct = updatedInvalidTShirtProduct
 
-		return updatedInvalidTShirtProduct, nil
-	})
+			return updatedInvalidTShirtProduct, nil
+		})
 	require.NoError(t, err)
 
 	expectedProductQueryModel := &query.Product{

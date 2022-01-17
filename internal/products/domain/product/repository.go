@@ -21,6 +21,7 @@ type Repository interface {
 	UpdateProduct(
 		ctx context.Context,
 		productUuid string,
+		categoryString string,
 		updateFn func(p *Product) (*Product, error),
 	) error
 	RemoveProduct(ctx context.Context, productUuid string) error

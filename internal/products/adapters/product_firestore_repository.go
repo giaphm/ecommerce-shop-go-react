@@ -176,6 +176,7 @@ func (f FirestoreProductsRepository) AddProduct(
 func (f FirestoreProductsRepository) UpdateProduct(
 	ctx context.Context,
 	productUuid string,
+	categoryString string,
 	updateFn func(p *product.Product) (*product.Product, error),
 ) error {
 	err := f.firestoreClient.RunTransaction(ctx, func(ctx context.Context, transaction *firestore.Transaction) error {
@@ -195,14 +196,15 @@ func (f FirestoreProductsRepository) UpdateProduct(
 		}
 
 		productQuery := f.productModelToProductQuery(productModel)
+		fmt.Println("productQuery", productQuery)
 
 		// get new product factory (for tshirt)
-		f.productFactory, err = f.productFactory.GetProductsFactory(productQuery.Category)
+		f.productFactory, err = f.productFactory.GetProductsFactory(categoryString)
 		if err != nil {
 			return err
 		}
 
-		switch productQuery.Category {
+		switch categoryString {
 		case product.TShirtCategory.String():
 			{
 				// unmarshal found productModel into tshirt product domain
@@ -279,10 +281,11 @@ func (f FirestoreProductsRepository) getProductDTO(
 	fmt.Println("productSnapshot", productSnapshot)
 	fmt.Println("err", err)
 	if status.Code(err) == codes.NotFound {
+		// in reality this date exists, even if it's not persisted, somehow ??
 		return NewEmptyProductDTO(productUuid), nil
 	}
 	if err != nil {
-		return nil, err
+		return &ProductModel{}, err
 	}
 
 	var productModel *ProductModel = &ProductModel{}

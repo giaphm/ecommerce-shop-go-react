@@ -31,7 +31,7 @@ func NewUpdateProductHandler(productRepo product.Repository) UpdateProductHandle
 }
 
 func (h UpdateProductHandler) Handle(ctx context.Context, cmd UpdateProduct) error {
-	if err := h.productRepo.UpdateProduct(ctx, cmd.Uuid, func(p *product.Product) (*product.Product, error) {
+	if err := h.productRepo.UpdateProduct(ctx, cmd.Uuid, cmd.Category, func(p *product.Product) (*product.Product, error) {
 		// build specific product from category
 		f := product.MustNewFactory()
 
