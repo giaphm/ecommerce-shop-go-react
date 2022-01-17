@@ -1,11 +1,11 @@
 {
   "//": "emulating Firebase hosting, more: https://firebase.google.com/docs/hosting/reserved-urls?authuser=2",
-  
-  "apiKey": "AIzaSyDzBy_q7Ujr_F_G4JorwbbtGIVHTpoiJGY",
-  "authDomain": "ecommerce-shop-go-react.firebaseapp.com",
+
+  "apiKey": "",
+  "authDomain": "",
   "databaseURL": "",
-  "projectId": "ecommerce-shop-go-react",
-  "storageBucket": "ecommerce-shop-go-react.appspot.com",
-  "messagingSenderId": "1055847530932",
-  "appId": "1:1055847530932:web:3f4be10cd6376373f232e1"
+  "projectId": "",
+  "storageBucket": "",
+  "messagingSenderId": "",
+  "appId": ""
 }
