@@ -2,16 +2,15 @@ package adapters
 
 import (
 	"context"
-	"log"
-	"os"
 	"time"
 
 	"cloud.google.com/go/firestore"
 	query "github.com/giaphm/ecommerce-shop-go-react/internal/checkouts/app/query"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/checkouts/domain/checkout"
 	"github.com/pkg/errors"
-	stripe "github.com/stripe/stripe-go"
-	"github.com/stripe/stripe-go/charge"
+
+	// stripe "github.com/stripe/stripe-go"
+
 	"google.golang.org/api/iterator"
 )
 
@@ -52,25 +51,25 @@ func (f FirestoreCheckoutRepository) AddCheckout(
 
 	err := f.firestoreClient.RunTransaction(ctx, func(ctx context.Context, transaction *firestore.Transaction) error {
 
-		stripe.Key = os.Getenv("SK_STRIPE_KEY")
+		// stripe.Key = os.Getenv("SK_STRIPE_KEY")
 
-		params := &stripe.ChargeParams{
-			Amount:   stripe.Int64(int64(totalPrice * 100.0)),
-			Currency: stripe.String(string(stripe.CurrencyUSD)),
-			Source: &stripe.SourceParams{
-				Token: &tokenId,
-			},
-		}
-		params.SetSource("tok_visa")
-		params.AddMetadata("key", "value")
+		// params := &stripe.ChargeParams{
+		// 	Amount:   stripe.Int64(int64(totalPrice * 100.0)),
+		// 	Currency: stripe.String(string(stripe.CurrencyUSD)),
+		// 	Source: &stripe.SourceParams{
+		// 		Token: &tokenId,
+		// 	},
+		// }
+		// params.SetSource("tok_visa")
+		// params.AddMetadata("key", "value")
 
-		ch, err := charge.New(params)
+		// ch, err := charge.New(params)
 
-		if err != nil {
-			log.Fatal(err)
-			return err
-		}
-		log.Printf("%v\n", ch.ID)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// 	return err
+		// }
+		// log.Printf("%v\n", ch.ID)
 
 		newCheckout, err := f.checkoutFactory.NewCheckout(uuid, userUuid, orderUuid, notes, proposedTime)
 		if err != nil {
