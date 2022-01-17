@@ -1,4 +1,4 @@
-resource "google_sourcerepo_repository" "wild_workouts" {
+resource "google_sourcerepo_repository" "ecommerce_shop_go_react" {
   name = var.repository_name
 
   depends_on = [
@@ -9,12 +9,12 @@ resource "google_sourcerepo_repository" "wild_workouts" {
 resource "google_cloudbuild_trigger" "trigger" {
   trigger_template {
     branch_name = "master"
-    repo_name   = google_sourcerepo_repository.wild_workouts.name
+    repo_name   = google_sourcerepo_repository.ecommerce_shop_go_react.name
   }
 
   filename = "cloudbuild.yaml"
 
-  depends_on = [google_sourcerepo_repository.wild_workouts]
+  depends_on = [google_sourcerepo_repository.ecommerce_shop_go_react]
 }
 
 resource "null_resource" "firebase_builder" {

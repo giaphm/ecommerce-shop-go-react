@@ -8,7 +8,7 @@ data "google_billing_account" "account" {
 }
 
 resource "google_project" "project" {
-  name            = "Wild Workouts"
+  name            = "Ecommerce shop go react"
   project_id      = var.project
   billing_account = data.google_billing_account.account.id
 }

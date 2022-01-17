@@ -6,8 +6,13 @@ resource "null_resource" "enable_firestore" {
   depends_on = [google_firebase_project_location.default]
 }
 
-resource "google_firestore_index" "trainings_user_time" {
-  collection = "trainings"
+resource "google_firestore_index" "orders_user_time" {
+  collection = "orders"
+
+  fields {
+    field_path = "Uuid"
+    order      = "ASCENDING"
+  }
 
   fields {
     field_path = "UserUuid"
@@ -15,12 +20,12 @@ resource "google_firestore_index" "trainings_user_time" {
   }
 
   fields {
-    field_path = "Canceled"
+    field_path = "ProposedTime"
     order      = "ASCENDING"
   }
 
   fields {
-    field_path = "Time"
+    field_path = "ExpiresAt"
     order      = "ASCENDING"
   }
 

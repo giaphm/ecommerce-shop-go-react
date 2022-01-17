@@ -2,7 +2,6 @@ import * as React from "react";
 import type { NextPage } from "next";
 import Router from "next/router";
 
-import { Scrollbar } from "smooth-scrollbar-react";
 import {
   Button,
   List,

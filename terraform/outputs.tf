@@ -1,13 +1,21 @@
-output "trainer_grpc_url" {
-  value = module.cloud_run_trainer_grpc.url
+output "checkouts_http_url" {
+  value = module.cloud_run_checkouts_http.url
 }
 
-output "trainer_http_url" {
-  value = module.cloud_run_trainer_http.url
+output "orders_grpc_url" {
+  value = module.cloud_run_orders_grpc.url
 }
 
-output "trainings_http_url" {
-  value = module.cloud_run_trainings_http.url
+output "orders_http_url" {
+  value = module.cloud_run_orders_http.url
+}
+
+output "products_grpc_url" {
+  value = module.cloud_run_products_grpc.url
+}
+
+output "products_http_url" {
+  value = module.cloud_run_products_http.url
 }
 
 output "users_grpc_url" {
@@ -19,5 +27,5 @@ output "users_http_url" {
 }
 
 output "repo_url" {
-  value = google_sourcerepo_repository.wild_workouts.url
+  value = google_sourcerepo_repository.ecommerce_shop_go_react.url
 }

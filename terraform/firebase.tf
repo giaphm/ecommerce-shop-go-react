@@ -41,9 +41,9 @@ resource "google_firebase_project_location" "default" {
   ]
 }
 
-resource "google_firebase_web_app" "wild_workouts" {
+resource "google_firebase_web_app" "ecommerce_shop_go_react" {
   provider     = google-beta
-  display_name = "Wild Workouts"
+  display_name = "Ecommerce shop go react"
 
   depends_on = [google_firebase_project.default]
 }

@@ -19,7 +19,7 @@ func main() {
 	app, cleanup := service.NewApplication(ctx)
 	defer cleanup()
 
-	// go loadFixtures(application)
+	// go loadFixtures(application);
 
 	server.RunHTTPServer(func(router chi.Router) http.Handler {
 		return ports.HandlerFromMux(
