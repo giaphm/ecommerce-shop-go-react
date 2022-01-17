@@ -1,6 +1,6 @@
 {
   "//": "emulating Firebase hosting, more: https://firebase.google.com/docs/hosting/reserved-urls?authuser=2",
-
+  
   "apiKey": "AIzaSyDzBy_q7Ujr_F_G4JorwbbtGIVHTpoiJGY",
   "authDomain": "ecommerce-shop-go-react.firebaseapp.com",
   "databaseURL": "",
