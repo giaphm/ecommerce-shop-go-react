@@ -276,7 +276,7 @@ func (c ProductsHTTPClient) UpdateProduct(
 	quantity int,
 ) int {
 
-	response, err := c.client.UpdateProduct(context.Background(), productUuid, products.UpdateProductJSONRequestBody{
+	response, err := c.client.UpdateProductWithResponse(context.Background(), productUuid, products.UpdateProductJSONRequestBody{
 		Uuid:        productUuid,
 		UserUuid:    userUuid,
 		Category:    category,
@@ -290,7 +290,7 @@ func (c ProductsHTTPClient) UpdateProduct(
 	fmt.Println("err at client.UpdateProduct", err)
 
 	require.NoError(t, err)
-	return response.StatusCode
+	return response.StatusCode()
 }
 
 func (c ProductsHTTPClient) DeleteProduct(t *testing.T, productUuid string) int {
