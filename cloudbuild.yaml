@@ -158,7 +158,7 @@ steps:
 
 - id: web-deps
   name: node:12.22.0
-  entrypoint: yarn
+  entrypoint: npm
   args: [install]
   dir: web
   waitFor: ['-']
@@ -168,7 +168,7 @@ steps:
   waitFor: ['-']
 - id: web-build
   name: node:12.22.0
-  entrypoint: yarn
+  entrypoint: npm
   args: [build]
   dir: web
   waitFor: [web-deps, openapi-js]
