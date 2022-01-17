@@ -286,6 +286,8 @@ func (c ProductsHTTPClient) UpdateProduct(
 		Price:       price,
 		Quantity:    quantity,
 	})
+	fmt.Println("response at client.UpdateProduct", response)
+	fmt.Println("err at client.UpdateProduct", err)
 
 	require.NoError(t, err)
 	return response.StatusCode
