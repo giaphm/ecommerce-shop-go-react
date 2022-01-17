@@ -11,6 +11,10 @@ module cloud_run_checkouts_http {
 
   envs = [
     {
+      name  = "SK_STRIPE_KEY"
+      value = "sk_test_51JyZ0sDfLgIVzReBsAGBArZoJgRk7Vl71TUOooGAq8cTmgDYJycjkI46QFGHgjSWgdH4EkIq9qlhNfQJKhmgGz5M00G3x1tj8c"
+    },
+    {
       name  = "ORDERS_GRPC_ADDR"
       value = module.cloud_run_orders_grpc.endpoint
     },
