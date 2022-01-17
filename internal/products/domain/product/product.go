@@ -146,7 +146,6 @@ func (f Factory) NewTShirtProduct(
 func (f Factory) UnmarshalTShirtProductFromDatabase(
 	uuid string,
 	userUuid string,
-	categoryString string,
 	title string,
 	description string,
 	image string,
@@ -154,16 +153,11 @@ func (f Factory) UnmarshalTShirtProductFromDatabase(
 	quantity int,
 ) (IProductsFactory, error) {
 
-	category, err := NewCategoryFromString(categoryString)
-	if err != nil {
-		return nil, ErrEmptyCategory
-	}
-
 	return &TShirt{
 		product: Product{
 			uuid:        uuid,
 			userUuid:    userUuid,
-			category:    category,
+			category:    TShirtCategory,
 			title:       title,
 			description: description,
 			image:       image,
@@ -172,6 +166,36 @@ func (f Factory) UnmarshalTShirtProductFromDatabase(
 		},
 	}, nil
 }
+
+// func (f Factory) UnmarshalProductFromDatabase(
+// 	uuid string,
+// 	userUuid string,
+// 	categoryString string,
+// 	title string,
+// 	description string,
+// 	image string,
+// 	price float32,
+// 	quantity int,
+// ) (IProductsFactory, error) {
+
+// 	category, err := NewCategoryFromString(categoryString)
+// 	if err != nil {
+// 		return nil, ErrEmptyCategory
+// 	}
+
+// 	return &TShirt{
+// 		product: Product{
+// 			uuid:        uuid,
+// 			userUuid:    userUuid,
+// 			category:    category,
+// 			title:       title,
+// 			description: description,
+// 			image:       image,
+// 			price:       price,
+// 			quantity:    quantity,
+// 		},
+// 	}, nil
+// }
 
 var (
 	ErrEmptyCategory     = errors.New("The product category is empty")

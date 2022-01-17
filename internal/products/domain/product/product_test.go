@@ -112,7 +112,7 @@ func TestNewTShirtProduct_invalid_quantity_negative(t *testing.T) {
 func TestUnmarshalTShirtProductFromDatabase(t *testing.T) {
 	productUuid := uuid.New().String()
 	userUuid := uuid.New().String()
-	category := "tshirt"
+	// category := "tshirt"
 	title := "tshirt-1"
 	description := "This is a new item of our shop."
 	image := ""
@@ -122,7 +122,6 @@ func TestUnmarshalTShirtProductFromDatabase(t *testing.T) {
 	tsh, err := testProductFactory.UnmarshalTShirtProductFromDatabase(
 		productUuid,
 		userUuid,
-		category,
 		title,
 		description,
 		image,

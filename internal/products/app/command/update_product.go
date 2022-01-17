@@ -43,7 +43,7 @@ func (h UpdateProductHandler) Handle(ctx context.Context, cmd UpdateProduct) err
 					return nil, err
 				}
 
-				tshirtProduct, err := tshirtFactory.NewTShirtProduct(
+				tshirtProduct, err := tshirtFactory.UnmarshalTShirtProductFromDatabase(
 					p.GetUuid(),
 					p.GetUserUuid(),
 					p.GetTitle(),
