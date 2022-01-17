@@ -154,11 +154,11 @@ func TestCreateCheckout(t *testing.T) {
 	product2Response := productsHTTPClient.GetProduct(t, productUuid2)
 	fmt.Println("product2Response", product2Response)
 
-	deleteProductStatus := productsHTTPClient.DeleteProduct(
+	deleteProduct2Status := productsHTTPClient.DeleteProduct(
 		t,
 		productUuid2,
 	)
-	require.Equal(t, http.StatusNoContent, deleteProductStatus)
+	require.Equal(t, http.StatusNoContent, deleteProduct2Status)
 
 	// test orders http:
 	// - create order
@@ -246,6 +246,12 @@ func TestCreateCheckout(t *testing.T) {
 	// ordersResponse := ordersHTTPClient.GetOrders(t)
 	// require.Len(t, ordersResponse.Orders, 1)
 	// require.Equal(t, orderUUID, ordersResponse.Orders[0].Uuid, "User should see the order")
+
+	deleteProduct1Status := productsHTTPClient.DeleteProduct(
+		t,
+		productUuid1,
+	)
+	require.Equal(t, http.StatusNoContent, deleteProduct1Status)
 
 }
 

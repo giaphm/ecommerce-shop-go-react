@@ -178,8 +178,10 @@ func (f FirestoreProductsRepository) UpdateProduct(
 	productUuid string,
 	updateFn func(p *product.Product) (*product.Product, error),
 ) error {
+
+	productDocRef := f.documentRef(productUuid)
+
 	err := f.firestoreClient.RunTransaction(ctx, func(ctx context.Context, transaction *firestore.Transaction) error {
-		productDocRef := f.documentRef(productUuid)
 
 		// get all orders that have the product uuid
 		productSnapshot, err := transaction.Get(productDocRef)
