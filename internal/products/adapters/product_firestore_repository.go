@@ -192,7 +192,7 @@ func (f FirestoreProductsRepository) UpdateProduct(
 
 		var productModel *ProductModel = &ProductModel{}
 		if err := productSnapshot.DataTo(productModel); err != nil {
-			return nil, errors.Wrap(err, "unable to unmarshal product.Product from Firestore")
+			return errors.Wrap(err, "unable to unmarshal product.Product from Firestore")
 		}
 
 		productQuery := f.productModelToProductQuery(productModel)
