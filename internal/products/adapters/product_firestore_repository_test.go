@@ -599,7 +599,7 @@ func assertQueryProductsEquals(t *testing.T, expectedProducts, actualProducts []
 	)
 }
 
-func productModelToProductQuery(pm *ProductModel) *query.Product {
+func productModelToProductQuery(pm *adapters.ProductModel) *query.Product {
 
 	return &query.Product{
 		Uuid:        pm.Uuid,
