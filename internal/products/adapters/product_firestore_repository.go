@@ -213,7 +213,7 @@ func (f FirestoreProductsRepository) UpdateProduct(
 
 				updatedProductDomain, err := updateFn(tshirtProductDomain.GetProduct())
 				if err != nil {
-					return errors.Wrap(err, "unable to update hour")
+					return errors.Wrap(err, "unable to update product")
 				}
 
 				fmt.Println("productDocRef", productDocRef)
@@ -277,7 +277,6 @@ func (f FirestoreProductsRepository) getProductDTO(
 
 	productSnapshot, err := getDocumentFn()
 	if status.Code(err) == codes.NotFound {
-		// in reality this date exists, even if it's not persisted
 		return nil, errors.New("Product is not found")
 	}
 	if err != nil {
