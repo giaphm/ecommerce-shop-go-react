@@ -48,7 +48,7 @@ type ProductModel struct {
 type ProductsService interface {
 	GetProduct(ctx context.Context, productUuid string) (*ProductModel, error)
 	IsProductAvailable(ctx context.Context, productUuid string) (bool, error)
-	SellProduct(ctx context.Context, productUuid string) error
+	SellProduct(ctx context.Context, productUuid, categoryString string) error
 }
 
 type UsersService interface {
