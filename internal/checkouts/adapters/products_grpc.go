@@ -53,10 +53,11 @@ func (s ProductsGrpc) IsProductAvailable(ctx context.Context, productUuid string
 	return isProductAvailableResponse.IsAvailable, err
 }
 
-func (s ProductsGrpc) SellProduct(ctx context.Context, productUuid string) error {
+func (s ProductsGrpc) SellProduct(ctx context.Context, productUuid, categoryString string) error {
 
-	_, err := s.client.SellProduct(ctx, &products.UpdateProductRequest{
-		Uuid: productUuid,
+	_, err := s.client.SellProduct(ctx, &products.SellProductRequest{
+		Uuid:           productUuid,
+		CategoryString: categoryString,
 	})
 
 	return err

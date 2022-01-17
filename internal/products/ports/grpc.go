@@ -43,10 +43,11 @@ func (g GrpcServer) IsProductAvailable(ctx context.Context, request *products.Is
 	return &products.IsProductAvailableResponse{IsAvailable: isAvailable}, nil
 }
 
-func (g GrpcServer) SellProduct(ctx context.Context, request *products.UpdateProductRequest) (*products.EmptyResponse, error) {
+func (g GrpcServer) SellProduct(ctx context.Context, request *products.SellProductRequest) (*products.EmptyResponse, error) {
 
 	cmd := command.SellProduct{
-		Uuid: request.Uuid,
+		Uuid:           request.Uuid,
+		CategoryString: request.CategoryString,
 	}
 
 	err := g.app.Commands.SellProduct.Handle(ctx, cmd)

@@ -7,7 +7,7 @@ option go_package ="./products"; // Specify the RPC file generation path address
 service ProductsService {
   rpc GetProduct(GetProductRequest) returns (GetProductResponse) {}
   rpc IsProductAvailable(IsProductAvailableRequest) returns (IsProductAvailableResponse) {}
-  rpc SellProduct(UpdateProductRequest) returns (EmptyResponse) {}
+  rpc SellProduct(SellProductRequest) returns (EmptyResponse) {}
 }
 
 message GetProductRequest {
@@ -33,8 +33,9 @@ message IsProductAvailableResponse {
   bool is_available = 1;
 }
 
-message UpdateProductRequest {
+message SellProductRequest {
   string uuid = 1;
+  string category_string = 2;
 }
 
 message EmptyResponse {}
