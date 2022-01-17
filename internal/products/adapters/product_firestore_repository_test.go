@@ -48,8 +48,12 @@ func TestGetProductNotExists(t *testing.T) {
 		context.Background(),
 		productUUID,
 	)
-	assert.Nil(t, p)
-	require.Error(t, err)
+
+	emptyProductModel := adapters.NewEmptyProductDTO(productUuid)
+
+	emptyProductQueryModel := productModelToProductQuery(emptyProductModel)
+
+	assertQueryProductEquals(p, emptyProductQueryModel)
 	fmt.Println("-----------------Done this fucking testGetProductNotExists unit tests")
 }
 
@@ -593,4 +597,18 @@ func assertQueryProductsEquals(t *testing.T, expectedProducts, actualProducts []
 		cmp.Equal(expectedProducts, actualProducts, cmpOpts...),
 		cmp.Diff(expectedProducts, actualProducts, cmpOpts...),
 	)
+}
+
+func productModelToProductQuery(pm *ProductModel) *query.Product {
+
+	return &query.Product{
+		Uuid:        pm.Uuid,
+		UserUuid:    pm.UserUuid,
+		Category:    pm.Category,
+		Title:       pm.Title,
+		Description: pm.Description,
+		Image:       pm.Image,
+		Price:       pm.Price,
+		Quantity:    pm.Quantity,
+	}
 }
