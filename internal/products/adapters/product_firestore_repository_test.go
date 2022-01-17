@@ -496,7 +496,6 @@ func newUpdatedValidTShirtProductToProduct(t *testing.T, uuid, userUuid, title s
 	tshirtProduct, err := testProductFactory.UnmarshalTShirtProductFromDatabase(
 		uuid,
 		userUuid,
-		"tshirt",
 		title,
 		"test description",
 		"test image",
@@ -513,7 +512,6 @@ func newUpdatedInvalidTShirtProductToProduct(t *testing.T, uuid, userUuid, title
 	tsh, err := testProductFactory.UnmarshalTShirtProductFromDatabase(
 		uuid,
 		userUuid,
-		"tshirt",
 		title,
 		"test description",
 		"test image",
