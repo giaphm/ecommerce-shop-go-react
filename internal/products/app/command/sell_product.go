@@ -8,8 +8,8 @@ import (
 )
 
 type SellProduct struct {
-	Uuid     string
-	Category string
+	Uuid           string
+	CategoryString string
 }
 
 type SellProductHandler struct {
@@ -25,7 +25,7 @@ func NewSellProductHandler(productRepo product.Repository) SellProductHandler {
 }
 
 func (h SellProductHandler) Handle(ctx context.Context, cmd SellProduct) error {
-	if err := h.productRepo.UpdateProduct(ctx, cmd.Uuid, cmd.Category, func(p *product.Product) (*product.Product, error) {
+	if err := h.productRepo.UpdateProduct(ctx, cmd.Uuid, cmd.CategoryString, func(p *product.Product) (*product.Product, error) {
 		f := product.MustNewFactory()
 
 		if p.GetCategory().String() == "tshirt" {
