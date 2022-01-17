@@ -55,7 +55,7 @@ func (p ProductsServiceMock) IsProductAvailable(ctx context.Context, productUuid
 	return true, nil
 }
 
-func (p ProductsServiceMock) SellProduct(ctx context.Context, productUuid string) error {
+func (p ProductsServiceMock) SellProduct(ctx context.Context, productUuid, categoryString string) error {
 	return nil
 }
 

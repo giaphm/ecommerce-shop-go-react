@@ -92,7 +92,12 @@ func (h AddCheckoutHandler) Handle(ctx context.Context, cmd AddCheckout) error {
 
 	// call sellProduct
 	for _, orderItem := range order.OrderItems {
-		if err = h.productsService.SellProduct(ctx, orderItem.ProductUuid); err != nil {
+		product, err := h.productsService.GetProduct(ctx, orderItem.ProductUuid)
+		if err != nil {
+			return err
+		}
+
+		if err = h.productsService.SellProduct(ctx, orderItem.ProductUuid, product.Category); err != nil {
 			return err
 		}
 	}
