@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -18,6 +19,7 @@ import (
 )
 
 func RunHTTPServer(createHandler func(router chi.Router) http.Handler) {
+	fmt.Println("os.Getenv(\"PORT\"", os.Getenv("PORT"))
 	RunHTTPServerOnAddr(":"+os.Getenv("PORT"), createHandler)
 }
 
