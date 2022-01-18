@@ -190,7 +190,9 @@ func (h HttpServer) SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// sign up in firestore
+	fmt.Println("signupUserInFirebaseAuth: starting")
 	userUuid := signupUserInFirebaseAuth(w, r, user)
+	fmt.Println("signupUserInFirebaseAuth: successfuly")
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
 	if err != nil {
