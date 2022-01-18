@@ -200,22 +200,22 @@ func createUsersInDb(app app.Application, userUUIDs []string) error {
 	}{
 		{
 			// mock uuid
-			// Uuid:        "0",
-			Uuid:        userUUIDs[0],
+			// Uuid:        userUUIDs[0],
+			Uuid:        "0",
 			Email:       "shopkeeper1@gmail.com",
 			DisplayName: "Raheem Arnold",
 			Role:        "shopkeeper",
 		},
 		{
-			// Uuid:        "1",
-			Uuid:        userUUIDs[1],
+			// Uuid:        userUUIDs[1],
+			Uuid:        "1",
 			Email:       "user1@gmail.com",
 			DisplayName: "Mariusz Pudzianowski",
 			Role:        "user",
 		},
 		{
-			// Uuid:        "2",
-			Uuid:        userUUIDs[2],
+			// Uuid:        userUUIDs[2],
+			Uuid:        "2",
 			Email:       "user2@gmail.com",
 			DisplayName: "Arnold Schwarzenegger",
 			Role:        "user",
