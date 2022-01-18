@@ -53,7 +53,17 @@ export default function SignUp() {
   const [showInvalidSignupNotification, setShowInvalidSignupNotification] = React.useState(false);
 
   React.useEffect(() => {
-    if (Auth.isLoggedIn()) {
+    let isCurrentUserLoggedIn;
+    if(!getApps().length){
+      loadFirebaseConfig()
+        .then(() => {
+          isCurrentUserLoggedIn = Auth.isLoggedIn();
+        })
+    } else {
+      isCurrentUserLoggedIn = Auth.isLoggedIn();
+    }
+    console.log("isCurrentUserLoggedIn", isCurrentUserLoggedIn);
+    if (isCurrentUserLoggedIn) {
       Router.push("/");
     }
   }, []);
