@@ -47,11 +47,11 @@ func loadFixtures(app app.Application) {
 		}
 	} else {
 		// ugly copy from web/src/repositories/user.js
-		userUUIDs = []string{"1", "2"}
+		userUUIDs = []string{"0", "1", "2"}
 	}
 
 	for {
-		err = createUsersInDb(app)
+		err = createUsersInDb(app, userUUIDs)
 		if err == nil {
 			logrus.Debug("Database(Firestore database) users created")
 			break
@@ -128,9 +128,10 @@ func createFirebaseUsers() ([]string, error) {
 			if err != nil {
 				return nil, errors.Wrap(err, "unable to get created user")
 			}
-			if user.Role == "user" {
-				userUUIDs = append(userUUIDs, existingUser.UID)
-			}
+			// if user.Role == "user" {
+			// 	userUUIDs = append(userUUIDs, existingUser.UID)
+			// }
+			userUUIDs = append(userUUIDs, existingUser.UID)
 			continue
 		}
 		if err != nil {
@@ -144,9 +145,10 @@ func createFirebaseUsers() ([]string, error) {
 			return nil, err
 		}
 
-		if user.Role == "user" {
-			userUUIDs = append(userUUIDs, createdUser.UID)
-		}
+		// if user.Role == "user" {
+		// 	userUUIDs = append(userUUIDs, createdUser.UID)
+		// }
+		userUUIDs = append(userUUIDs, createdUser.UID)
 	}
 
 	return userUUIDs, nil
@@ -189,7 +191,7 @@ func setUserAmount(userUUIDs []string) error {
 	return nil
 }
 
-func createUsersInDb(app app.Application) error {
+func createUsersInDb(app app.Application, userUUIDs []string) error {
 	usersToCreate := []struct {
 		Uuid        string
 		Email       string
@@ -198,19 +200,22 @@ func createUsersInDb(app app.Application) error {
 	}{
 		{
 			// mock uuid
-			Uuid:        "0",
+			// Uuid:        "0",
+			Uuid:        userUUIDs[0],
 			Email:       "shopkeeper1@gmail.com",
 			DisplayName: "Raheem Arnold",
 			Role:        "shopkeeper",
 		},
 		{
-			Uuid:        "1",
+			// Uuid:        "1",
+			Uuid:        userUUIDs[1],
 			Email:       "user1@gmail.com",
 			DisplayName: "Mariusz Pudzianowski",
 			Role:        "user",
 		},
 		{
-			Uuid:        "2",
+			// Uuid:        "2",
+			Uuid:        userUUIDs[2],
 			Email:       "user2@gmail.com",
 			DisplayName: "Arnold Schwarzenegger",
 			Role:        "user",
