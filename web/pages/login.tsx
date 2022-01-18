@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useRouter } from "next/router";
+import { getApps } from "firebase/app";
 
 import {
   Backdrop,
@@ -26,6 +27,7 @@ import Snackbar from '@mui/material/Snackbar';
 import * as UsersAPI from "../src/repositories/users";
 import { Auth } from "../src/repositories/auth";
 import CurrentUserAppCtx from '../store/current-user-context'
+import { loadFirebaseConfig } from "../src/firebase";
 
 import { isEmpty } from "lodash";
 
@@ -76,7 +78,17 @@ export default function SignIn() {
   console.log("signedUp", signedUp)
 
   React.useEffect(() => {
-    if (Auth.isLoggedIn()) {
+    let isCurrentUserLoggedIn;
+    if(!getApps().length){
+      loadFirebaseConfig()
+        .then(() => {
+          isCurrentUserLoggedIn = Auth.isLoggedIn();
+        })
+    } else {
+      isCurrentUserLoggedIn = Auth.isLoggedIn();
+    }
+    console.log("isCurrentUserLoggedIn", isCurrentUserLoggedIn);
+    if (isCurrentUserLoggedIn) {
       router.push("/");
     }
     setShowLoggedOutNotification(loggedOut ? true : false);
