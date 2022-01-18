@@ -1,5 +1,7 @@
 import * as React from 'react';
 import Router from "next/router";
+import { getApps } from "firebase/app";
+
 
 import {
   Paper,
@@ -31,6 +33,7 @@ import Container from '@mui/material/Container';
 
 import * as UsersAPI from "../src/repositories/users";
 import { Auth } from "../src/repositories/auth";
+import { loadFirebaseConfig } from "../src/firebase";
 
 function Copyright(props: any) {
   return (
