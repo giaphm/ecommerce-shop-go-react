@@ -26,15 +26,6 @@ function MyApp({ Component, pageProps }: AppProps) {
     if(typeof window !== "undefined") {
       console.log(typeof window)
       loadFirebaseConfig()
-        .then(function () {
-            return Auth.waitForAuthReady()
-        })
-        .then(function () {
-            return Auth.getJwtToken(false)
-        })
-        .then(token => {
-            setApiClientsAuth(token)
-        })
     }
   }, [])
   
