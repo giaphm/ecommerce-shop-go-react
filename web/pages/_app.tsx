@@ -6,7 +6,6 @@ import CssBaseline from "@mui/material/CssBaseline";
 import theme, { darkTheme } from '../src/theme';
 import "../styles/globals.css";
 
-import { loadFirebaseConfig } from "../src/firebase";
 import { Auth, setApiClientsAuth } from "../src/repositories/auth";
 
 import CurrentUserAppCtx, { CurrentUser } from '../store/current-user-context';
@@ -22,18 +21,6 @@ function MyApp({ Component, pageProps }: AppProps) {
     balance: 0,
   })
   
-  useEffect(() => {
-    loadFirebaseConfig()
-      .then(function () {
-          return Auth.waitForAuthReady()
-      })
-      .then(function () {
-          return Auth.getJwtToken(false)
-      })
-      .then(token => {
-          setApiClientsAuth(token)
-      })
-  }, [])
   
   const fetchCurrentUser = (currentUser: CurrentUser) => {
       setCurrentUser({
