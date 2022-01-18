@@ -38,7 +38,6 @@ import * as ProductsAPI from "../src/repositories/products";
 import * as UsersAPI from "../src/repositories/users";
 import * as OrdersAPI from "../src/repositories/orders";
 import { Auth, setApiClientsAuth } from "../src/repositories/auth";
-import { loadFirebaseConfig } from "../src/firebase";
 
 import Layout from "../components/layout";
 import CurrentUserAppCtx from "../store/current-user-context";
@@ -117,11 +116,7 @@ const Home: NextPage = () => {
     console.log(typeof window);
     console.log("currentUserAppCtx", currentUserAppCtx);
     // const mockUserLoggedIn = JSON.parse(localStorage.getItem("_mock_user") || "{}")
-    let isCurrentUserLoggedIn;
-    loadFirebaseConfig()
-      .then(() => {
-        isCurrentUserLoggedIn = Auth.isLoggedIn();
-      })
+    const isCurrentUserLoggedIn = Auth.isLoggedIn();
     console.log("isCurrentUserLoggedIn", isCurrentUserLoggedIn);
     if (isCurrentUserLoggedIn) {
       const currentUser = Auth.currentUser();

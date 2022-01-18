@@ -7,6 +7,7 @@ import theme, { darkTheme } from '../src/theme';
 import "../styles/globals.css";
 
 import { Auth, setApiClientsAuth } from "../src/repositories/auth";
+import { loadFirebaseConfig } from "../src/firebase";
 
 import CurrentUserAppCtx, { CurrentUser } from '../store/current-user-context';
 
@@ -21,6 +22,21 @@ function MyApp({ Component, pageProps }: AppProps) {
     balance: 0,
   })
   
+  useEffect(() => {
+    if(typeof window !== "undefined") {
+      console.log(typeof window)
+      loadFirebaseConfig()
+        .then(function () {
+            return Auth.waitForAuthReady()
+        })
+        .then(function () {
+            return Auth.getJwtToken(false)
+        })
+        .then(token => {
+            setApiClientsAuth(token)
+        })
+    }
+  }, [])
   
   const fetchCurrentUser = (currentUser: CurrentUser) => {
       setCurrentUser({
