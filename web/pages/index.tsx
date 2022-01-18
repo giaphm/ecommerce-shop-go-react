@@ -117,16 +117,17 @@ const Home: NextPage = () => {
     console.log(typeof window);
     console.log("currentUserAppCtx", currentUserAppCtx);
     // const mockUserLoggedIn = JSON.parse(localStorage.getItem("_mock_user") || "{}")
-    const isCurrentUserLoggedIn = Auth.isLoggedIn();
+    let isCurrentUserLoggedIn;
+    loadFirebaseConfig()
+      .then(() => {
+        isCurrentUserLoggedIn = Auth.isLoggedIn();
+      })
     console.log("isCurrentUserLoggedIn", isCurrentUserLoggedIn);
     if (isCurrentUserLoggedIn) {
       const currentUser = Auth.currentUser();
       console.log("currentUser", currentUser);
       // toast.message("Hey buddy!")
-      loadFirebaseConfig()
-        .then(() => {
-          return Auth.waitForAuthReady()
-        })
+      Auth.waitForAuthReady()
         .then(() => {
           return Auth.getJwtToken(false)
         })
