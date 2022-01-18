@@ -1,6 +1,5 @@
 {
   "hosting": {
-		"site": "ecommerce-shop-go-react.web.app",
     "public": "./out",
     "ignore": [
       "firebase.json", 
