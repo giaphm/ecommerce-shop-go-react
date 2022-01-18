@@ -108,7 +108,7 @@ if (typeof window == "object") {
                     email,
                     password,
                 };
-                Auth.login(user) // set to local storage
+                Auth.login(user) // set to local storage for Mock Auth
                     .then(() => Auth.waitForAuthReady())
                     .then(() => {
                         return Auth.getJwtToken(false)
