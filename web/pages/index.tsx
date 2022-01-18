@@ -1,6 +1,7 @@
 import * as React from "react";
 import type { NextPage } from "next";
 import Router from "next/router";
+import { getApps } from "firebase/app";
 
 import {
   Button,
@@ -118,10 +119,14 @@ const Home: NextPage = () => {
     console.log("currentUserAppCtx", currentUserAppCtx);
     // const mockUserLoggedIn = JSON.parse(localStorage.getItem("_mock_user") || "{}")
     let isCurrentUserLoggedIn;
-    loadFirebaseConfig()
-      .then(() => {
-        isCurrentUserLoggedIn = Auth.isLoggedIn();
-      })
+    if(!getApps().length){
+      loadFirebaseConfig()
+        .then(() => {
+          isCurrentUserLoggedIn = Auth.isLoggedIn();
+        })
+    } else {
+      isCurrentUserLoggedIn = Auth.isLoggedIn();
+    }
     console.log("isCurrentUserLoggedIn", isCurrentUserLoggedIn);
     if (isCurrentUserLoggedIn) {
       const currentUser = Auth.currentUser();
