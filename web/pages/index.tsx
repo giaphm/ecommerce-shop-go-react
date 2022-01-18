@@ -129,7 +129,7 @@ const Home: NextPage = () => {
     }
     console.log("isCurrentUserLoggedIn", isCurrentUserLoggedIn);
     if (isCurrentUserLoggedIn) {
-      const currentUser = Auth.currentUser();
+      // const currentUser = Auth.currentUser();
       UsersAPI.getCurrentUser((currentUser: any) => {
         console.log("currentUser", currentUser);
         // toast.message("Hey buddy!")
