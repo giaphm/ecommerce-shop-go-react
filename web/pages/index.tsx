@@ -130,65 +130,67 @@ const Home: NextPage = () => {
     console.log("isCurrentUserLoggedIn", isCurrentUserLoggedIn);
     if (isCurrentUserLoggedIn) {
       const currentUser = Auth.currentUser();
-      console.log("currentUser", currentUser);
-      // toast.message("Hey buddy!")
-      Auth.waitForAuthReady()
-        .then(() => {
-          return Auth.getJwtToken(false)
-        })
-        .then((token: string) => setApiClientsAuth(token))
-        .then(() => {
-          console.log("ProductsAPI.productsClient", ProductsAPI.productsClient);
-        
-          console.log("UsersAPI.usersClient", UsersAPI.usersClient);
-          console.log("currentUser", currentUser);
-          currentUserAppCtx!.fetchCurrentUser({
-            uuid: currentUser["uuid"],
-            email: currentUser["email"],
-            displayName: currentUser["displayName"],
-            role: currentUser["role"],
-            balance: currentUser["balance"],
-          });
-          console.log("currentUserAppCtx", currentUserAppCtx);
-    
-          UsersAPI.getUsers((users: any) => {
+      UsersAPI.getCurrentUser((currentUser: any) => {
+        console.log("currentUser", currentUser);
+        // toast.message("Hey buddy!")
+        Auth.waitForAuthReady()
+          .then(() => {
+            return Auth.getJwtToken(false)
+          })
+          .then((token: string) => setApiClientsAuth(token))
+          .then(() => {
+            console.log("ProductsAPI.productsClient", ProductsAPI.productsClient);
+          
             console.log("UsersAPI.usersClient", UsersAPI.usersClient);
-            console.log(
-              "UsersAPI.usersClient.authentications",
-              UsersAPI.usersClient.authentications
-            );
-            console.log("users", users);
-            console.log("setUsers(users);");
-            setUsers(users);
-            
-            ProductsAPI.getProducts((products: any) => {
-              console.log("ProductsAPI.productsClient", ProductsAPI.productsClient);
-              console.log(
-                "ProductsAPI.productsClient.authentications",
-                ProductsAPI.productsClient.authentications
-              );
-              console.log("products", products);
-              const productsWithDisplayName: any[] = [];
-              products.map((product: any) => {
-                // console.log("product", product);
-                users.forEach((user: any) => {
-                  // console.log("user", user);
-                  if (user.uuid === product.userUuid) {
-                    productsWithDisplayName.push({
-                      displayName: user.displayName,
-                      ...product,
-                    });
-                  }
-                });
-              });
-              console.log("setProducts(productsWithDisplayName)");
-              setProducts(productsWithDisplayName);
+            console.log("currentUser", currentUser);
+            currentUserAppCtx!.fetchCurrentUser({
+              uuid: currentUser["uuid"],
+              email: currentUser["email"],
+              displayName: currentUser["displayName"],
+              role: currentUser["role"],
+              balance: currentUser["balance"],
             });
-        
-            console.log("setIsLoading(true);");
-            setIsLoading(true);
-          });
-        })
+            console.log("currentUserAppCtx", currentUserAppCtx);
+      
+            UsersAPI.getUsers((users: any) => {
+              console.log("UsersAPI.usersClient", UsersAPI.usersClient);
+              console.log(
+                "UsersAPI.usersClient.authentications",
+                UsersAPI.usersClient.authentications
+              );
+              console.log("users", users);
+              console.log("setUsers(users);");
+              setUsers(users);
+              
+              ProductsAPI.getProducts((products: any) => {
+                console.log("ProductsAPI.productsClient", ProductsAPI.productsClient);
+                console.log(
+                  "ProductsAPI.productsClient.authentications",
+                  ProductsAPI.productsClient.authentications
+                );
+                console.log("products", products);
+                const productsWithDisplayName: any[] = [];
+                products.map((product: any) => {
+                  // console.log("product", product);
+                  users.forEach((user: any) => {
+                    // console.log("user", user);
+                    if (user.uuid === product.userUuid) {
+                      productsWithDisplayName.push({
+                        displayName: user.displayName,
+                        ...product,
+                      });
+                    }
+                  });
+                });
+                console.log("setProducts(productsWithDisplayName)");
+                setProducts(productsWithDisplayName);
+              });
+          
+              console.log("setIsLoading(true);");
+              setIsLoading(true);
+            });
+          })
+      })
     } else if (!currentUserAppCtx!["uuid"]) {
       Router.push("/login");
     }
