@@ -104,7 +104,10 @@ if (typeof window == "object") {
             if (!error) {
                 console.log("Calling signin to users service successfully!")
 
-                const user = data;
+                const user = {
+                    email,
+                    password,
+                };
                 Auth.login(user) // set to local storage
                     .then(() => Auth.waitForAuthReady())
                     .then(() => {
