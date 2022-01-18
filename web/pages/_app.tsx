@@ -22,12 +22,12 @@ function MyApp({ Component, pageProps }: AppProps) {
     balance: 0,
   })
   
-  useEffect(() => {
-    if(typeof window !== "undefined") {
-      console.log(typeof window)
-      loadFirebaseConfig()
-    }
-  }, [])
+  // useEffect(() => {
+  //   if(typeof window !== "undefined") {
+  //     console.log(typeof window)
+  //     loadFirebaseConfig()
+  //   }
+  // }, [])
   
   const fetchCurrentUser = (currentUser: CurrentUser) => {
       setCurrentUser({
