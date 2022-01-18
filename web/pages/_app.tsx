@@ -28,7 +28,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   //     loadFirebaseConfig()
   //   }
   // }, [])
-  
+  // 
   const fetchCurrentUser = (currentUser: CurrentUser) => {
       setCurrentUser({
         uuid: currentUser["uuid"],
