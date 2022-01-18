@@ -9,10 +9,6 @@
     ],
     "rewrites": [
       {
-        "source": "**",
-        "function": "nextjsFunc"
-      },
-      {
         "source": "/api/checkouts{,/**}",
         "run": {
           "serviceId": "checkouts-http",
