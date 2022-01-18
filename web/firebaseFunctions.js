@@ -13,5 +13,7 @@ const nextjsServer = next({
 const nextjsHandle = nextjsServer.getRequestHandler()
 
 exports.nextjsFunc = https.onRequest((req, res) => {
+  console.log("req", req)
+  console.log("res", res)
   return nextjsServer.prepare().then(() => nextjsHandle(req, res))
 })
