@@ -42,12 +42,15 @@ func NewFirestoreUserRepository(firestoreClient *firestore.Client, userFactory u
 }
 
 func (f FirestoreUserRepository) GetCurrentUser(ctx context.Context, userUuid string) (*query.User, error) {
+	fmt.Println("userUuid", userUuid)
 	userDoc, err := f.UserDocumentRef(userUuid).Get(ctx)
 
 	if err != nil && status.Code(err) != codes.NotFound {
+		fmt.Println("err not nil but not found")
 		return nil, err
 	}
 	if err != nil && status.Code(err) == codes.NotFound {
+		fmt.Println("err not nil and not found")
 		return nil, err
 	}
 
