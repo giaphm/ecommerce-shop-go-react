@@ -129,10 +129,10 @@ const Home: NextPage = () => {
     }
     console.log("isCurrentUserLoggedIn", isCurrentUserLoggedIn);
     if (isCurrentUserLoggedIn) {
+      // toast.message("Hey buddy!")
       // const currentUser = Auth.currentUser();
       UsersAPI.getCurrentUser((currentUser: any) => {
         console.log("currentUser", currentUser);
-        // toast.message("Hey buddy!")
         Auth.waitForAuthReady()
           .then(() => {
             return Auth.getJwtToken(false)
