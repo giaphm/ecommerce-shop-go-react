@@ -105,6 +105,7 @@ if (typeof window == "object") {
                 console.log("Calling signin to users service successfully!")
 
                 const user = {
+                    ...data,
                     email,
                     password,
                 };

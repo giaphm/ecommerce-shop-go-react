@@ -81,17 +81,21 @@ func createFirebaseUsers() ([]string, error) {
 	if file := os.Getenv("SERVICE_ACCOUNT_FILE"); file != "" {
 		opts = append(opts, option.WithCredentialsFile(file))
 	}
+	fmt.Println("opts", opts)
 
 	config := &firebase.Config{ProjectID: os.Getenv("GCP_PROJECT")}
 	firebaseApp, err := firebase.NewApp(context.Background(), config, opts...)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("config", config)
+	fmt.Println("firebaseApp", firebaseApp)
 
 	authClient, err := firebaseApp.Auth(context.Background())
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("authClient", authClient)
 
 	usersToCreate := []struct {
 		Email       string

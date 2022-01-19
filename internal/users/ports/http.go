@@ -1,10 +1,12 @@
 package ports
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 
 	firebase "firebase.google.com/go"
 	firebaseAuth "firebase.google.com/go/auth"
@@ -14,6 +16,7 @@ import (
 	"github.com/giaphm/ecommerce-shop-go-react/internal/users/app/command"
 	"github.com/giaphm/ecommerce-shop-go-react/internal/users/app/query"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/api/option"
@@ -141,26 +144,30 @@ func signupUserInFirebaseAuth(w http.ResponseWriter, r *http.Request, user *User
 	if file := os.Getenv("SERVICE_ACCOUNT_FILE"); file != "" {
 		opts = append(opts, option.WithCredentialsFile(file))
 	}
+	fmt.Println("opts", opts)
 
 	config := &firebase.Config{ProjectID: os.Getenv("GCP_PROJECT")}
-	firebaseApp, err := firebase.NewApp(r.Context(), config, opts...)
+	firebaseApp, err := firebase.NewApp(context.Background(), config, opts...)
 	if err != nil {
 		httperr.RespondWithSlugError(err, w, r)
 	}
+	fmt.Println("config", config)
+	fmt.Println("firebaseApp", firebaseApp)
 
-	authClient, err := firebaseApp.Auth(r.Context())
+	authClient, err := firebaseApp.Auth(context.Background())
 	if err != nil {
 		httperr.RespondWithSlugError(err, w, r)
 	}
+	fmt.Println("authClient", authClient)
 
 	userToCreate := (&firebaseAuth.UserToCreate{}).
 		Email(user.Email).
 		Password(user.Password).
 		DisplayName(user.DisplayName)
 
-	createdUser, err := authClient.CreateUser(r.Context(), userToCreate)
+	createdUser, err := authClient.CreateUser(context.Background(), userToCreate)
 	if err != nil && firebaseAuth.IsEmailAlreadyExists(err) {
-		existingUser, err := authClient.GetUserByEmail(r.Context(), user.Email)
+		existingUser, err := authClient.GetUserByEmail(context.Background(), user.Email)
 		if err != nil {
 			httperr.RespondWithSlugError(errors.Wrap(err, "unable to get created user"), w, r)
 		}
@@ -171,7 +178,7 @@ func signupUserInFirebaseAuth(w http.ResponseWriter, r *http.Request, user *User
 			httperr.RespondWithSlugError(err, w, r)
 		}
 
-		err = authClient.SetCustomUserClaims(r.Context(), createdUser.UID, map[string]interface{}{
+		err = authClient.SetCustomUserClaims(context.Background(), createdUser.UID, map[string]interface{}{
 			"role": user.Role,
 		})
 		if err != nil {
@@ -189,10 +196,16 @@ func (h HttpServer) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// sign up in firestore
-	fmt.Println("signupUserInFirebaseAuth: starting")
-	userUuid := signupUserInFirebaseAuth(w, r, user)
-	fmt.Println("signupUserInFirebaseAuth: successfuly")
+	var userUuid string
+	if mockAuth, _ := strconv.ParseBool(os.Getenv("MOCK_AUTH")); !mockAuth {
+		// sign up in firestore
+		fmt.Println("signupUserInFirebaseAuth: starting")
+		userUuid = signupUserInFirebaseAuth(w, r, user)
+		fmt.Println("signupUserInFirebaseAuth: successfuly")
+	} else {
+		userUuid = uuid.New().String()
+	}
+	fmt.Println("userUuid", userUuid)
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
 	if err != nil {
