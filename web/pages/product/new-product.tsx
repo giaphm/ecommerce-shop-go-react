@@ -101,7 +101,7 @@ export default function ProductForm(props: any) {
 
   React.useEffect(() => {
     if (redirect) {
-      router.push("/products");
+      router.push("/products/your-products");
     }
   }, [redirect]);
 
