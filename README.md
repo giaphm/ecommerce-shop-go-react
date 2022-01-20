@@ -9,7 +9,7 @@ Ecommerce shop is a project using golang with Clean Architecture, DDD, CQRS, and
 - [internal](internal/) application code
 - [scripts](scripts/) deployment and development scripts
 - [terraform](terraform/) - infrastructure definition
-- [web](web/) - frontend JavaScript code
+- [web](web/) - frontend JavaScript code(React, Nextjs, Typescript)
 
 ### Running locally
 
@@ -23,7 +23,7 @@ web_1             |  DONE  Compiled successfully in 6315ms11:18:26 AM
 web_1             |
 web_1             |
 web_1             |   App running at:
-web_1             |   - Local:   http://localhost:8080/
+web_1             |   - Local:   http://localhost:3000/
 web_1             |
 web_1             |   It seems you are running Vue CLI inside a container.
 web_1             |   Access the dev server via http://localhost:<your container's external mapped port>/
