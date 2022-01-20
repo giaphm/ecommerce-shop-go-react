@@ -1,6 +1,6 @@
 # Ecommerce shop
 
-Ecommerce shop is a project using golang with Clean Architecture, DDD, CQRS, and
+Ecommerce shop is a project using golang with Clean Architecture, DDD, CQRS, and React, Nextjs, Typescript
 
 ### Directories
 
