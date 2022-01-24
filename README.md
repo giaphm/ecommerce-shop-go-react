@@ -31,3 +31,8 @@ web_1             |
 web_1             |   Note that the development build is not optimized.
 web_1             |   To create a production build, run yarn build.
 ```
+
+### Testing
+```go
+> make test
+```
