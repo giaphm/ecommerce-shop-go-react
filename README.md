@@ -18,18 +18,13 @@ Ecommerce shop is a project using golang with Clean Architecture, DDD, CQRS, and
 
 # ...
 
-web_1             |  INFO  Starting development server...
-web_1             |  DONE  Compiled successfully in 6315ms11:18:26 AM
-web_1             |
-web_1             |
-web_1             |   App running at:
-web_1             |   - Local:   http://localhost:3000/
-web_1             |
-web_1             |   It seems you are running Vue CLI inside a container.
-web_1             |   Access the dev server via http://localhost:<your container's external mapped port>/
-web_1             |
-web_1             |   Note that the development build is not optimized.
-web_1             |   To create a production build, run yarn build.
+web_1                        | audited 658 packages in 63.776s
+web_1                        |
+web_1                        | > web-next@ dev /web
+web_1                        | > next dev
+web_1                        |
+web_1                        | ready - started server on 0.0.0.0:3000, url: http://localhost:3000
+web_1                        | event - compiled client and server successfully in 7.9s (469 modules)
 ```
 
 ### Testing
